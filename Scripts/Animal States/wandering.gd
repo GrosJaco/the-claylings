@@ -3,11 +3,26 @@ extends AnimalState
 @export var wander_radius := 64
 
 func enter(msg := {}) -> void:
-	var target_pos = animal.global_position + Vector2(randf_range(-wander_radius, wander_radius), randf_range(-wander_radius, wander_radius))
-	while animal.world.building_manager.used_tiles.has(animal.world.get_grid_position(target_pos)):
-		target_pos = animal.global_position + Vector2(randf_range(-wander_radius, wander_radius), randf_range(-wander_radius, wander_radius))
-	animal.move_to(target_pos)
-	animal.sprite.play("run")
+	var target_pos = animal.global_position
+	var found = false
+	for attempt in range(20):
+		var candidate = animal.global_position + Vector2(randf_range(-wander_radius, wander_radius), randf_range(-wander_radius, wander_radius))
+		if animal.world and animal.world.building_manager:
+			var grid_pos = animal.world.get_grid_position(candidate)
+			if not animal.world.building_manager.used_tiles.has(grid_pos):
+				target_pos = candidate
+				found = true
+				break
+		else:
+			target_pos = candidate
+			found = true
+			break
+
+	if found:
+		animal.move_to(target_pos)
+		animal.sprite.play("run")
+	else:
+		animal.change_state("Idle")
 
 func update(delta: float) -> void:
 	# If there is a threat, flee immediately

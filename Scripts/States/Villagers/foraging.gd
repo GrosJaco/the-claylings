@@ -36,7 +36,7 @@ func update(delta: float) -> void:
 
 	# --- MOVEMENT LOGIC ---
 	var dist = clayling.global_position.distance_to(clayling.agent.target_position)
-	if dist > 5.0 and not clayling.agent.is_navigation_finished():
+	if dist > 14.0:
 		return
 		
 	# We arrived at the plant

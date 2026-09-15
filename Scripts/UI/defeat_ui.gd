@@ -20,6 +20,9 @@ func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	add_to_group("defeat_ui")
 	z_index = 200
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if dark_overlay:
+		dark_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	if restart_button:
 		restart_button.pressed.connect(_restart_game)
@@ -52,12 +55,23 @@ func show_defeat() -> void:
 	visible = true
 	modulate.a = 0.0
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	if dark_overlay:
+		dark_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(self, "modulate:a", 1.0, 0.8)
 
 	if restart_button:
 		restart_button.grab_focus()
+
+func reset_defeat() -> void:
+	_is_active = false
+	_is_restarting = false
+	visible = false
+	modulate.a = 0.0
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if dark_overlay:
+		dark_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _input(event: InputEvent) -> void:
 	if not _is_active or _is_restarting:

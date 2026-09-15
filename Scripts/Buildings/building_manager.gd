@@ -66,7 +66,7 @@ func _input(event):
 
 	# Key bindings for building selection
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_A:
+		if event.keycode == KEY_A and event.ctrl_pressed:
 			start_preview(storage_building_scene)
 		if event.keycode == KEY_B:
 			if is_previewing and current_preview_scene == soil_tile_scene:
@@ -77,7 +77,7 @@ func _input(event):
 			start_preview(furnace_scene)
 		if event.keycode == KEY_O:
 			start_preview(forge_scene)
-		if event.keycode == KEY_W:
+		if event.keycode == KEY_W and event.ctrl_pressed:
 			if weapon_rack_scene:
 				start_preview(weapon_rack_scene)
 		if event.keycode == KEY_T:
@@ -246,9 +246,11 @@ func confirm_placement():
 		placed.add_to_group("central_crystal")
 		initial_crystal_placed.emit(placed)
 
-func cancel_preview():
-	if is_mandatory_placement:
+func cancel_preview(force: bool = false):
+	if is_mandatory_placement and not force:
 		return
+	if force:
+		is_mandatory_placement = false
 	is_dragging_placement = false
 	if preview_instance:
 		preview_instance.queue_free()

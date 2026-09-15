@@ -27,6 +27,18 @@ func _process(delta: float):
 			is_centering = false
 	
 	var direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	if direction == Vector2.ZERO:
+		var dx = 0.0
+		var dy = 0.0
+		if Input.is_physical_key_pressed(KEY_RIGHT) or Input.is_physical_key_pressed(KEY_D):
+			dx += 1.0
+		if Input.is_physical_key_pressed(KEY_LEFT) or Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_Q):
+			dx -= 1.0
+		if Input.is_physical_key_pressed(KEY_DOWN) or Input.is_physical_key_pressed(KEY_S):
+			dy += 1.0
+		if Input.is_physical_key_pressed(KEY_UP) or Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_Z):
+			dy -= 1.0
+		direction = Vector2(dx, dy).normalized()
 	
 	if direction != Vector2.ZERO:
 		is_centering = false
@@ -38,6 +50,13 @@ func _unhandled_input(event: InputEvent):
 			dragging = event.pressed
 			if dragging:
 				is_centering = false
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			var rts = get_tree().get_first_node_in_group("rts_controller")
+			var has_selected_soldiers = rts != null and "selected_soldiers" in rts and not rts.selected_soldiers.is_empty()
+			if not has_selected_soldiers:
+				dragging = event.pressed
+				if dragging:
+					is_centering = false
 
 	elif event is InputEventMouseMotion and dragging:
 		is_centering = false

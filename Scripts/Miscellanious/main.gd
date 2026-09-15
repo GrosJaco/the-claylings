@@ -96,11 +96,14 @@ func spawn_clayling(pos, mob):
 			clayling.global_position = pos
 			add_child(clayling)
 			active_claylings.append(clayling)
+			return clayling
 	if mob == "chicken":
 		if chicken_scene:
 			var chicken = chicken_scene.instantiate()
 			chicken.global_position = pos
 			add_child(chicken)
+			return chicken
+	return null
 
 func spawn_enemy(pos: Vector2, enemy_type: String = "blue_spider") -> void:
 	var enemy_scene: PackedScene = null
@@ -674,7 +677,8 @@ func drop_item(data: ItemData, quantity: int, grid_pos: Vector2i) -> void:
 	while remainder > 0:
 		var inst: WorldItem = item_scene.instantiate()
 		inst.data = data
-		var take = min(remainder, data.stack_size)
+		var stack = max(1, data.stack_size)
+		var take = min(remainder, stack)
 		inst.quantity = take
 		inst.position = world_pos + Vector2(randi_range(-3,3), randi_range(-3,3))
 		add_child(inst)
@@ -707,6 +711,11 @@ func _ready():
 	var task_menu = get_node_or_null("CanvasLayer/TaskPriorityMenu")
 	if task_menu:
 		task_menu.quota_changed.connect(_on_quota_changed)
+
+	var save_mgr = get_node_or_null("/root/SaveManager")
+	if save_mgr and save_mgr.has_method("has_pending_load") and save_mgr.has_pending_load():
+		save_mgr.apply_pending_load(self)
+
 
 func get_active_clayling_count() -> int:
 	var count = 0
@@ -755,7 +764,7 @@ func _input(event: InputEvent) -> void:
 			get_tree().call_group("weapon_racks", "debug_fill_random_kit")
 		if event.keycode == KEY_K:
 			debug_kill_all_claylings()
-		if event.keycode == KEY_S:
+		if event.keycode == KEY_S and event.ctrl_pressed:
 			debug_all_claylings_to_spearmen()
 		if event.keycode == KEY_N:
 			spawn_enemy(get_global_mouse_position(), "blue_spider")

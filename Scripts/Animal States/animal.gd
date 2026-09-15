@@ -19,6 +19,9 @@ var states := {}
 var current_state: AnimalState
 
 func _ready():
+	add_to_group("chicken")
+	add_to_group("animals")
+
 	# Load states dynamically
 	states["Idle"] = preload("res://Scripts/Animal States/idle.gd").new()
 	states["Wander"] = preload("res://Scripts/Animal States/wandering.gd").new()

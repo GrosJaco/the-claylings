@@ -40,6 +40,7 @@ var _last_known_unemployed: int = -1
 var _initialized: bool = false
 
 func _ready():
+	add_to_group("task_priority_menu")
 	margin_container.visible = false
 	
 	if toggle_button:
@@ -124,8 +125,6 @@ func _refresh_total(force: bool) -> void:
 	if force or total_changed:
 		for task_name in task_names:
 			_sliders[task_name].max_value = total
-			if force:
-				_sliders[task_name].set_value_no_signal(0)
 
 func _create_row(task_name: String) -> void:
 	var row = HBoxContainer.new()
@@ -179,4 +178,19 @@ func _on_slider_value_changed(value: float, task_name: String) -> void:
 	_value_labels[task_name].text = str(actual_value)
 	quota_changed.emit(task_name, actual_value)
 	
+	_refresh_total(false)
+
+func load_quotas(new_quotas: Dictionary) -> void:
+	var w = _get_world()
+	var total = w.get_active_clayling_count() if (w and w.has_method("get_active_clayling_count")) else _last_known_total
+	for task_name in task_names:
+		if _sliders.has(task_name) and is_instance_valid(_sliders[task_name]):
+			_sliders[task_name].max_value = max(total, 1)
+		if new_quotas.has(task_name):
+			var val = int(new_quotas[task_name])
+			task_quotas[task_name] = val
+			if _sliders.has(task_name) and is_instance_valid(_sliders[task_name]):
+				_sliders[task_name].set_value_no_signal(val)
+			if _value_labels.has(task_name) and is_instance_valid(_value_labels[task_name]):
+				_value_labels[task_name].text = str(val)
 	_refresh_total(false)

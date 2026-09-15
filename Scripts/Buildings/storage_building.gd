@@ -8,6 +8,7 @@ var inventory: Dictionary = {}
 var current_fill: int = 0
 
 func _ready() -> void:
+	super._ready()
 	add_to_group("storage")
 	update_sprite()
 

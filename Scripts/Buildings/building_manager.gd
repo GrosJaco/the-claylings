@@ -64,25 +64,7 @@ func _input(event):
 	if is_mandatory_placement and event is InputEventKey and event.pressed:
 		return
 
-	# Key bindings for building selection
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_A and event.ctrl_pressed:
-			start_preview(storage_building_scene)
-		if event.keycode == KEY_B:
-			if is_previewing and current_preview_scene == soil_tile_scene:
-				cancel_preview()
-			else:
-				start_preview(soil_tile_scene)
-		if event.keycode == KEY_F:
-			start_preview(furnace_scene)
-		if event.keycode == KEY_O:
-			start_preview(forge_scene)
-		if event.keycode == KEY_W and event.ctrl_pressed:
-			if weapon_rack_scene:
-				start_preview(weapon_rack_scene)
-		if event.keycode == KEY_T:
-			if sapling_scene:
-				start_preview(sapling_scene)
 		if event.keycode == KEY_ESCAPE:
 			if is_previewing and not is_mandatory_placement:
 				cancel_preview()
@@ -207,7 +189,9 @@ func confirm_placement():
 		return
 
 	var spawn_position = preview_instance.global_position
-	var is_blueprint = not current_build_cost.is_empty()
+	# Dev mode places finished building directly without blueprint or resource cost
+	var is_dev = Global.dev_mode if ("dev_mode" in Global) else false
+	var is_blueprint = not current_build_cost.is_empty() and not is_dev
 	var placed: Node2D
 
 	if is_blueprint:

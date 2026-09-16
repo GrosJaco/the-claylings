@@ -1577,7 +1577,6 @@ rock_scenes = Array[PackedScene]([ExtResource("8_b3802")])
 copper_scenes = Array[PackedScene]([ExtResource("10_ee4r6")])
 iron_scenes = Array[PackedScene]([ExtResource("9_fevyy")])
 gold_scenes = Array[PackedScene]([ExtResource("15_gt3je")])
-terrain_seed = 2282610420
 walls_threshold = 0.3
 water_threshold = -0.3
 iron_patch_size = 20

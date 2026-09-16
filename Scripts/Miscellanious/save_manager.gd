@@ -126,6 +126,7 @@ func save_game(slot_name: String = "quicksave") -> bool:
 		"water_levels": {},
 		"crops": {},
 		"buildings": [],
+		"resources": [],
 		"claylings": [],
 		"animals": [],
 		"ground_items": [],
@@ -248,6 +249,37 @@ func save_game(slot_name: String = "quicksave") -> bool:
 				b_dict["b_type"] = "generic"
 
 			save_data["buildings"].append(b_dict)
+
+	# 3b. Natural & planted resources (Trees, Rocks, Ores, Plants, Saplings)
+	var seen_resources: Dictionary = {}
+	var resource_groups = ["trees", "rocks", "ores", "plants", "saplings"]
+	for grp in resource_groups:
+		for r in get_tree().get_nodes_in_group(grp):
+			if not is_instance_valid(r) or r.is_queued_for_deletion() or r.get("is_preview"):
+				continue
+			var rid = r.get_instance_id()
+			if seen_resources.has(rid):
+				continue
+			seen_resources[rid] = true
+
+			var r_health = r.get("current_health") if "current_health" in r else 100
+			if r_health <= 0 and "max_health" in r:
+				r_health = r.max_health
+
+			var r_dict: Dictionary = {
+				"scene_path": r.scene_file_path,
+				"x": r.global_position.x,
+				"y": r.global_position.y,
+				"health": r_health,
+				"group": grp
+			}
+
+			if r is Sapling:
+				r_dict["is_sapling"] = true
+				r_dict["current_timer"] = r.current_timer
+				r_dict["is_growing"] = r.is_growing
+
+			save_data["resources"].append(r_dict)
 
 	# 4. Claylings
 	for c in get_tree().get_nodes_in_group("claylings"):
@@ -443,13 +475,40 @@ func apply_pending_load(main: Node2D) -> void:
 		if t_menu and t_menu.has_method("load_quotas"):
 			t_menu.load_quotas(data["task_quotas"])
 
-	# 4. Terrain Seed
+	_clear_main_reservations(main)
+
+	# 4. Terrain Seed & Natural Resources
 	var saved_seed = int(env.get("seed", 0))
+	var has_saved_resources = data.has("resources")
 	if terrain and "terrain_seed" in terrain:
-		if terrain.terrain_seed != saved_seed and saved_seed != 0:
+		if saved_seed != 0:
 			terrain.terrain_seed = saved_seed
-			terrain.setup_noise()
-			terrain.generate_terrain()
+		terrain.rng.seed = terrain.terrain_seed
+		terrain.setup_noise()
+		if has_saved_resources:
+			terrain.generate_terrain(false)
+		else:
+			terrain.generate_terrain(true)
+
+	# 4b. Restore Resources (Trees, Rocks, Ores, Plants, Saplings)
+	if has_saved_resources:
+		for r_dict in data.get("resources", []):
+			var r_path = r_dict.get("scene_path", "")
+			if not ResourceLoader.exists(r_path):
+				continue
+			var r_scene: PackedScene = load(r_path)
+			var r_node = r_scene.instantiate()
+			r_node.global_position = Vector2(float(r_dict.get("x", 0.0)), float(r_dict.get("y", 0.0)))
+			if "current_health" in r_node:
+				var h = int(r_dict.get("health", 100))
+				r_node.current_health = h if h > 0 else (r_node.max_health if "max_health" in r_node else 100)
+			if r_dict.get("is_sapling", false) or r_node is Sapling:
+				if "current_timer" in r_node:
+					r_node.current_timer = float(r_dict.get("current_timer", 5.0))
+				if "is_growing" in r_node:
+					r_node.is_growing = bool(r_dict.get("is_growing", true))
+			r_node.add_to_group("generated")
+			main.add_child(r_node)
 
 	# 5. Used tiles in BuildingManager
 	if building_manager and "used_tiles" in building_manager:

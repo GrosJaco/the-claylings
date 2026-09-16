@@ -77,12 +77,19 @@ var ore_map: Dictionary = {}
 # ========== FUNCTIONS ==========
 
 func _ready():
-	if terrain_seed == 0: terrain_seed = randi()
+	if Engine.is_editor_hint():
+		return
+	var save_mgr = get_node_or_null("/root/SaveManager")
+	if save_mgr and save_mgr.has_method("has_pending_load") and save_mgr.has_pending_load():
+		return
+	if terrain_seed == 0:
+		terrain_seed = randi()
 	rng.seed = terrain_seed
 	setup_noise()
-	generate_terrain()
+	generate_terrain(true)
 
 func setup_noise():
+	rng.seed = terrain_seed
 	noise_elevation.seed = terrain_seed
 	noise_elevation.noise_type = FastNoiseLite.TYPE_PERLIN
 	noise_elevation.frequency = 0.03
@@ -106,13 +113,24 @@ func clearing_terrain():
 	if building_manager:
 		building_manager.used_tiles.clear()
 		
-	for child in world.get_children():
-		if child.is_in_group("generated"):
-			child.queue_free()
+	if is_inside_tree():
+		for node in get_tree().get_nodes_in_group("generated"):
+			if is_instance_valid(node) and not node.is_queued_for_deletion():
+				if node.get_parent():
+					node.get_parent().remove_child(node)
+				node.queue_free()
+	elif world:
+		for child in world.get_children():
+			if child.is_in_group("generated"):
+				world.remove_child(child)
+				child.queue_free()
 
-func generate_terrain():
+func generate_terrain(generate_objects: bool = true):
 	clearing_terrain()
-	generate_all_ore_patches()
+	rng.seed = terrain_seed
+	setup_noise()
+	if generate_objects:
+		generate_all_ore_patches()
 
 	for x in range(map_size.x):
 		for y in range(map_size.y):
@@ -129,7 +147,10 @@ func generate_terrain():
 				ground.set_cell(pos, 0, Vector2i(7,0))
 				continue
 				
-			ground.set_cell(pos, 0, ground_pool.pick_random())
+			ground.set_cell(pos, 0, ground_pool[rng.randi() % ground_pool.size()])
+			
+			if not generate_objects:
+				continue
 			
 			if building_manager and pos in building_manager.used_tiles:
 				continue
@@ -170,8 +191,8 @@ func create_patches(scenes: Array[PackedScene], count: int, target_size: int, fi
 		
 		while current_size < target_size and attempts < max_attempts:
 			attempts += 1
-			var base_cell = patch_cells.pick_random()
-			var new_cell = base_cell + dirs.pick_random()
+			var base_cell = patch_cells[rng.randi() % patch_cells.size()]
+			var new_cell = base_cell + dirs[rng.randi() % dirs.size()]
 			
 			if new_cell.x > 0 and new_cell.x < map_size.x and new_cell.y > 0 and new_cell.y < map_size.y:
 				if not ore_map.has(new_cell):
@@ -194,7 +215,7 @@ func try_spawn_vegetation(pos: Vector2i):
 func spawn_object(scene_list: Array[PackedScene], grid_pos: Vector2i, is_grass: bool = false):
 	if scene_list.is_empty(): return
 	
-	var instance = scene_list.pick_random().instantiate()
+	var instance = scene_list[rng.randi() % scene_list.size()].instantiate()
 	var pixel_pos = Vector2(grid_pos.x * TILE_SIZE, grid_pos.y * TILE_SIZE)
 	
 	if is_grass:
@@ -204,7 +225,10 @@ func spawn_object(scene_list: Array[PackedScene], grid_pos: Vector2i, is_grass: 
 		instance.global_position = pixel_pos + Vector2(8, 16)
 	
 	instance.add_to_group("generated")
-	world.call_deferred("add_child", instance)
+	if world.is_node_ready():
+		world.add_child(instance)
+	else:
+		world.call_deferred("add_child", instance)
 	
 	if not is_grass and building_manager:
 		building_manager.used_tiles.append(grid_pos)

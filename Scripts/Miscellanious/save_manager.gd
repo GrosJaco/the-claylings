@@ -661,6 +661,8 @@ func apply_pending_load(main: Node2D) -> void:
 		c.clayling_name = c_data.get("name", "Clayling")
 		c.age = int(c_data.get("age", 5))
 		c.personality_trait = c_data.get("personality", "Normal")
+		if c.has_method("_apply_trait_base_stats"):
+			c._apply_trait_base_stats()
 		c.health = float(c_data.get("health", 100.0))
 		c.max_health = float(c_data.get("max_health", 100.0))
 		c.hunger = float(c_data.get("hunger", 100.0))

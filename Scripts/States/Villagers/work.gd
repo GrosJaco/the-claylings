@@ -57,6 +57,9 @@ func update(delta: float) -> void:
 			_hit_timer = 0.0
 			SoundManager.play_at(sound_name, clayling.global_position, 0.1)
 
+		if clayling.personality_trait == "Smart" and target_building.get("is_crafting") and "craft_timer" in target_building:
+			target_building.craft_timer -= delta * 0.35
+
 		var should_stop = false
 		if not target_building.get("is_crafting"):
 			should_stop = true

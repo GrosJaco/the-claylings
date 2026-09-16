@@ -59,6 +59,10 @@ func _perform_forage():
 	
 	SoundManager.play_at("grass", clayling.global_position, 0.3)
 	
+	if clayling.personality_trait == "Curious" and randf() < 0.25:
+		if "resource_item" in target_plant and target_plant.resource_item and clayling.world and clayling.world.has_method("drop_item"):
+			clayling.world.drop_item(target_plant.resource_item, 1, clayling.world.get_grid_position(clayling.global_position))
+
 	if target_plant.has_method("take_damage"):
 		target_plant.take_damage(damage_per_hit)
 	else:

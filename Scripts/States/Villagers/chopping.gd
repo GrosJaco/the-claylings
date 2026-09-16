@@ -42,13 +42,14 @@ func update(delta: float) -> void:
 		clayling.play_forced_animation("woodcutting_side")
 		
 	# Chopping Logic
+	var speed_factor = 0.75 if clayling.personality_trait == "Dexterous" else 1.0
 	current_timer += delta
 	
-	if _hit_pending and current_timer >= hit_delay:
+	if _hit_pending and current_timer >= (hit_delay * speed_factor):
 		_perform_chop()
 		_hit_pending = false
 	
-	if current_timer >= chop_cooldown:
+	if current_timer >= (chop_cooldown * speed_factor):
 		current_timer = 0.0
 		_hit_pending = true
 		
@@ -73,7 +74,15 @@ func _perform_chop():
 	
 	SoundManager.play_at("chop", clayling.global_position, 0.1)
 	
+	var dmg = damage_per_hit
+	if clayling.personality_trait == "Strong":
+		dmg = int(dmg * 1.5)
+
+	if clayling.personality_trait == "Curious" and randf() < 0.25:
+		if "wood_item" in target_tree and target_tree.wood_item and clayling.world and clayling.world.has_method("drop_item"):
+			clayling.world.drop_item(target_tree.wood_item, 1, clayling.world.get_grid_position(clayling.global_position))
+	
 	if target_tree.has_method("take_damage"):
-		target_tree.take_damage(damage_per_hit)
+		target_tree.take_damage(dmg)
 	else:
 		target_tree.queue_free()

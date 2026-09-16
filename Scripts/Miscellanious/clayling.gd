@@ -431,31 +431,74 @@ func _generate_identity() -> void:
 					"Pedro", "Filipe", "Tiago", "Enzo", "Rodriguo", 
 					"João", "Rafael", "Matthias", "Samuel", "Barth", "Bastien", "Alexandre", "Aurélien", "Fabian", "Joachim"]
 	
-	clayling_name = first_names.pick_random()
+	var used_names: Dictionary = {}
+	if is_inside_tree():
+		for c in get_tree().get_nodes_in_group("claylings"):
+			if c != self and is_instance_valid(c) and "clayling_name" in c and c.clayling_name != "":
+				used_names[c.clayling_name] = true
+
+	var available_names: Array = []
+	for n in first_names:
+		if not used_names.has(n):
+			available_names.append(n)
+
+	if not available_names.is_empty():
+		clayling_name = available_names.pick_random()
+	else:
+		clayling_name = first_names.pick_random()
+
 	age = randi_range(18, 65)
 	
-	var traits = ["Resilient", "Swift", "Efficient", "Strong", "Smart", "Brave", "Dexterous", "Optimistic"]
+	var traits = [
+		"Resilient", "Swift", "Efficient", "Strong", "Smart",
+		"Brave", "Dexterous", "Optimistic", "Hermit", "Tough",
+		"Gourmand", "NightOwl", "Curious"
+	]
 	personality_trait = traits.pick_random()
-	
+	_apply_trait_base_stats()
+
+func _apply_trait_base_stats() -> void:
 	if personality_trait == "Resilient":
 		max_energy = 15.0
 		energy = 15.0
+	elif personality_trait == "Swift":
+		speed = 65.0
+	elif personality_trait == "Strong":
+		inventory["max_stack"] = 24
+	elif personality_trait == "Brave":
+		max_health = 120.0
+		health = max_health
+	elif personality_trait == "Tough":
+		max_health = 115.0
+		health = max_health
 
 func _update_needs(delta: float) -> void:
 	if is_dead:
 		return
 
 	var current_hunger_decay = hunger_decay_rate
+	if personality_trait == "Efficient":
+		current_hunger_decay *= 0.75
+	elif personality_trait == "Gourmand":
+		current_hunger_decay *= 1.2
 		
 	hunger -= current_hunger_decay * delta
 	hunger = clamp(hunger, 0.0, max_hunger)
 	
 	if velocity.length() > 0 or force_animation != "":
 		var current_energy_decay = energy_decay_rate
-		if personality_trait == "Resilient": current_energy_decay *= 0.8
+		if personality_trait == "Resilient":
+			current_energy_decay *= 0.8
+		elif personality_trait == "NightOwl":
+			var day_night = get_tree().get_first_node_in_group("day_night_cycle")
+			if day_night and day_night.has_method("is_night") and day_night.is_night():
+				current_energy_decay = 0.0
 		
 		energy -= current_energy_decay * delta
 		energy = clamp(energy, 0.0, max_energy)
+
+	if personality_trait == "Optimistic" and (current_state == states.get("Idle") or current_state == states.get("Wandering")):
+		health = min(max_health, health + 0.5 * delta)
 		
 	if hunger <= 0:
 		take_damage(1.0 * delta)
@@ -463,6 +506,8 @@ func _update_needs(delta: float) -> void:
 func take_damage(amount: float, source: Node2D = null) -> void:
 	if is_dead:
 		return
+	if personality_trait == "Tough":
+		amount *= 0.75
 	health = max(0.0, health - amount)
 
 	# Record attacker for personal defense
@@ -628,6 +673,18 @@ func _physics_process(delta: float) -> void:
 		current_state.update(delta)
 	
 	var effective_speed = speed * speed_multiplier
+	if personality_trait == "Hermit":
+		var crystal = get_tree().get_first_node_in_group("central_crystal")
+		if crystal and is_instance_valid(crystal):
+			if global_position.distance_squared_to(crystal.global_position) > 122500.0:
+				effective_speed *= 1.25
+	elif personality_trait == "NightOwl":
+		var day_night = get_tree().get_first_node_in_group("day_night_cycle")
+		if day_night and day_night.has_method("is_night"):
+			if day_night.is_night():
+				effective_speed *= 1.25
+			else:
+				effective_speed *= 0.9
 
 	if agent.is_navigation_finished():
 		velocity = Vector2.ZERO

@@ -74,4 +74,6 @@ func _finish_eating() -> void:
 	if typeof(eaten_item) == TYPE_DICTIONARY and eaten_item.has("item"):
 		var nutrition_value = food_item.get("nutrition") if "nutrition" in food_item else 50.0
 		clayling.hunger = min(clayling.hunger + nutrition_value, clayling.max_hunger)
+		if clayling.personality_trait == "Gourmand":
+			clayling.health = min(clayling.health + 25.0, clayling.max_health)
 	clayling.change_state("Idle")

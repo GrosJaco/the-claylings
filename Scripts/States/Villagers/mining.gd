@@ -41,13 +41,14 @@ func update(delta: float) -> void:
 	if clayling.sprite.animation != "mining_side":
 		clayling.play_forced_animation("mining_side")
 	
+	var speed_factor = 0.75 if clayling.personality_trait == "Dexterous" else 1.0
 	current_timer += delta
 	
-	if _hit_pending and current_timer >= hit_delay:
+	if _hit_pending and current_timer >= (hit_delay * speed_factor):
 		_perform_mine()
 		_hit_pending = false
 	
-	if current_timer >= mine_cooldown:
+	if current_timer >= (mine_cooldown * speed_factor):
 		current_timer = 0.0
 		_hit_pending = true
 		
@@ -65,13 +66,22 @@ func _face_ore():
 		clayling.set_flip_h(true)
 	else:
 		clayling.set_flip_h(false)
+
 func _perform_mine():
 	if not is_instance_valid(target_ore):
 		return
 	
 	SoundManager.play_at("rock hit", clayling.global_position, 0.1)
 	
+	var dmg = damage_per_hit
+	if clayling.personality_trait == "Strong":
+		dmg = int(dmg * 1.5)
+
+	if clayling.personality_trait == "Curious" and randf() < 0.25:
+		if "resource_item" in target_ore and target_ore.resource_item and clayling.world and clayling.world.has_method("drop_item"):
+			clayling.world.drop_item(target_ore.resource_item, 1, clayling.world.get_grid_position(clayling.global_position))
+
 	if target_ore.has_method("take_damage"):
-		target_ore.take_damage(damage_per_hit)
+		target_ore.take_damage(dmg)
 	else:
 		target_ore.queue_free()

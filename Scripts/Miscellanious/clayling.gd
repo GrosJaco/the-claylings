@@ -45,6 +45,7 @@ var last_attacker: Node2D = null
 var is_under_attack: bool = false
 var _under_attack_timer: float = 0.0
 var _threat_scan_timer: float = 0.0
+var knockback_velocity: Vector2 = Vector2.ZERO
 
 # ---------- STATE MACHINE ----------
 
@@ -504,6 +505,22 @@ func _update_needs(delta: float) -> void:
 	if hunger <= 0:
 		take_damage(1.0 * delta)
 
+func apply_knockback(source_pos: Vector2, force: float = 40.0) -> void:
+	if is_dead or force <= 0.0:
+		return
+	var dir = (global_position - source_pos).normalized()
+	if dir == Vector2.ZERO:
+		dir = Vector2.RIGHT.rotated(randf() * TAU)
+	var effective_force = force
+	if equipped_kit and equipped_kit is KitData:
+		effective_force *= (1.0 - clampf(equipped_kit.knockback_resistance, 0.0, 1.0))
+	if personality_trait == "Tough":
+		effective_force *= 0.5
+	if effective_force > 0.0:
+		var impulse = dir * effective_force
+		if impulse.length_squared() > knockback_velocity.length_squared():
+			knockback_velocity = impulse
+
 func take_damage(amount: float, source: Node2D = null) -> void:
 	if is_dead:
 		return
@@ -514,6 +531,15 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 	# Record attacker for personal defense
 	if source and is_instance_valid(source):
 		last_attacker = source
+		var kb_force: float = 0.0
+		if "attack_knockback" in source:
+			kb_force = source.attack_knockback
+		elif "knockback_force" in source:
+			kb_force = source.knockback_force
+		elif source.get("attack_type") == "melee":
+			kb_force = 40.0
+		if kb_force > 0.0:
+			apply_knockback(source.global_position, kb_force)
 	is_under_attack = true
 	_under_attack_timer = 4.0
 
@@ -729,6 +755,12 @@ func _physics_process(delta: float) -> void:
 		else:
 			_on_velocity_computed(new_velocity)
 	
+	if knockback_velocity.length_squared() > 1.0:
+		velocity += knockback_velocity
+		knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 1100.0 * delta)
+	else:
+		knockback_velocity = Vector2.ZERO
+
 	move_and_slide()
 	handle_animation()
 	_update_needs(delta)

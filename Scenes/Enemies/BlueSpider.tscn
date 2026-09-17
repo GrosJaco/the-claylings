@@ -260,6 +260,7 @@ enemy_name = "Blue Spider"
 speed = 48.0
 attack_damage = 15.0
 attack_cooldown = 1.2
+attack_knockback = 45.0
 
 [node name="AnimatedSprite2D" parent="Pivot" parent_id_path=PackedInt32Array(1115730094) index="0" unique_id=29146748]
 position = Vector2(0, -12)

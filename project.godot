@@ -25,11 +25,6 @@ UIPanelManager="*uid://bufhccnetm4ei"
 SoundManager="*uid://bfnpf4yr4b01y"
 SaveManager="*uid://c2fiifsq2ewbw"
 
-[display]
-
-window/size/viewport_width=1728
-window/size/viewport_height=972
-
 [gui]
 
 theme/custom="res://Art/Fonts/ClaylingInfoFont.tres"

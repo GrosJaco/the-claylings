@@ -36,7 +36,7 @@ func update(delta: float) -> void:
 				var dmg = attack_damage
 				if clayling.personality_trait == "Brave":
 					dmg *= 1.2
-				target_enemy.take_damage(dmg)
+				target_enemy.take_damage(dmg, clayling)
 
 	# Return to combat stance once the thrust attack animation completes
 	if elapsed >= attack_duration or clayling.force_animation == "":

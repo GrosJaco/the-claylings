@@ -11,4 +11,6 @@ script = ExtResource("2_r5soj")
 kit_id = "knight"
 display_name = "Knight"
 required_items = Array[ExtResource("1_86ok4")]([ExtResource("2_o4jw3"), ExtResource("3_ll031"), ExtResource("4_o4jw3")])
+knockback_force = 110.0
+knockback_resistance = 0.5
 metadata/_custom_type_script = "uid://dyiwldg7e00tw"

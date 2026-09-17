@@ -231,6 +231,7 @@ aggro_range = 160.0
 attack_cooldown = 2.4
 attack_type = "ranged"
 projectile_scene = ExtResource("3_web_proj")
+attack_knockback = 0.0
 
 [node name="AnimatedSprite2D" parent="Pivot" parent_id_path=PackedInt32Array(1115730094) index="0" unique_id=29146748]
 position = Vector2(0, -12)

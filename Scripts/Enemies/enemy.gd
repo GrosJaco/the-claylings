@@ -18,6 +18,7 @@ signal enemy_died(enemy: Enemy)
 @export var projectile_scene: PackedScene = null
 @export var wander_radius: float = 64.0
 @export var attack_windup_time: float = 0.25
+@export var attack_knockback: float = 45.0
 
 # ========== STATE & VARIABLES ==========
 
@@ -35,6 +36,7 @@ var _spawn_pos: Vector2 = Vector2.ZERO
 var _stuck_timer: float = 0.0
 var _scan_timer: float = 0.0
 var _last_direction: String = "down"
+var knockback_velocity: Vector2 = Vector2.ZERO
 
 # ========== REFERENCES ==========
 
@@ -93,6 +95,12 @@ func _physics_process(delta: float) -> void:
 			_process_attack(delta)
 		"assault":
 			_process_assault(delta)
+
+	if knockback_velocity.length_squared() > 1.0:
+		velocity += knockback_velocity
+		knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 1100.0 * delta)
+	else:
+		knockback_velocity = Vector2.ZERO
 
 	move_and_slide()
 
@@ -420,6 +428,16 @@ func _face_position(target_pos: Vector2) -> void:
 
 # ---------- DAMAGE & DEATH ----------
 
+func apply_knockback(source_pos: Vector2, force: float) -> void:
+	if is_dead or force <= 0.0:
+		return
+	var dir = (global_position - source_pos).normalized()
+	if dir == Vector2.ZERO:
+		dir = Vector2.RIGHT.rotated(randf() * TAU)
+	var impulse = dir * force
+	if impulse.length_squared() > knockback_velocity.length_squared():
+		knockback_velocity = impulse
+
 func take_damage(amount: float, attacker: Node2D = null) -> void:
 	if is_dead:
 		return
@@ -431,6 +449,20 @@ func take_damage(amount: float, attacker: Node2D = null) -> void:
 	var hit_tween = create_tween()
 	hit_tween.tween_interval(0.07)
 	hit_tween.tween_callback(func(): modulate = Color.WHITE)
+
+	# Apply class-based knockback from kit resource if available
+	if attacker and is_instance_valid(attacker):
+		var kb_force: float = 0.0
+		var kit = attacker.get("equipped_kit")
+		if kit and kit is KitData:
+			kb_force = kit.knockback_force
+		elif attacker.get("role") == "villager":
+			kb_force = 40.0
+
+		if kb_force > 0.0:
+			if attacker.get("personality_trait") == "Strong":
+				kb_force += 40.0
+			apply_knockback(attacker.global_position, kb_force)
 
 	# If attacker provided, retaliate directly; otherwise scan nearby targets
 	if attacker and is_instance_valid(attacker) and not _is_target_invalid(attacker):

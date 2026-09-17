@@ -13,12 +13,13 @@ class_name Animal
 @onready var agent: NavigationAgent2D = $NavigationAgent2D
 
 var threat: Node = null
+var _threat_scan_timer: float = 0.0
 
 # FSM
 var states := {}
 var current_state: AnimalState
 
-func _ready():
+func _ready() -> void:
 	add_to_group("chicken")
 	add_to_group("animals")
 
@@ -32,7 +33,17 @@ func _ready():
 		s.animal = self
 	change_state("Idle")
 	
-func _physics_process(delta):
+func _physics_process(delta: float) -> void:
+	# Proactive threat detection
+	_threat_scan_timer -= delta
+	if _threat_scan_timer <= 0.0:
+		_threat_scan_timer = randf_range(0.2, 0.28)
+		if current_state != states.get("Flee"):
+			var nearby_threat = _find_nearby_threat(95.0)
+			if nearby_threat:
+				threat = nearby_threat
+				change_state("Flee", {"threat": threat})
+
 	if current_state:
 		current_state.update(delta)
 	
@@ -54,12 +65,26 @@ func _handle_sprite_flip() -> void:
 	if abs(velocity.x) > 1:
 		sprite.flip_h = velocity.x < 0
 
-func change_state(state_name: String, msg := {}):
+func change_state(state_name: String, msg := {}) -> void:
 	if current_state:
 		current_state.exit()
 	current_state = states.get(state_name)
 	if current_state:
 		current_state.enter(msg)
 
-func move_to(target_position: Vector2):
+func move_to(target_position: Vector2) -> void:
 	agent.target_position = target_position
+
+func _find_nearby_threat(max_dist: float) -> Node2D:
+	var threats = get_tree().get_nodes_in_group("threats")
+	var max_dist_sq = max_dist * max_dist
+	var nearest: Node2D = null
+	var nearest_sq = max_dist_sq
+	for t in threats:
+		if not is_instance_valid(t) or t.get("is_dead"):
+			continue
+		var d_sq = global_position.distance_squared_to(t.global_position)
+		if d_sq <= nearest_sq:
+			nearest = t
+			nearest_sq = d_sq
+	return nearest

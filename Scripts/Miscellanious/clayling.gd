@@ -44,6 +44,7 @@ var guard_position: Vector2 = Vector2.ZERO
 var last_attacker: Node2D = null
 var is_under_attack: bool = false
 var _under_attack_timer: float = 0.0
+var _threat_scan_timer: float = 0.0
 
 # ---------- STATE MACHINE ----------
 
@@ -525,6 +526,8 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 
 	if health <= 0:
 		die()
+	elif role == "villager" and not is_combat_ready and current_state != states.get("Flee") and current_state != states.get("Equip") and current_state != states.get("Unequip"):
+		change_state("Flee", {"threat": source if source else last_attacker})
 
 func apply_slow(factor: float, duration: float) -> void:
 	if is_dead:
@@ -613,6 +616,7 @@ func _ready():
 	# Load all states
 	states["Idle"] = load("res://Scripts/States/Villagers/idle.gd").new()
 	states["Wander"] = load("res://Scripts/States/Villagers/wandering.gd").new()
+	states["Flee"] = load("res://Scripts/States/Villagers/fleeing.gd").new()
 	states["Water"] = load("res://Scripts/States/Villagers/watering.gd").new()
 	states["Harvest"] = load("res://Scripts/States/Villagers/harvesting.gd").new()
 	states["Plant"] = load("res://Scripts/States/Villagers/planting.gd").new()
@@ -668,6 +672,16 @@ func _physics_process(delta: float) -> void:
 		if _under_attack_timer <= 0.0:
 			is_under_attack = false
 			last_attacker = null
+
+	# Proactive threat detection for unarmed villagers
+	if role == "villager" and not is_combat_ready:
+		_threat_scan_timer -= delta
+		if _threat_scan_timer <= 0.0:
+			_threat_scan_timer = randf_range(0.2, 0.28)
+			if current_state != states.get("Flee") and current_state != states.get("Equip") and current_state != states.get("Unequip"):
+				var threat = _find_nearby_threat(120.0)
+				if threat:
+					change_state("Flee", {"threat": threat})
 
 	if current_state:
 		current_state.update(delta)
@@ -727,6 +741,20 @@ func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void
 
 func _on_velocity_computed(safe_velocity: Vector2) -> void:
 	velocity = safe_velocity
+
+func _find_nearby_threat(max_dist: float = 120.0) -> Node2D:
+	var threats = get_tree().get_nodes_in_group("threats")
+	var max_dist_sq = max_dist * max_dist
+	var nearest: Node2D = null
+	var nearest_sq = max_dist_sq
+	for t in threats:
+		if not is_instance_valid(t) or t.get("is_dead"):
+			continue
+		var d_sq = global_position.distance_squared_to(t.global_position)
+		if d_sq <= nearest_sq:
+			nearest = t
+			nearest_sq = d_sq
+	return nearest
 
 # ---------- SELECTION INDICATOR ----------
 

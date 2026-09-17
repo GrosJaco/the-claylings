@@ -530,47 +530,47 @@ func _get_nearest_node(target_pos: Vector2, node_list: Array) -> Node:
 func _cleanup_reservations():
 	for pos in reserved_harvest.keys().duplicate():
 		var c = reserved_harvest[pos]
-		if c == null or !is_instance_valid(c) or c.current_state in [c.states["Idle"], c.states["Wander"]]:
+		if c == null or !is_instance_valid(c) or c.is_combat_ready or c.current_state in [c.states["Idle"], c.states["Wander"], c.states.get("Flee"), c.states.get("Equip")]:
 			reserved_harvest.erase(pos)
 
 	for pos in reserved_water.keys().duplicate():
 		var c = reserved_water[pos]
-		if c == null or !is_instance_valid(c) or c.current_state in [c.states["Idle"], c.states["Wander"]]:
+		if c == null or !is_instance_valid(c) or c.is_combat_ready or c.current_state in [c.states["Idle"], c.states["Wander"], c.states.get("Flee"), c.states.get("Equip")]:
 			reserved_water.erase(pos)
 
 	for pos in reserved_plant.keys().duplicate():
 		var c = reserved_plant[pos]
-		if c == null or !is_instance_valid(c) or c.current_state in [c.states["Idle"], c.states["Wander"]]:
+		if c == null or !is_instance_valid(c) or c.is_combat_ready or c.current_state in [c.states["Idle"], c.states["Wander"], c.states.get("Flee"), c.states.get("Equip")]:
 			reserved_plant.erase(pos)
 
 	for item in reserved_pickups.keys().duplicate():
 		var c = reserved_pickups[item]
-		if item == null or !is_instance_valid(item) or c == null or !is_instance_valid(c) or c.current_state in [c.states["Idle"], c.states["Wander"]]:
+		if item == null or !is_instance_valid(item) or c == null or !is_instance_valid(c) or c.is_combat_ready or c.current_state in [c.states["Idle"], c.states["Wander"], c.states.get("Flee"), c.states.get("Equip")]:
 			reserved_pickups.erase(item)
 
 	for tree in reserved_trees.keys().duplicate():
 		var c = reserved_trees[tree]
-		if tree == null or !is_instance_valid(tree) or c == null or !is_instance_valid(c) or c.current_state in [c.states["Idle"], c.states["Wander"]]:
+		if tree == null or !is_instance_valid(tree) or c == null or !is_instance_valid(c) or c.is_combat_ready or c.current_state in [c.states["Idle"], c.states["Wander"], c.states.get("Flee"), c.states.get("Equip")]:
 			reserved_trees.erase(tree)
 
 	for rock in reserved_rocks.keys().duplicate():
 		var c = reserved_rocks[rock]
-		if rock == null or !is_instance_valid(rock) or c == null or !is_instance_valid(c) or c.current_state in [c.states["Idle"], c.states["Wander"]]:
+		if rock == null or !is_instance_valid(rock) or c == null or !is_instance_valid(c) or c.is_combat_ready or c.current_state in [c.states["Idle"], c.states["Wander"], c.states.get("Flee"), c.states.get("Equip")]:
 			reserved_rocks.erase(rock)
 
 	for plant in reserved_forages.keys().duplicate():
 		var c = reserved_forages[plant]
-		if plant == null or !is_instance_valid(plant) or c == null or !is_instance_valid(c) or c.current_state in [c.states["Idle"], c.states["Wander"]]:
+		if plant == null or !is_instance_valid(plant) or c == null or !is_instance_valid(c) or c.is_combat_ready or c.current_state in [c.states["Idle"], c.states["Wander"], c.states.get("Flee"), c.states.get("Equip")]:
 			reserved_forages.erase(plant)
 
 	for b in reserved_outputs.keys().duplicate():
 		var c = reserved_outputs[b]
-		if b == null or !is_instance_valid(b) or c == null or !is_instance_valid(c) or c.current_state in [c.states["Idle"], c.states["Wander"]]:
+		if b == null or !is_instance_valid(b) or c == null or !is_instance_valid(c) or c.is_combat_ready or c.current_state in [c.states["Idle"], c.states["Wander"], c.states.get("Flee"), c.states.get("Equip")]:
 			reserved_outputs.erase(b)
 
 	for b in reserved_work.keys().duplicate():
 		var c = reserved_work[b]
-		if b == null or !is_instance_valid(b) or c == null or !is_instance_valid(c) or c.current_state in [c.states["Idle"], c.states["Wander"]]:
+		if b == null or !is_instance_valid(b) or c == null or !is_instance_valid(c) or c.is_combat_ready or c.current_state in [c.states["Idle"], c.states["Wander"], c.states.get("Flee"), c.states.get("Equip")]:
 			reserved_work.erase(b)
 
 func reserve_pickup(item: Node, c: Node) -> bool:

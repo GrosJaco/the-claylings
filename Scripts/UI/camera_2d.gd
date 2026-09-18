@@ -50,13 +50,6 @@ func _unhandled_input(event: InputEvent):
 			dragging = event.pressed
 			if dragging:
 				is_centering = false
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			var rts = get_tree().get_first_node_in_group("rts_controller")
-			var has_selected_soldiers = rts != null and "selected_soldiers" in rts and not rts.selected_soldiers.is_empty()
-			if not has_selected_soldiers:
-				dragging = event.pressed
-				if dragging:
-					is_centering = false
 
 	elif event is InputEventMouseMotion and dragging:
 		is_centering = false

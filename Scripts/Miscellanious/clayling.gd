@@ -328,6 +328,8 @@ func _apply_kit(kit_data: Dictionary) -> void:
 func debug_become_spearman() -> void:
 	if is_dead:
 		return
+	if inventory.get("count", 0) > 0:
+		drop_item(-1, true)
 	var spearman_kit: KitData = load("res://Resources/Kit Resources/spearman.tres")
 	_apply_kit({
 		"kit_resource": spearman_kit,

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cmj1hoxdiqtm8"]
+
+[ext_resource type="Texture2D" uid="uid://deddaqcmm5hut" path="res://Art/Items.png" id="1_ldkl2"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_h8rqf"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n80do"]
+atlas = ExtResource("1_ldkl2")
+region = Rect2(16, 112, 16, 16)
+
+[resource]
+script = ExtResource("2_h8rqf")
+name = "cooked_chicken"
+display_name = "Cooked Chicken"
+icon = SubResource("AtlasTexture_n80do")
+stack_size = 99
+metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

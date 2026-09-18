@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://2471iyhtrql0"]
+
+[ext_resource type="Texture2D" uid="uid://deddaqcmm5hut" path="res://Art/Items.png" id="1_vfhhb"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_lv10h"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n80do"]
+atlas = ExtResource("1_vfhhb")
+region = Rect2(64, 112, 16, 16)
+
+[resource]
+script = ExtResource("2_lv10h")
+name = "feather"
+display_name = "Feather"
+icon = SubResource("AtlasTexture_n80do")
+stack_size = 99
+metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

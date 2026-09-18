@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://caywek7ebt373"]
+
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="1_j6io8"]
+[ext_resource type="Texture2D" uid="uid://deddaqcmm5hut" path="res://Art/Items.png" id="1_yr487"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n80do"]
+atlas = ExtResource("1_yr487")
+region = Rect2(0, 112, 16, 16)
+
+[resource]
+script = ExtResource("1_j6io8")
+name = "raw_chicken"
+display_name = "Raw Chicken"
+icon = SubResource("AtlasTexture_n80do")
+stack_size = 99
+metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

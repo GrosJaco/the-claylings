@@ -726,9 +726,12 @@ func get_active_clayling_count() -> int:
 
 func debug_all_claylings_to_spearmen() -> void:
 	var claylings = get_tree().get_nodes_in_group("claylings")
+	var count = 0
 	for c in claylings:
 		if is_instance_valid(c) and not c.is_dead and c.has_method("debug_become_spearman"):
 			c.debug_become_spearman()
+			count += 1
+	print("[DevMode] Equipped %d clayling(s) as spearmen." % count)
 
 func debug_kill_all_claylings() -> void:
 	var claylings = get_tree().get_nodes_in_group("claylings")
@@ -753,7 +756,16 @@ func create_harvest_zone() -> void:
 		add_child(zone)
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed:
+	if event is InputEventKey and event.pressed and not event.echo:
+		var is_dev = Global.dev_mode if ("dev_mode" in Global) else false
+		if is_dev:
+			var is_j = event.keycode == KEY_J or event.physical_keycode == KEY_J or event.key_label == KEY_J
+			var is_ctrl_s = (event.keycode == KEY_S or event.physical_keycode == KEY_S or event.key_label == KEY_S) and event.ctrl_pressed
+			if is_j or is_ctrl_s:
+				debug_all_claylings_to_spearmen()
+				get_viewport().set_input_as_handled()
+				return
+
 		if event.keycode == KEY_C:
 			spawn_clayling(get_global_mouse_position(), "clayling")
 		if event.keycode == KEY_P:
@@ -764,8 +776,6 @@ func _input(event: InputEvent) -> void:
 			get_tree().call_group("weapon_racks", "debug_fill_random_kit")
 		if event.keycode == KEY_K:
 			debug_kill_all_claylings()
-		if event.keycode == KEY_S and event.ctrl_pressed:
-			debug_all_claylings_to_spearmen()
 		if event.keycode == KEY_N:
 			spawn_enemy(get_global_mouse_position(), "blue_spider")
 		if event.keycode == KEY_V:

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://b3idfoe030hgx"]
+
+[ext_resource type="Texture2D" uid="uid://deddaqcmm5hut" path="res://Art/Items.png" id="1_ft15w"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_4vtah"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n80do"]
+atlas = ExtResource("1_ft15w")
+region = Rect2(48, 112, 16, 16)
+
+[resource]
+script = ExtResource("2_4vtah")
+name = "omelette"
+display_name = "Omelette"
+icon = SubResource("AtlasTexture_n80do")
+stack_size = 99
+metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

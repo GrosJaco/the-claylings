@@ -1,7 +1,19 @@
-[gd_scene load_steps=13 format=3 uid="uid://f0mcix7sss7c"]
+[gd_scene format=3 uid="uid://f0mcix7sss7c"]
 
 [ext_resource type="Script" uid="uid://xvsl5yukxw4b" path="res://Scripts/Animal States/animal.gd" id="1_t6670"]
 [ext_resource type="Texture2D" uid="uid://byuvcj7avcn4p" path="res://Art/Animals/Chicken.png" id="2_ktlbs"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_88xou"]
+atlas = ExtResource("2_ktlbs")
+region = Rect2(64, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_844kb"]
+atlas = ExtResource("2_ktlbs")
+region = Rect2(80, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j21o3"]
+atlas = ExtResource("2_ktlbs")
+region = Rect2(96, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nae4s"]
 atlas = ExtResource("2_ktlbs")
@@ -37,6 +49,20 @@ region = Rect2(48, 0, 16, 16)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_em1tw"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_88xou")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_844kb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j21o3")
+}],
+"loop": false,
+"name": &"death",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_nae4s")
@@ -80,21 +106,20 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_ktlbs"]
 radius = 6.08276
 
-[node name="Chicken" type="CharacterBody2D"]
+[node name="Chicken" type="CharacterBody2D" unique_id=682483107]
 y_sort_enabled = true
 collision_mask = 2
 script = ExtResource("1_t6670")
 
-[node name="Pivot" type="Node2D" parent="."]
+[node name="Pivot" type="Node2D" parent="." unique_id=735654334]
 position = Vector2(1, 0)
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Pivot"]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Pivot" unique_id=1315771616]
 sprite_frames = SubResource("SpriteFrames_em1tw")
-animation = &"eat"
-frame_progress = 0.957692
+animation = &"idle"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=393735699]
 position = Vector2(0, 1)
 shape = SubResource("CircleShape2D_ktlbs")
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=346456758]

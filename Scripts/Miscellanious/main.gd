@@ -739,6 +739,12 @@ func debug_kill_all_claylings() -> void:
 		if is_instance_valid(c) and c.has_method("die"):
 			c.die()
 
+func debug_kill_all_chickens() -> void:
+	var chickens = get_tree().get_nodes_in_group("animals")
+	for ch in chickens:
+		if is_instance_valid(ch) and ch.has_method("die"):
+			ch.die()
+
 func debug_trigger_next_wave() -> void:
 	var wm = get_tree().get_first_node_in_group("wave_manager")
 	if wm and wm.has_method("trigger_next_wave"):
@@ -770,6 +776,8 @@ func _input(event: InputEvent) -> void:
 			spawn_clayling(get_global_mouse_position(), "clayling")
 		if event.keycode == KEY_P:
 			spawn_clayling(get_global_mouse_position(), "chicken")
+		if event.keycode == KEY_O:
+			debug_kill_all_chickens()
 		if event.keycode == KEY_M:
 			create_harvest_zone()
 		if event.keycode == KEY_Y:

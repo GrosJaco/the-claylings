@@ -56,6 +56,7 @@
 [ext_resource type="Resource" uid="uid://slrba8fbdd3w" path="res://Resources/Building Resources/soil_tile.tres" id="53_soiltile"]
 [ext_resource type="Resource" uid="uid://1sujqiqusuy" path="res://Resources/Building Resources/oak_sapling.tres" id="54_oaksapling"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/WorldTooltip.tscn" id="55_tooltip"]
+[ext_resource type="Script" uid="uid://bmm5c4tpi3xqu" path="res://Scripts/Data/LootDrop.gd" id="57_2daye"]
 
 [sub_resource type="Gradient" id="Gradient_r33sp"]
 offsets = PackedFloat32Array(0.15, 0.25, 0.35, 0.65, 0.75, 0.85)
@@ -1611,3 +1612,4 @@ script = ExtResource("5_344ge")
 
 [node name="Chicken" parent="." unique_id=252439485 instance=ExtResource("11_d1ilt")]
 position = Vector2(934, 1061)
+loot_table = Array[ExtResource("57_2daye")]([])

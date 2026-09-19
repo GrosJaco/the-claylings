@@ -2,6 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://deddaqcmm5hut" path="res://Art/Items.png" id="1_0dbpx"]
 [ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_3v4ny"]
+[ext_resource type="PackedScene" uid="uid://c6h81ick0001" path="res://Scenes/Animals/chick.tscn" id="3_chick"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_n80do"]
 atlas = ExtResource("1_0dbpx")
@@ -13,4 +14,8 @@ name = "egg"
 display_name = "Egg"
 icon = SubResource("AtlasTexture_n80do")
 stack_size = 99
+can_hatch = true
+hatch_scene = ExtResource("3_chick")
+hatch_duration_min = 100.0
+hatch_duration_max = 140.0
 metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

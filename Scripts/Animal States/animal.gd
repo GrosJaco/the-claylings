@@ -4,22 +4,30 @@ class_name Animal
 # ========== EXPORTED VARIABLES ==========
 
 @export_group("Stats")
+@export var animal_name: String = "Animal"
 @export var max_health: float = 20.0
 @export var speed := 40.0
 @export var wander_radius := 64.0
 @export var idle_time_min := 4.0
 @export var idle_time_max := 6.0
 
+@export_group("Growth")
+@export var grows_into: PackedScene = null
+@export var growth_duration_min: float = 160.0
+@export var growth_duration_max: float = 200.0
+
 @export_group("Egg Laying")
 @export var egg_item: ItemData = preload("res://Resources/Item Resources/Raw/egg.tres")
 @export var egg_lay_interval_min: float = 60.0
 @export var egg_lay_interval_max: float = 120.0
 
+@export_group("Social / Following")
+@export var follows_leader: bool = false
+@export var follow_distance_max: float = 65.0
+@export var follow_distance_stop: float = 28.0
+
 @export_group("Loot")
-@export var raw_chicken_item: ItemData = preload("res://Resources/Item Resources/Raw/raw_chicken.tres")
-@export var feather_item: ItemData = preload("res://Resources/Item Resources/Raw/feather.tres")
-@export var min_feathers: int = 1
-@export var max_feathers: int = 3
+@export var loot_table: Array[LootDrop] = []
 
 # ========== REFERENCES ==========
 
@@ -36,6 +44,9 @@ var is_dead: bool = false
 var threat: Node = null
 var _threat_scan_timer: float = 0.0
 var _egg_timer: float = 0.0
+var _growth_timer: float = 0.0
+var leader_animal: Animal = null
+var _leader_search_timer: float = 0.0
 
 # FSM
 var states := {}
@@ -44,11 +55,14 @@ var current_state: AnimalState
 # ========== FUNCTIONS ==========
 
 func _ready() -> void:
-	add_to_group("chicken")
 	add_to_group("animals")
+	if animal_name and not animal_name.is_empty():
+		add_to_group(animal_name.to_lower())
 
 	health = max_health
 	_egg_timer = randf_range(egg_lay_interval_min, egg_lay_interval_max)
+	if grows_into != null:
+		_growth_timer = randf_range(growth_duration_min, growth_duration_max)
 
 	# Load states dynamically
 	states["Idle"] = preload("res://Scripts/Animal States/idle.gd").new()
@@ -64,8 +78,22 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
+	# Growth timer toward adult stage
+	if grows_into != null:
+		_growth_timer -= delta
+		if _growth_timer <= 0.0:
+			grow_up()
+			return
+
+	# Periodic leader / mother scan
+	if follows_leader:
+		_leader_search_timer -= delta
+		if _leader_search_timer <= 0.0:
+			_leader_search_timer = randf_range(1.0, 1.5)
+			_update_leader()
+
 	# Egg laying timer (active while alive and not fleeing)
-	if current_state != states.get("Flee"):
+	if egg_item != null and current_state != states.get("Flee"):
 		_egg_timer -= delta
 		if _egg_timer <= 0.0:
 			_egg_timer = randf_range(egg_lay_interval_min, egg_lay_interval_max)
@@ -130,6 +158,37 @@ func _find_nearby_threat(max_dist: float) -> Node2D:
 			nearest_sq = d_sq
 	return nearest
 
+func _update_leader() -> void:
+	if not follows_leader or is_dead:
+		return
+	if leader_animal != null:
+		if not is_instance_valid(leader_animal) or leader_animal.is_dead or not leader_animal.is_inside_tree():
+			leader_animal = null
+		elif global_position.distance_squared_to(leader_animal.global_position) > 300.0 * 300.0:
+			var closer = _find_nearest_leader(180.0)
+			if closer:
+				leader_animal = closer
+	if leader_animal == null:
+		leader_animal = _find_nearest_leader(250.0)
+
+func _find_nearest_leader(max_dist: float) -> Animal:
+	var potential_leaders = get_tree().get_nodes_in_group("animals")
+	var max_dist_sq = max_dist * max_dist
+	var nearest: Animal = null
+	var nearest_sq = max_dist_sq
+
+	for a in potential_leaders:
+		if not is_instance_valid(a) or a == self or not (a is Animal):
+			continue
+		if a.is_dead or not a.is_inside_tree() or a.follows_leader:
+			continue
+		var d_sq = global_position.distance_squared_to(a.global_position)
+		if d_sq <= nearest_sq:
+			nearest = a
+			nearest_sq = d_sq
+
+	return nearest
+
 # ---------- LIFE, DEATH & LOOT ----------
 
 func take_damage(amount: float, _attacker: Node2D = null) -> void:
@@ -149,8 +208,9 @@ func die() -> void:
 		current_state.exit()
 		current_state = null
 
-	remove_from_group("chicken")
 	remove_from_group("animals")
+	if animal_name and not animal_name.is_empty():
+		remove_from_group(animal_name.to_lower())
 
 	if collision_shape:
 		collision_shape.set_deferred("disabled", true)
@@ -169,19 +229,33 @@ func die() -> void:
 	fade_tween.tween_property(self, "modulate:a", 0.0, 1.5)
 	fade_tween.tween_callback(queue_free)
 
+func grow_up() -> void:
+	if is_dead or grows_into == null:
+		return
+	is_dead = true
+	if current_state:
+		current_state.exit()
+		current_state = null
+
+	var adult = grows_into.instantiate()
+	adult.global_position = global_position
+	var target_parent = world if world else get_parent()
+	target_parent.call_deferred("add_child", adult)
+	queue_free()
+
 func lay_egg() -> void:
 	if is_dead or egg_item == null:
 		return
 	_spawn_ground_item(egg_item, 1)
 
 func _drop_loot() -> void:
-	if raw_chicken_item:
-		_spawn_ground_item(raw_chicken_item, 1, 6.0)
-
-	if feather_item and max_feathers > 0:
-		var feather_count = randi_range(min_feathers, max_feathers)
-		if feather_count > 0:
-			_spawn_ground_item(feather_item, feather_count, 6.0)
+	for drop in loot_table:
+		if drop == null or drop.item == null:
+			continue
+		if randf() <= drop.chance:
+			var count = randi_range(drop.min_count, drop.max_count)
+			if count > 0:
+				_spawn_ground_item(drop.item, count, 6.0)
 
 func _spawn_ground_item(item_data: ItemData, count: int, offset_range: float = 0.0) -> void:
 	if item_data == null or count <= 0:

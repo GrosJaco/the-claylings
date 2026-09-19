@@ -20,6 +20,9 @@ signal enemy_died(enemy: Enemy)
 @export var attack_windup_time: float = 0.25
 @export var attack_knockback: float = 45.0
 
+@export_group("Loot")
+@export var loot_table: Array[LootDrop] = []
+
 # ========== STATE & VARIABLES ==========
 
 var health: float = 50.0
@@ -490,6 +493,7 @@ func die() -> void:
 		collision_shape.set_deferred("disabled", true)
 
 	_play_animation("death")
+	_drop_loot()
 
 	# Fade corpse away and remove node
 	await get_tree().create_timer(3.0).timeout
@@ -499,3 +503,26 @@ func die() -> void:
 	var fade_tween = create_tween()
 	fade_tween.tween_property(self, "modulate:a", 0.0, 1.5)
 	fade_tween.tween_callback(queue_free)
+
+func _drop_loot() -> void:
+	for drop in loot_table:
+		if drop == null or drop.item == null:
+			continue
+		if randf() <= drop.chance:
+			var count = randi_range(drop.min_count, drop.max_count)
+			if count > 0:
+				_spawn_ground_item(drop.item, count, 6.0)
+
+func _spawn_ground_item(item_data: ItemData, count: int, offset_range: float = 0.0) -> void:
+	if item_data == null or count <= 0:
+		return
+	var scene = preload("res://Scenes/item.tscn")
+	var item_node: WorldItem = scene.instantiate()
+	item_node.data = item_data
+	item_node.quantity = count
+	var offset = Vector2.ZERO
+	if offset_range > 0.0:
+		offset = Vector2(randf_range(-offset_range, offset_range), randf_range(-offset_range, offset_range))
+	item_node.global_position = global_position + offset
+	var target_parent = world if world else get_parent()
+	target_parent.call_deferred("add_child", item_node)

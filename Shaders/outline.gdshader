@@ -11,17 +11,14 @@ void fragment() {
 	} else {
 		vec2 size = TEXTURE_PIXEL_SIZE * line_thickness;
 		
+		// 4 cardinal samples to prevent diagonal cross-bleed on tight sprite atlases
 		float a = 0.0;
 		a = max(a, texture(TEXTURE, UV + vec2(0.0, -size.y)).a);
 		a = max(a, texture(TEXTURE, UV + vec2(0.0, size.y)).a);
 		a = max(a, texture(TEXTURE, UV + vec2(-size.x, 0.0)).a);
 		a = max(a, texture(TEXTURE, UV + vec2(size.x, 0.0)).a);
-		a = max(a, texture(TEXTURE, UV + vec2(-size.x, -size.y)).a);
-		a = max(a, texture(TEXTURE, UV + vec2(size.x, -size.y)).a);
-		a = max(a, texture(TEXTURE, UV + vec2(-size.x, size.y)).a);
-		a = max(a, texture(TEXTURE, UV + vec2(size.x, size.y)).a);
 		
-		if (a > 0.1) {
+		if (a > 0.5) {
 			COLOR = line_color;
 		} else {
 			COLOR = col;

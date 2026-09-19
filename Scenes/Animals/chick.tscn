@@ -1,0 +1,108 @@
+[gd_scene format=3 uid="uid://c6h81ick0001"]
+
+[ext_resource type="Script" uid="uid://xvsl5yukxw4b" path="res://Scripts/Animal States/animal.gd" id="1_animal"]
+[ext_resource type="PackedScene" uid="uid://f0mcix7sss7c" path="res://Scenes/Animals/chicken.tscn" id="3_adult"]
+[ext_resource type="Script" uid="uid://bmm5c4tpi3xqu" path="res://Scripts/Data/LootDrop.gd" id="4_lootdrop"]
+[ext_resource type="Resource" uid="uid://2471iyhtrql0" path="res://Resources/Item Resources/Raw/feather.tres" id="5_feather"]
+[ext_resource type="Texture2D" uid="uid://3wgr8f6ft2x6" path="res://Art/Animals/Chick.png" id="5_o8j38"]
+
+[sub_resource type="Resource" id="Resource_loot_feather"]
+script = ExtResource("4_lootdrop")
+item = ExtResource("5_feather")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fxvqp"]
+atlas = ExtResource("5_o8j38")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cforx"]
+atlas = ExtResource("5_o8j38")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u64y7"]
+atlas = ExtResource("5_o8j38")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ubo5p"]
+atlas = ExtResource("5_o8j38")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3gcg8"]
+atlas = ExtResource("5_o8j38")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nj56s"]
+atlas = ExtResource("5_o8j38")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lp7rl"]
+atlas = ExtResource("5_o8j38")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_chick"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fxvqp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cforx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u64y7")
+}],
+"loop": false,
+"name": &"death",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ubo5p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3gcg8")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nj56s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lp7rl")
+}],
+"loop": true,
+"name": &"run",
+"speed": 8.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_chick"]
+radius = 3.0
+
+[node name="Chick" type="CharacterBody2D" unique_id=682483999]
+y_sort_enabled = true
+collision_mask = 2
+script = ExtResource("1_animal")
+animal_name = "Chick"
+max_health = 10.0
+speed = 35.0
+grows_into = ExtResource("3_adult")
+egg_item = null
+follows_leader = true
+loot_table = Array[ExtResource("4_lootdrop")]([SubResource("Resource_loot_feather")])
+
+[node name="Pivot" type="Node2D" parent="." unique_id=735654999]
+position = Vector2(1, 0)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Pivot" unique_id=1315771999]
+sprite_frames = SubResource("SpriteFrames_chick")
+animation = &"run"
+frame = 1
+frame_progress = 1.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=393735999]
+position = Vector2(0.5, 0.5)
+shape = SubResource("CircleShape2D_chick")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=346456999]

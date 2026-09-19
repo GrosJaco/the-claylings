@@ -13,6 +13,7 @@ extends Node2D
 
 @onready var clayling_scene: PackedScene = preload("res://Scenes/clayling.tscn")
 @onready var chicken_scene: PackedScene = preload("res://Scenes/Animals/chicken.tscn")
+@onready var chick_scene: PackedScene = preload("res://Scenes/Animals/chick.tscn")
 @onready var blue_spider_scene: PackedScene = preload("res://Scenes/Enemies/BlueSpider.tscn")
 @onready var purple_spider_scene: PackedScene = preload("res://Scenes/Enemies/PurpleSpider.tscn")
 
@@ -103,6 +104,12 @@ func spawn_clayling(pos, mob):
 			chicken.global_position = pos
 			add_child(chicken)
 			return chicken
+	if mob == "chick":
+		if chick_scene:
+			var chick = chick_scene.instantiate()
+			chick.global_position = pos
+			add_child(chick)
+			return chick
 	return null
 
 func spawn_enemy(pos: Vector2, enemy_type: String = "blue_spider") -> void:
@@ -775,7 +782,10 @@ func _input(event: InputEvent) -> void:
 		if event.keycode == KEY_C:
 			spawn_clayling(get_global_mouse_position(), "clayling")
 		if event.keycode == KEY_P:
-			spawn_clayling(get_global_mouse_position(), "chicken")
+			if event.shift_pressed:
+				spawn_clayling(get_global_mouse_position(), "chick")
+			else:
+				spawn_clayling(get_global_mouse_position(), "chicken")
 		if event.keycode == KEY_O:
 			debug_kill_all_chickens()
 		if event.keycode == KEY_M:
@@ -935,7 +945,9 @@ func get_entity_info(node: Node2D) -> Dictionary:
 		entity_name = node.get("clayling_name") if node.get("clayling_name") else "Clayling"
 	elif node.is_in_group("threats") or node.is_in_group("enemies"):
 		entity_name = node.get("enemy_name") if node.get("enemy_name") else node.name
-	elif node.is_in_group("chicken") or node is Animal:
+	elif node is Animal:
+		entity_name = node.animal_name if (node.animal_name and not node.animal_name.is_empty()) else node.name
+	elif node.is_in_group("chicken"):
 		entity_name = "Chicken"
 	elif node is WorldItem:
 		var item_data: ItemData = node.data
@@ -1006,7 +1018,8 @@ func _is_point_in_entity(node: Node2D, mouse_world_pos: Vector2) -> bool:
 
 func _clear_hover() -> void:
 	if _hovered_sprite != null and is_instance_valid(_hovered_sprite):
-		_hovered_sprite.material = _previous_material
+		if _hovered_sprite.material == _outline_material:
+			_hovered_sprite.material = _previous_material
 	var had_hover = _hovered_entity != null
 	_hovered_entity = null
 	_hovered_sprite = null
@@ -1029,7 +1042,7 @@ func _set_hovered_entity(entity: Node2D) -> void:
 
 	_hovered_entity = entity
 	_hovered_sprite = sprite
-	_previous_material = sprite.material
+	_previous_material = sprite.material if sprite.material != _outline_material else null
 	sprite.material = _outline_material
 	hovered_entity_changed.emit(_hovered_entity)
 
@@ -1037,6 +1050,9 @@ func _update_hover() -> void:
 	if _is_hover_suppressed():
 		_clear_hover()
 		return
+
+	if _hovered_entity != null and (not is_instance_valid(_hovered_entity) or not _hovered_entity.is_inside_tree() or _hovered_entity.get("is_dead")):
+		_clear_hover()
 
 	var mouse_pos = _last_mouse_pos
 	var chosen_entity: Node2D = null
@@ -1055,7 +1071,7 @@ func _update_hover() -> void:
 					hit_characters.append(ch)
 
 	if hit_characters.is_empty():
-		for ch in get_tree().get_nodes_in_group("chicken"):
+		for ch in get_tree().get_nodes_in_group("animals"):
 			if is_instance_valid(ch):
 				if _is_point_in_entity(ch, mouse_pos):
 					hit_characters.append(ch)

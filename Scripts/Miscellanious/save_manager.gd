@@ -416,8 +416,11 @@ func load_game(slot_name: String = "quicksave") -> bool:
 	Engine.time_scale = 1.0
 	get_tree().paused = false
 
-	# Reload the main scene to cleanly wipe all lingering states, leaked nodes, and focus grabs
-	get_tree().reload_current_scene()
+	# Reload the main scene or switch to it if currently in another scene (e.g. Main Menu)
+	if get_tree().current_scene and get_tree().current_scene.scene_file_path == "res://Scenes/main.tscn":
+		get_tree().reload_current_scene()
+	else:
+		get_tree().change_scene_to_file("res://Scenes/main.tscn")
 	_is_loading = false
 	return true
 

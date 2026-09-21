@@ -4,6 +4,9 @@ class_name GlobalAutoload
 var dev_mode: bool = false
 signal dev_mode_toggled(is_active: bool)
 
+# World generation parameters passed from New Game dialog to main scene
+var custom_world_settings: Dictionary = {}
+
 var _dev_layer: CanvasLayer = null
 var _dev_label: Label = null
 

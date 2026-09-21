@@ -99,6 +99,13 @@ func save_game(slot_name: String = "quicksave") -> bool:
 		},
 		"environment": {
 			"seed": terrain.terrain_seed if (terrain and "terrain_seed" in terrain) else 0,
+			"difficulty": terrain.difficulty if (terrain and "difficulty" in terrain) else "clay",
+			"map_size_x": terrain.map_size.x if (terrain and "map_size" in terrain) else 128,
+			"map_size_y": terrain.map_size.y if (terrain and "map_size" in terrain) else 128,
+			"water_threshold": terrain.water_threshold if (terrain and "water_threshold" in terrain) else -0.3,
+			"walls_threshold": terrain.walls_threshold if (terrain and "walls_threshold" in terrain) else 0.3,
+			"forest_threshold": terrain.forest_threshold if (terrain and "forest_threshold" in terrain) else 0.2,
+			"forest_density": terrain.forest_density if (terrain and "forest_density" in terrain) else 0.4,
 			"current_day": day_night.current_day if (day_night and "current_day" in day_night) else 1,
 			"time_of_day": day_night.time_of_day if (day_night and "time_of_day" in day_night) else 0.33,
 			"current_wave": wave_mgr.current_wave if (wave_mgr and "current_wave" in wave_mgr) else 0
@@ -474,6 +481,18 @@ func apply_pending_load(main: Node2D) -> void:
 	if terrain and "terrain_seed" in terrain:
 		if saved_seed != 0:
 			terrain.terrain_seed = saved_seed
+		if "difficulty" in terrain and env.has("difficulty"):
+			terrain.difficulty = str(env["difficulty"])
+		if "map_size" in terrain and env.has("map_size_x") and env.has("map_size_y"):
+			terrain.map_size = Vector2i(int(env["map_size_x"]), int(env["map_size_y"]))
+		if "water_threshold" in terrain and env.has("water_threshold"):
+			terrain.water_threshold = float(env["water_threshold"])
+		if "walls_threshold" in terrain and env.has("walls_threshold"):
+			terrain.walls_threshold = float(env["walls_threshold"])
+		if "forest_threshold" in terrain and env.has("forest_threshold"):
+			terrain.forest_threshold = float(env["forest_threshold"])
+		if "forest_density" in terrain and env.has("forest_density"):
+			terrain.forest_density = float(env["forest_density"])
 		terrain.rng.seed = terrain.terrain_seed
 		terrain.setup_noise()
 		if has_saved_resources:

@@ -235,4 +235,8 @@ func _get_colony_center() -> Vector2:
 		if is_instance_valid(c) and not c.get("is_dead"):
 			return c.global_position
 
+	var terrain = world.get_node_or_null("Terrain")
+	if terrain and "map_size" in terrain:
+		return Vector2(terrain.map_size.x * 8.0, terrain.map_size.y * 8.0)
+
 	return Vector2(1024.0, 1024.0)

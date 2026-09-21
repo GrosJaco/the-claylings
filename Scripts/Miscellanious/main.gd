@@ -722,6 +722,16 @@ func _ready():
 	var save_mgr = get_node_or_null("/root/SaveManager")
 	if save_mgr and save_mgr.has_method("has_pending_load") and save_mgr.has_pending_load():
 		save_mgr.apply_pending_load(self)
+	else:
+		var terrain = get_node_or_null("Terrain")
+		var cam = get_viewport().get_camera_2d()
+		if not cam:
+			cam = get_node_or_null("Camera2D")
+		if cam and terrain and "map_size" in terrain:
+			var center_pos = Vector2(terrain.map_size.x * 8.0, terrain.map_size.y * 8.0)
+			cam.global_position = center_pos
+			if "target_position" in cam:
+				cam.target_position = center_pos
 
 
 func get_active_clayling_count() -> int:

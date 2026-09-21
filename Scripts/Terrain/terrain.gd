@@ -23,6 +23,7 @@ extends Node
 # ========== SETTINGS ==========
 
 @export_group("Generation Settings")
+@export var difficulty: String = "clay"
 @export var terrain_seed: int = 0
 @export var map_size: Vector2i = Vector2i(128, 128)
 const TILE_SIZE: int = 16 
@@ -82,11 +83,47 @@ func _ready():
 	var save_mgr = get_node_or_null("/root/SaveManager")
 	if save_mgr and save_mgr.has_method("has_pending_load") and save_mgr.has_pending_load():
 		return
-	if terrain_seed == 0:
+
+	var global = get_node_or_null("/root/Global")
+	if global and "custom_world_settings" in global and not global.custom_world_settings.is_empty():
+		apply_world_settings(global.custom_world_settings)
+		global.custom_world_settings = {}
+	elif terrain_seed == 0:
 		terrain_seed = randi()
+
 	rng.seed = terrain_seed
 	setup_noise()
 	generate_terrain(true)
+
+func apply_world_settings(cfg: Dictionary) -> void:
+	if cfg.has("difficulty"):
+		difficulty = str(cfg["difficulty"])
+	if cfg.has("seed"):
+		terrain_seed = int(cfg["seed"])
+	if cfg.has("map_size") and cfg["map_size"] is Vector2i:
+		map_size = cfg["map_size"]
+	if cfg.has("walls_threshold"):
+		walls_threshold = float(cfg["walls_threshold"])
+	if cfg.has("water_threshold"):
+		water_threshold = float(cfg["water_threshold"])
+	if cfg.has("forest_density"):
+		forest_density = float(cfg["forest_density"])
+	if cfg.has("forest_threshold"):
+		forest_threshold = float(cfg["forest_threshold"])
+	if cfg.has("grass_density"):
+		grass_density = float(cfg["grass_density"])
+	if cfg.has("grass_threshold"):
+		grass_threshold = float(cfg["grass_threshold"])
+
+	# Scale resource patches proportionally to map area and resource multiplier
+	var area_scale: float = (float(map_size.x) * float(map_size.y)) / (128.0 * 128.0)
+	var resource_mult: float = float(cfg.get("resource_multiplier", 1.0))
+	var total_scale: float = area_scale * resource_mult
+
+	rock_patches = maxi(1, int(round(15.0 * total_scale)))
+	copper_patches = maxi(1, int(round(8.0 * total_scale)))
+	iron_patches = maxi(1, int(round(6.0 * total_scale)))
+	gold_patches = maxi(1, int(round(3.0 * total_scale)))
 
 func setup_noise():
 	rng.seed = terrain_seed

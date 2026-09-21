@@ -18,6 +18,7 @@ class_name MainMenu
 @onready var fullscreen_check: CheckBox = $SettingsPanel/MarginContainer/VBoxContainer/FullscreenRow/FullscreenCheckBox
 
 @onready var save_load_dialog: SaveLoadDialog = $SaveLoadDialog
+@onready var world_creation_dialog: WorldCreationDialog = $WorldCreationDialog
 
 # ========== INITIALIZATION ==========
 
@@ -51,6 +52,9 @@ func _ready() -> void:
 		save_load_dialog.load_confirmed.connect(_on_save_load_confirmed)
 		save_load_dialog.cancelled.connect(_check_save_availability)
 
+	if world_creation_dialog:
+		world_creation_dialog.world_creation_confirmed.connect(_on_world_creation_confirmed)
+
 	# Initialize settings controls
 	_init_settings_values()
 
@@ -60,6 +64,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			if save_load_dialog and save_load_dialog.visible:
 				# SaveLoadDialog handles Escape internally
 				return
+			if world_creation_dialog and world_creation_dialog.visible:
+				# WorldCreationDialog handles Escape internally
+				return
 			if (settings_panel and settings_panel.visible) or (credits_panel and credits_panel.visible):
 				_close_modals()
 				get_viewport().set_input_as_handled()
@@ -67,6 +74,16 @@ func _unhandled_input(event: InputEvent) -> void:
 # ========== ACTIONS ==========
 
 func _on_new_game_pressed() -> void:
+	_close_modals()
+	if world_creation_dialog:
+		world_creation_dialog.open()
+	else:
+		get_tree().change_scene_to_file("res://Scenes/main.tscn")
+
+func _on_world_creation_confirmed(settings: Dictionary) -> void:
+	var global = get_node_or_null("/root/Global")
+	if global:
+		global.custom_world_settings = settings
 	get_tree().change_scene_to_file("res://Scenes/main.tscn")
 
 func _on_load_game_pressed() -> void:
@@ -97,6 +114,8 @@ func _close_modals() -> void:
 		credits_panel.visible = false
 	if save_load_dialog:
 		save_load_dialog.close()
+	if world_creation_dialog:
+		world_creation_dialog.close()
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()

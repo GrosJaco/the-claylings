@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://Scripts/UI/pause_menu.gd" id="1_script"]
 [ext_resource type="Theme" uid="uid://c3dd5c3bgthql" path="res://Art/Fonts/ClaylingInfoFont.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/SaveLoadDialog.tscn" id="3_saveload"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
 content_margin_left = 14.0
@@ -302,3 +303,5 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
 text = "Close"
+
+[node name="SaveLoadDialog" parent="." instance=ExtResource("3_saveload")]

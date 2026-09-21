@@ -18,6 +18,8 @@ class_name PauseMenu
 @onready var volume_slider: HSlider = $SettingsPanel/MarginContainer/VBoxContainer/VolumeRow/VolumeSlider
 @onready var fullscreen_check: CheckBox = $SettingsPanel/MarginContainer/VBoxContainer/FullscreenRow/FullscreenCheckBox
 
+@onready var save_load_dialog: SaveLoadDialog = $SaveLoadDialog
+
 # ========== STATE ==========
 
 var _is_open: bool = false
@@ -53,17 +55,26 @@ func _ready() -> void:
 	if close_settings_button:
 		close_settings_button.pressed.connect(_close_settings)
 
+	if save_load_dialog:
+		save_load_dialog.save_confirmed.connect(_on_save_confirmed)
+		save_load_dialog.load_confirmed.connect(_on_load_confirmed)
+		save_load_dialog.cancelled.connect(_update_load_button_state)
+
 	_init_settings_values()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
 			if _is_open:
-				if settings_panel and settings_panel.visible:
+				if save_load_dialog and save_load_dialog.visible:
+					# SaveLoadDialog handles Escape internally
+					return
+				elif settings_panel and settings_panel.visible:
 					_close_settings()
+					get_viewport().set_input_as_handled()
 				else:
 					resume()
-				get_viewport().set_input_as_handled()
+					get_viewport().set_input_as_handled()
 			else:
 				if _can_open_pause():
 					pause()
@@ -130,19 +141,29 @@ func resume() -> void:
 
 	if settings_panel:
 		settings_panel.visible = false
+	if save_load_dialog:
+		save_load_dialog.close()
 
 # ========== BUTTON HANDLERS ==========
 
 func _on_save_pressed() -> void:
-	var save_mgr = get_node_or_null("/root/SaveManager")
-	if save_mgr and save_mgr.has_method("save_game"):
-		save_mgr.save_game("quicksave")
-		_update_load_button_state()
+	if save_load_dialog:
+		save_load_dialog.open_save_dialog()
 
 func _on_load_pressed() -> void:
+	if save_load_dialog:
+		save_load_dialog.open_load_dialog()
+
+func _on_save_confirmed(slot_name: String) -> void:
+	var save_mgr = get_node_or_null("/root/SaveManager")
+	if save_mgr and save_mgr.has_method("save_game"):
+		save_mgr.save_game(slot_name)
+		_update_load_button_state()
+
+func _on_load_confirmed(slot_name: String) -> void:
 	var save_mgr = get_node_or_null("/root/SaveManager")
 	if save_mgr and save_mgr.has_method("load_game"):
-		save_mgr.load_game("quicksave")
+		save_mgr.load_game(slot_name)
 
 func _on_settings_pressed() -> void:
 	if settings_panel:
@@ -172,10 +193,10 @@ func _update_load_button_state() -> void:
 	var save_mgr = get_node_or_null("/root/SaveManager")
 	var has_save: bool = false
 	if save_mgr:
-		if save_mgr.has_method("has_save"):
-			has_save = save_mgr.has_save("quicksave")
-		if not has_save and save_mgr.has_method("get_save_slots"):
+		if save_mgr.has_method("get_save_slots"):
 			has_save = save_mgr.get_save_slots().size() > 0
+		elif save_mgr.has_method("has_save"):
+			has_save = save_mgr.has_save("quicksave")
 
 	load_button.disabled = not has_save
 

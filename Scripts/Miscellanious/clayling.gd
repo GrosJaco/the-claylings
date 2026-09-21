@@ -433,7 +433,7 @@ func _generate_identity() -> void:
 					"Joe", "Mauer", 
 					"Romain", "Mathieu", "Louis", 
 					"Pedro", "Filipe", "Tiago", "Enzo", "Rodriguo", 
-					"João", "Rafael", "Matthias", "Samuel", "Barth", "Bastien", "Alexandre", "Aurélien", "Fabian", "Joachim"]
+					"João", "Rafael", "Matthias", "Samuel", "Barth", "Bastien", "Alexandre", "Aurélien", "Fabian", "Joachim", "Hugo"]
 	
 	var used_names: Dictionary = {}
 	if is_inside_tree():

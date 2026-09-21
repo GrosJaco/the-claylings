@@ -759,6 +759,31 @@ func get_save_slots() -> Array[String]:
 		dir.list_dir_end()
 	return slots
 
+func get_all_saves_metadata() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var slots = get_save_slots()
+	for slot in slots:
+		var file_path = SAVE_DIR + slot + ".json"
+		var file = FileAccess.open(file_path, FileAccess.READ)
+		if not file:
+			continue
+		var content = file.get_as_text()
+		file.close()
+		var data = JSON.parse_string(content)
+		if data == null or typeof(data) != TYPE_DICTIONARY:
+			continue
+		var meta = data.get("meta", {})
+		var env = data.get("environment", {})
+		result.append({
+			"slot_name": slot,
+			"timestamp": str(meta.get("timestamp", "")),
+			"day": int(env.get("current_day", 1)),
+			"wave": int(env.get("current_wave", 0))
+		})
+	# Sort by timestamp descending (newest first)
+	result.sort_custom(func(a, b): return a["timestamp"] > b["timestamp"])
+	return result
+
 func has_save(slot_name: String) -> bool:
 	return FileAccess.file_exists(SAVE_DIR + slot_name + ".json")
 

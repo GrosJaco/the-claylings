@@ -17,6 +17,8 @@ class_name MainMenu
 @onready var volume_slider: HSlider = $SettingsPanel/MarginContainer/VBoxContainer/VolumeRow/VolumeSlider
 @onready var fullscreen_check: CheckBox = $SettingsPanel/MarginContainer/VBoxContainer/FullscreenRow/FullscreenCheckBox
 
+@onready var save_load_dialog: SaveLoadDialog = $SaveLoadDialog
+
 # ========== INITIALIZATION ==========
 
 func _ready() -> void:
@@ -45,12 +47,19 @@ func _ready() -> void:
 	if credits_close_button:
 		credits_close_button.pressed.connect(_close_modals)
 
+	if save_load_dialog:
+		save_load_dialog.load_confirmed.connect(_on_save_load_confirmed)
+		save_load_dialog.cancelled.connect(_check_save_availability)
+
 	# Initialize settings controls
 	_init_settings_values()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
+			if save_load_dialog and save_load_dialog.visible:
+				# SaveLoadDialog handles Escape internally
+				return
 			if (settings_panel and settings_panel.visible) or (credits_panel and credits_panel.visible):
 				_close_modals()
 				get_viewport().set_input_as_handled()
@@ -61,9 +70,13 @@ func _on_new_game_pressed() -> void:
 	get_tree().change_scene_to_file("res://Scenes/main.tscn")
 
 func _on_load_game_pressed() -> void:
+	if save_load_dialog:
+		save_load_dialog.open_load_dialog()
+
+func _on_save_load_confirmed(slot_name: String) -> void:
 	var save_mgr = get_node_or_null("/root/SaveManager")
 	if save_mgr and save_mgr.has_method("load_game"):
-		save_mgr.load_game("quicksave")
+		save_mgr.load_game(slot_name)
 
 func _on_settings_pressed() -> void:
 	if credits_panel:
@@ -82,6 +95,8 @@ func _close_modals() -> void:
 		settings_panel.visible = false
 	if credits_panel:
 		credits_panel.visible = false
+	if save_load_dialog:
+		save_load_dialog.close()
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
@@ -92,12 +107,13 @@ func _check_save_availability() -> void:
 	var save_mgr = get_node_or_null("/root/SaveManager")
 	var has_save: bool = false
 	if save_mgr:
-		if save_mgr.has_method("has_save"):
-			has_save = save_mgr.has_save("quicksave")
-		if not has_save and save_mgr.has_method("get_save_slots"):
+		if save_mgr.has_method("get_save_slots"):
 			has_save = save_mgr.get_save_slots().size() > 0
+		elif save_mgr.has_method("has_save"):
+			has_save = save_mgr.has_save("quicksave")
 
-	load_game_button.disabled = not has_save
+	if load_game_button:
+		load_game_button.disabled = not has_save
 
 func _init_settings_values() -> void:
 	# Audio volume setup

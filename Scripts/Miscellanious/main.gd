@@ -28,6 +28,8 @@ extends Node2D
 # ---------- CLAYLINGS ----------
 
 var active_claylings: Array = [] # claylings cache
+var _is_restoring_save: bool = false
+var _initial_claylings_spawned: bool = false
 var assign_cooldown: float = 0.0
 const ASSIGN_INTERVAL: float = 0.2
 
@@ -111,6 +113,91 @@ func spawn_clayling(pos, mob):
 			add_child(chick)
 			return chick
 	return null
+
+func spawn_star_claylings(center: Vector2, radius: float = 52.0) -> void:
+	var terrain = get_node_or_null("Terrain")
+	var visual_center = center + Vector2(0, -18.0)
+
+	# 5 points of a star in clockwise order, starting from the top vertex (-PI / 2)
+	for i in range(5):
+		if i > 0:
+			await get_tree().create_timer(0.25, false).timeout
+
+		if not is_inside_tree():
+			return
+
+		var angle = -PI / 2.0 + i * (TAU / 5.0)
+		var spawn_pos = visual_center + Vector2(cos(angle), sin(angle)) * radius
+
+		if terrain:
+			spawn_pos = _find_valid_ground_near(spawn_pos, visual_center, terrain)
+
+		_spawn_spawn_particles(spawn_pos)
+		var clayling = spawn_clayling(spawn_pos, "clayling")
+		if clayling:
+			# Orient the clayling towards the crystal center
+			var dir = (visual_center - spawn_pos).normalized()
+			if abs(dir.x) > abs(dir.y):
+				clayling.last_direction = "side"
+				if clayling.has_method("set_flip_h"):
+					clayling.set_flip_h(dir.x < 0)
+			else:
+				clayling.last_direction = "down" if dir.y > 0 else "up"
+
+			if clayling.has_method("handle_animation"):
+				clayling.handle_animation()
+
+func _spawn_spawn_particles(pos: Vector2) -> void:
+	var particles := CPUParticles2D.new()
+	particles.global_position = pos + Vector2(0, -6)
+	particles.emitting = true
+	particles.one_shot = true
+	particles.amount = 20
+	particles.lifetime = 0.6
+	particles.explosiveness = 1.0
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	particles.emission_sphere_radius = 6.0
+	particles.direction = Vector2(0, -1)
+	particles.spread = 180.0
+	particles.gravity = Vector2(0, -15)
+	particles.initial_velocity_min = 25.0
+	particles.initial_velocity_max = 50.0
+	particles.damping_min = 20.0
+	particles.damping_max = 40.0
+	particles.scale_amount_min = 1.5
+	particles.scale_amount_max = 3.0
+	particles.color = Color(0.894, 0.784, 0.851, 1.0)
+
+	var gradient := Gradient.new()
+	gradient.offsets = PackedFloat32Array([0.0, 0.6, 1.0])
+	gradient.colors = PackedColorArray([
+		Color(1.0, 0.92, 0.96, 1.0),
+		Color(0.894, 0.784, 0.851, 0.9),
+		Color(0.894, 0.784, 0.851, 0.0)
+	])
+	particles.color_ramp = gradient
+
+	add_child(particles)
+	particles.finished.connect(particles.queue_free)
+
+func _find_valid_ground_near(pos: Vector2, fallback_center: Vector2, terrain: Node) -> Vector2:
+	var tile_pos = Vector2i(round(pos.x / 16.0), round(pos.y / 16.0))
+	var water = terrain.water_cells if ("water_cells" in terrain) else []
+	var walls = terrain.wall_cells if ("wall_cells" in terrain) else []
+
+	if not (tile_pos in water) and not (tile_pos in walls):
+		return pos
+
+	var offsets = [
+		Vector2i(0, 0), Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1),
+		Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)
+	]
+	for offset in offsets:
+		var candidate = tile_pos + offset
+		if not (candidate in water) and not (candidate in walls):
+			return Vector2(candidate.x * 16.0 + 8.0, candidate.y * 16.0 + 8.0)
+
+	return fallback_center + (pos - fallback_center).normalized() * 32.0
 
 func spawn_enemy(pos: Vector2, enemy_type: String = "blue_spider") -> void:
 	var enemy_scene: PackedScene = null
@@ -719,9 +806,14 @@ func _ready():
 	if task_menu:
 		task_menu.quota_changed.connect(_on_quota_changed)
 
+	if building_manager and building_manager.has_signal("initial_crystal_placed"):
+		building_manager.initial_crystal_placed.connect(_on_initial_crystal_placed)
+
 	var save_mgr = get_node_or_null("/root/SaveManager")
 	if save_mgr and save_mgr.has_method("has_pending_load") and save_mgr.has_pending_load():
+		_is_restoring_save = true
 		save_mgr.apply_pending_load(self)
+		_is_restoring_save = false
 	else:
 		var terrain = get_node_or_null("Terrain")
 		var cam = get_viewport().get_camera_2d()
@@ -732,6 +824,13 @@ func _ready():
 			cam.global_position = center_pos
 			if "target_position" in cam:
 				cam.target_position = center_pos
+
+func _on_initial_crystal_placed(crystal_node: Node2D) -> void:
+	if _is_restoring_save or _initial_claylings_spawned:
+		return
+	_initial_claylings_spawned = true
+	if is_instance_valid(crystal_node):
+		spawn_star_claylings(crystal_node.global_position)
 
 
 func get_active_clayling_count() -> int:

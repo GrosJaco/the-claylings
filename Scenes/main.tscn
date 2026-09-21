@@ -1455,7 +1455,7 @@ stretch_mode = 5
 
 [node name="DefeatUI" parent="CanvasLayer" unique_id=987252036 instance=ExtResource("48_defeat")]
 
-[node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("56_pause")]
+[node name="PauseMenu" parent="CanvasLayer" unique_id=1858703919 instance=ExtResource("56_pause")]
 
 [node name="CrystalPlacementBanner" parent="CanvasLayer" unique_id=1280509563 instance=ExtResource("49_banner")]
 

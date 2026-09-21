@@ -38,18 +38,6 @@ func get_pending_load_data() -> Dictionary:
 func get_pending_slot_name() -> String:
 	return _pending_slot_name
 
-static func _is_key_match(event: InputEventKey, target_key: Key) -> bool:
-	return event.keycode == target_key or event.physical_keycode == target_key or event.key_label == target_key
-
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		if _is_key_match(event, KEY_F5):
-			get_viewport().set_input_as_handled()
-			call_deferred("save_game", "quicksave")
-		elif _is_key_match(event, KEY_F10):
-			get_viewport().set_input_as_handled()
-			call_deferred("load_game", "quicksave")
-
 # ---------- SERIALIZATION HELPERS ----------
 
 static func _v2i_to_str(v: Vector2i) -> String:

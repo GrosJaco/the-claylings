@@ -55,6 +55,7 @@
 [ext_resource type="Resource" uid="uid://slrba8fbdd3w" path="res://Resources/Building Resources/soil_tile.tres" id="53_soiltile"]
 [ext_resource type="Resource" uid="uid://1sujqiqusuy" path="res://Resources/Building Resources/oak_sapling.tres" id="54_oaksapling"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/WorldTooltip.tscn" id="55_tooltip"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/PauseMenu.tscn" id="56_pause"]
 
 [sub_resource type="Gradient" id="Gradient_r33sp"]
 offsets = PackedFloat32Array(0.15, 0.25, 0.35, 0.65, 0.75, 0.85)
@@ -1453,6 +1454,8 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="DefeatUI" parent="CanvasLayer" unique_id=987252036 instance=ExtResource("48_defeat")]
+
+[node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("56_pause")]
 
 [node name="CrystalPlacementBanner" parent="CanvasLayer" unique_id=1280509563 instance=ExtResource("49_banner")]
 

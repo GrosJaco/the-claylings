@@ -80,6 +80,7 @@ func save_game(slot_name: String = "quicksave") -> bool:
 	var building_manager = main.get_node_or_null("BuildingManager")
 	var day_night = get_tree().get_first_node_in_group("day_night_cycle")
 	var wave_mgr = get_tree().get_first_node_in_group("wave_manager")
+	var weather_mgr = get_tree().get_first_node_in_group("weather_manager")
 	var camera = get_viewport().get_camera_2d()
 	if not camera:
 		camera = main.get_node_or_null("Camera2D")
@@ -108,7 +109,8 @@ func save_game(slot_name: String = "quicksave") -> bool:
 			"forest_density": terrain.forest_density if (terrain and "forest_density" in terrain) else 0.4,
 			"current_day": day_night.current_day if (day_night and "current_day" in day_night) else 1,
 			"time_of_day": day_night.time_of_day if (day_night and "time_of_day" in day_night) else 0.33,
-			"current_wave": wave_mgr.current_wave if (wave_mgr and "current_wave" in wave_mgr) else 0
+			"current_wave": wave_mgr.current_wave if (wave_mgr and "current_wave" in wave_mgr) else 0,
+			"weather": weather_mgr.get_save_data() if (weather_mgr and weather_mgr.has_method("get_save_data")) else {}
 		},
 		"camera": {
 			"x": camera.global_position.x if camera else 0.0,
@@ -464,6 +466,10 @@ func apply_pending_load(main: Node2D) -> void:
 		wave_mgr.is_wave_active = false
 		wave_mgr.is_spawning = false
 		wave_mgr.active_enemies.clear()
+
+	var weather_mgr = get_tree().get_first_node_in_group("weather_manager")
+	if weather_mgr and weather_mgr.has_method("load_save_data") and env.has("weather"):
+		weather_mgr.load_save_data(env["weather"])
 
 	if "task_quotas" in main and data.has("task_quotas"):
 		main.task_quotas = data["task_quotas"].duplicate()

@@ -32,6 +32,7 @@
 [ext_resource type="Script" uid="uid://cnl3drgl86hcr" path="res://Scripts/UI/day_banner.gd" id="14_k2e45"]
 [ext_resource type="PackedScene" uid="uid://j2vhugnpa0v7" path="res://Scenes/Buildings/GoldOre.tscn" id="15_gt3je"]
 [ext_resource type="Script" uid="uid://bg164elkow3gd" path="res://Scripts/Data/BuildingData.gd" id="15_kltya"]
+[ext_resource type="Texture2D" uid="uid://knnco42xqfd6" path="res://Art/UI/WeatherIcons.png" id="16_1semv"]
 [ext_resource type="Resource" uid="uid://diknwxaqbtc1l" path="res://Resources/Building Resources/furnace.tres" id="16_e08e2"]
 [ext_resource type="Resource" uid="uid://dpiowxbqbmshy" path="res://Resources/Building Resources/storage_pile.tres" id="17_neg2b"]
 [ext_resource type="PackedScene" uid="uid://dx42gfobpfv5v" path="res://Scenes/building_radial_menu.tscn" id="19_fevyy"]
@@ -56,6 +57,7 @@
 [ext_resource type="Resource" uid="uid://1sujqiqusuy" path="res://Resources/Building Resources/oak_sapling.tres" id="54_oaksapling"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/WorldTooltip.tscn" id="55_tooltip"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/PauseMenu.tscn" id="56_pause"]
+[ext_resource type="PackedScene" uid="uid://btv7ycagfbyn2" path="res://Scenes/WeatherManager.tscn" id="57_weather"]
 
 [sub_resource type="Gradient" id="Gradient_r33sp"]
 offsets = PackedFloat32Array(0.15, 0.25, 0.35, 0.65, 0.75, 0.85)
@@ -106,6 +108,10 @@ region = Rect2(10, 0, 62, 44)
 [sub_resource type="AtlasTexture" id="AtlasTexture_v2nl5"]
 atlas = ExtResource("12_jwpg7")
 region = Rect2(81, 23, 14, 3)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2060n"]
+atlas = ExtResource("16_1semv")
+region = Rect2(0, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8cuat"]
 atlas = ExtResource("6_pdsj5")
@@ -1131,10 +1137,14 @@ day_duration = 365.0
 color_over_time = SubResource("Gradient_r33sp")
 time_of_day = 0.33
 
+[node name="WeatherManager" parent="." unique_id=1753568291 instance=ExtResource("57_weather")]
+
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=528902149]
+layer = 5
 script = ExtResource("51_hud")
 
 [node name="InventoryUI" type="Control" parent="CanvasLayer" unique_id=959480218]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -1215,7 +1225,18 @@ text = "00:00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="WeatherIcon" type="TextureRect" parent="CanvasLayer/ClockWidget" unique_id=784152963]
+layout_mode = 0
+offset_left = 261.0
+offset_top = 224.0
+offset_right = 277.0
+offset_bottom = 240.0
+scale = Vector2(2.2, 2.2)
+mouse_filter = 0
+texture = SubResource("AtlasTexture_2060n")
+
 [node name="DayBanner" type="Label" parent="CanvasLayer" unique_id=680014435]
+visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -1229,6 +1250,7 @@ vertical_alignment = 1
 script = ExtResource("14_k2e45")
 
 [node name="BuildMenu" type="Control" parent="CanvasLayer" unique_id=1071837459]
+visible = false
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -1297,6 +1319,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="PlantMenu" type="Control" parent="CanvasLayer" unique_id=1092319780]
+visible = false
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -1362,6 +1385,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="HarvestZoneButton" type="TextureButton" parent="CanvasLayer" unique_id=1497393964]
+visible = false
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -1395,6 +1419,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="TaskPriorityMenu" type="Control" parent="CanvasLayer" unique_id=612896421]
+visible = false
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -1454,8 +1479,10 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="DefeatUI" parent="CanvasLayer" unique_id=987252036 instance=ExtResource("48_defeat")]
+visible = false
 
 [node name="PauseMenu" parent="CanvasLayer" unique_id=1858703919 instance=ExtResource("56_pause")]
+visible = false
 
 [node name="CrystalPlacementBanner" parent="CanvasLayer" unique_id=1280509563 instance=ExtResource("49_banner")]
 

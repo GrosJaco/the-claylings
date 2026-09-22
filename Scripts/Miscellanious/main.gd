@@ -468,21 +468,25 @@ func assign_tasks_to_claylings():
 				plant_active += 1
 
 	# ---------- WATER ----------
-	var water_task_active = active_counts.get("Water", 0)
-	var water_task_quota = task_quotas.get("Water", 999)
+	var weather_mgr = get_tree().get_first_node_in_group("weather_manager")
+	var is_raining = weather_mgr != null and weather_mgr.is_raining()
 
-	for pos in water_level.keys():
-		if free_claylings.is_empty() or water_task_active >= water_task_quota:
-			break
-		if water_level[pos] < 5.0:
-			if reserved_water.has(pos):
-				continue
-			var chosen = get_nearest_clayling(pos, free_claylings, true)
-			if chosen:
-				reserved_water[pos] = chosen
-				chosen.assign_task("Water", {"pos": pos})
-				free_claylings.erase(chosen)
-				water_task_active += 1
+	if not is_raining:
+		var water_task_active = active_counts.get("Water", 0)
+		var water_task_quota = task_quotas.get("Water", 999)
+
+		for pos in water_level.keys():
+			if free_claylings.is_empty() or water_task_active >= water_task_quota:
+				break
+			if water_level[pos] < 5.0:
+				if reserved_water.has(pos):
+					continue
+				var chosen = get_nearest_clayling(pos, free_claylings, true)
+				if chosen:
+					reserved_water[pos] = chosen
+					chosen.assign_task("Water", {"pos": pos})
+					free_claylings.erase(chosen)
+					water_task_active += 1
 
 # ---------- SURVIVAL ----------
 
@@ -887,6 +891,12 @@ func _input(event: InputEvent) -> void:
 				debug_all_claylings_to_spearmen()
 				get_viewport().set_input_as_handled()
 				return
+			if event.keycode == KEY_F6:
+				var wm = get_tree().get_first_node_in_group("weather_manager")
+				if wm and wm.has_method("cycle_next_weather"):
+					wm.cycle_next_weather()
+				get_viewport().set_input_as_handled()
+				return
 
 		if event.keycode == KEY_C:
 			spawn_clayling(get_global_mouse_position(), "clayling")
@@ -1008,12 +1018,29 @@ func _physics_process(delta: float) -> void:
 		assign_tasks_to_claylings()
 		assign_cooldown = ASSIGN_INTERVAL
 
+	var weather_mgr = get_tree().get_first_node_in_group("weather_manager")
+	var raining = weather_mgr != null and weather_mgr.is_raining()
+
 	for pos in water_level.keys():
-		var i = randi_range(1, 2)
-		if i == 1:
-			water_level[pos] = max(water_level[pos] - delta, 0)
-			if water_level[pos] <= 0:
-				drying_tile(pos)
+		if raining:
+			# Staggered droplet impacts per tile instead of uniform watering
+			var drop_rate = 1.0 if (weather_mgr.current_weather == WeatherManager.WeatherType.THUNDERSTORM) else 0.4
+			if randf() < drop_rate * delta:
+				water_level[pos] = min(water_level[pos] + randf_range(0.5, 0.9), 5.0)
+				if water_level[pos] >= 1.5 and custom_tile.has("soil") and ground:
+					var data = ground.get_cell_tile_data(pos)
+					if data and data.get_custom_data("tile_name") == "soil":
+						var cur_atlas = ground.get_cell_atlas_coords(pos)
+						if custom_tile["soil"].atlas_coords.size() > 1 and cur_atlas != custom_tile["soil"].atlas_coords[1]:
+							set_tile("soil", pos, ground, 1)
+				if water_level[pos] >= 4.0:
+					reserved_water.erase(pos)
+		else:
+			var i = randi_range(1, 2)
+			if i == 1:
+				water_level[pos] = max(water_level[pos] - delta, 0)
+				if water_level[pos] <= 0:
+					drying_tile(pos)
 
 	for pos in crops_dic.keys():
 		var i = randi_range(1, 2)

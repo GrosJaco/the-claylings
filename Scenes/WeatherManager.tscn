@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://btv7ycagfbyn2"]
+
+[ext_resource type="Script" uid="uid://bht22rgd0nar" path="res://Scripts/Miscellanious/weather_manager.gd" id="1_weather"]
+
+[node name="WeatherManager" type="Node2D" unique_id=2043855133]
+script = ExtResource("1_weather")
+
+[node name="RainParticles" type="CPUParticles2D" parent="." unique_id=1118208809]
+z_index = 50
+emitting = false
+amount = 450
+lifetime = 1.4
+preprocess = 0.5
+emission_shape = 3
+emission_rect_extents = Vector2(1600, 20)
+direction = Vector2(-0.25, 1)
+spread = 2.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 550.0
+initial_velocity_max = 750.0
+scale_amount_max = 2.5
+color = Color(0.72, 0.85, 1, 0.75)
+
+[node name="WeatherCanvasLayer" type="CanvasLayer" parent="." unique_id=1513826438]
+
+[node name="SkyOverlay" type="ColorRect" parent="WeatherCanvasLayer" unique_id=1655105665]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="LightningFlash" type="ColorRect" parent="WeatherCanvasLayer" unique_id=1445992535]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="AmbientRainPlayer" type="AudioStreamPlayer" parent="." unique_id=1300113996]
+volume_db = -80.0

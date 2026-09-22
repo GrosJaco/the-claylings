@@ -11,13 +11,25 @@ var target_zoom: float = 1.0
 var dragging: bool = false
 var target_position: Vector2 = Vector2.ZERO
 var is_centering: bool = false
+var _shake_timer: float = 0.0
+var _shake_intensity: float = 0.0
 
 func _ready():
 	add_to_group("camera")
 	target_zoom = zoom.x
 	target_position = global_position
 
+func shake(intensity: float = 6.0, duration: float = 0.35) -> void:
+	_shake_intensity = intensity
+	_shake_timer = duration
+
 func _process(delta: float):
+	if _shake_timer > 0.0:
+		_shake_timer -= delta
+		offset = Vector2(randf_range(-_shake_intensity, _shake_intensity), randf_range(-_shake_intensity, _shake_intensity))
+		if _shake_timer <= 0.0:
+			offset = Vector2.ZERO
+
 	zoom = zoom.lerp(Vector2(target_zoom, target_zoom), smooth_factor * delta)
 
 	if is_centering:

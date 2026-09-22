@@ -35,6 +35,7 @@ var happiness: float = 100.0
 
 var speed : float = 50.0
 var speed_multiplier: float = 1.0
+var weather_speed_multiplier: float = 1.0
 var _slow_timer: float = 0.0
 var role : String = "villager" # ex: "villager", "spearman", "archer"
 var is_combat_ready : bool = false
@@ -672,6 +673,10 @@ func _ready():
 	# Link this clayling to each state
 	for s in states.values():
 		s.clayling = self
+
+	var wm = get_tree().get_first_node_in_group("weather_manager")
+	if wm and wm.has_method("get_weather_speed_multiplier"):
+		weather_speed_multiplier = wm.get_weather_speed_multiplier()
 	
 	last_direction = "down"
 	change_state("Idle")
@@ -714,7 +719,7 @@ func _physics_process(delta: float) -> void:
 	if current_state:
 		current_state.update(delta)
 	
-	var effective_speed = speed * speed_multiplier
+	var effective_speed = speed * speed_multiplier * weather_speed_multiplier
 	if personality_trait == "Hermit":
 		var crystal = get_tree().get_first_node_in_group("central_crystal")
 		if crystal and is_instance_valid(crystal):

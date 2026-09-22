@@ -7,7 +7,7 @@ var sounds: Dictionary = {
 	"rock break": preload("res://Audio/SFX/rock_break.wav"),
 	"grass": preload("res://Audio/SFX/grass.wav"),
 	"furnace": preload("res://Audio/SFX/furnace.wav"),
-	
+	"thunder": preload("res://Audio/SFX/thunder_strike.wav"),
 	}
 
 @export_group("Spatial Audio")

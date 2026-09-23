@@ -118,6 +118,7 @@ func save_game(slot_name: String = "quicksave") -> bool:
 			"zoom_x": camera.zoom.x if camera else 1.0,
 			"zoom_y": camera.zoom.y if camera else 1.0
 		},
+		"task_priorities": main.get_task_priorities_save_data() if main.has_method("get_task_priorities_save_data") else [],
 		"task_quotas": main.task_quotas.duplicate() if "task_quotas" in main else {},
 		"used_tiles": [],
 		"water_levels": {},
@@ -471,7 +472,14 @@ func apply_pending_load(main: Node2D) -> void:
 	if weather_mgr and weather_mgr.has_method("load_save_data") and env.has("weather"):
 		weather_mgr.load_save_data(env["weather"])
 
-	if "task_quotas" in main and data.has("task_quotas"):
+	if data.has("task_priorities") and main.has_method("load_task_priorities_save_data"):
+		main.load_task_priorities_save_data(data["task_priorities"])
+		var t_menu = get_tree().get_first_node_in_group("task_priority_menu")
+		if not t_menu:
+			t_menu = main.get_node_or_null("CanvasLayer/TaskPriorityMenu")
+		if t_menu and t_menu.has_method("load_orders_data"):
+			t_menu.load_orders_data(data["task_priorities"])
+	elif "task_quotas" in main and data.has("task_quotas"):
 		main.task_quotas = data["task_quotas"].duplicate()
 		var t_menu = get_tree().get_first_node_in_group("task_priority_menu")
 		if not t_menu:

@@ -1442,9 +1442,9 @@ text_color = Color(0.24705882, 0.1882353, 0.3137255, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/TaskPriorityMenu" unique_id=1637910345]
 layout_mode = 0
-offset_left = -123.0
-offset_top = -540.0
-offset_right = 117.0
+offset_left = -130.0
+offset_top = -290.0
+offset_right = 130.0
 offset_bottom = -10.0
 grow_vertical = 0
 

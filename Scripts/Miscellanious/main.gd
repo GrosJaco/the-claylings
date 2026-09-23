@@ -43,22 +43,30 @@ var reserved_forages: Dictionary = {}
 var reserved_outputs: Dictionary = {}
 var reserved_work: Dictionary = {}
 
-# ---------- TASK PRIORITY ----------
+# ---------- TASK PRIORITY (ORDER QUEUE) ----------
 
-var task_quotas: Dictionary = {
-	"Haul": 5,
-	"Deliver": 5,
-	"Construct": 5,
-	"CollectOutput": 5,
-	"Work": 5,
-	"Harvest": 5,
-	"Pick up": 5,
-	"Chop": 5,
-	"Mine": 5,
-	"Forage": 5,
-	"Plant": 5,
-	"Water": 5,
+const DEFAULT_TASK_ORDERS: Array[Dictionary] = [
+	{"id": "logistics", "name": "Logistics", "enabled": true},
+	{"id": "construction", "name": "Construction", "enabled": true},
+	{"id": "crafting", "name": "Crafting", "enabled": true},
+	{"id": "farming", "name": "Farming", "enabled": true},
+	{"id": "woodcutting", "name": "Woodcutting", "enabled": true},
+	{"id": "mining", "name": "Mining", "enabled": true},
+	{"id": "foraging", "name": "Foraging", "enabled": true}
+]
+
+const ORDER_STATES: Dictionary = {
+	"logistics": ["Haul", "Pick up", "CollectOutput"],
+	"construction": ["Construct", "ConstructDelivery", "Deliver"],
+	"crafting": ["Work"],
+	"farming": ["Harvest", "Plant", "Water"],
+	"woodcutting": ["Chop"],
+	"mining": ["Mine"],
+	"foraging": ["Forage"]
 }
+
+var task_priority_orders: Array[Dictionary] = []
+var task_quotas: Dictionary = {}
 
 # ---------- BUILDINGS ----------
 
@@ -222,14 +230,56 @@ func _count_active_states() -> Dictionary:
 				break
 	return counts
 
+func _on_order_priorities_changed(new_orders: Array) -> void:
+	task_priority_orders.clear()
+	for o in new_orders:
+		if o is Dictionary:
+			task_priority_orders.append(o.duplicate())
+
 func _on_quota_changed(task_name: String, value: int) -> void:
 	task_quotas[task_name] = value
 
-func assign_tasks_to_claylings():
+func is_order_enabled(order_id: String) -> bool:
+	for order in task_priority_orders:
+		if order.get("id") == order_id:
+			return order.get("enabled", true)
+	return true
+
+func get_order_active_count(order_id: String) -> int:
+	var active_counts = _count_active_states()
+	var total = 0
+	var states_list = ORDER_STATES.get(order_id, [])
+	for s in states_list:
+		total += active_counts.get(s, 0)
+	return total
+
+func get_idle_clayling_count() -> int:
+	var count = 0
+	for c in active_claylings:
+		if not is_instance_valid(c) or c.get("is_dead"):
+			continue
+		if c.is_combat_ready or c.role != "villager":
+			continue
+		if c.current_state == c.states.get("Idle") or c.current_state == c.states.get("Wander"):
+			count += 1
+	return count
+
+func get_task_priorities_save_data() -> Array:
+	return task_priority_orders.duplicate(true)
+
+func load_task_priorities_save_data(saved: Array) -> void:
+	if saved.is_empty():
+		return
+	task_priority_orders.clear()
+	for item in saved:
+		if item is Dictionary:
+			task_priority_orders.append(item.duplicate())
+
+func assign_tasks_to_claylings() -> void:
 	_cleanup_reservations()
 	_handle_clayling_needs()
 
-	var free_claylings = []
+	var free_claylings: Array = []
 	for clayling in active_claylings:
 		if not is_instance_valid(clayling):
 			continue
@@ -238,66 +288,96 @@ func assign_tasks_to_claylings():
 		if clayling.current_state == clayling.states["Idle"] or clayling.current_state == clayling.states["Wander"]:
 			free_claylings.append(clayling)
 
-	var active_counts = _count_active_states()
+	if free_claylings.is_empty():
+		return
 
-	# ---------- HAUL ----------
-	var haul_active = active_counts.get("Haul", 0)
-	var haul_quota = task_quotas.get("Haul", 999)
+	# Haul items to storage first for any worker holding inventory, provided logistics is active
+	if is_order_enabled("logistics"):
+		for c in free_claylings.duplicate():
+			if not c.is_inventory_empty():
+				var nearest_storage = find_nearest_storage_with_space(c.global_position)
+				if nearest_storage:
+					c.assign_task("Haul", {"storage": nearest_storage})
+					free_claylings.erase(c)
+				else:
+					c.drop_item(-1, true)
 
-	for c in free_claylings.duplicate():
-		if haul_active >= haul_quota:
+	if free_claylings.is_empty():
+		return
+
+	# Process orders sequentially following player-defined priority ranking
+	for order in task_priority_orders:
+		if free_claylings.is_empty():
 			break
-		if c.is_inventory_empty():
+		if not order.get("enabled", true):
 			continue
-		var nearest_storage = find_nearest_storage_with_space(c.global_position)
-		if nearest_storage:
-			c.assign_task("Haul", {"storage": nearest_storage})
-			free_claylings.erase(c)
-			haul_active += 1
-		else:
-			c.drop_item(-1, true) # drop if no storage
 
-	# ---------- LOGISTICS (DELIVER TO CRAFTING BUILDINGS) ----------
+		match order.get("id", ""):
+			"logistics":
+				_dispatch_logistics(free_claylings)
+			"construction":
+				_dispatch_construction(free_claylings)
+			"crafting":
+				_dispatch_crafting(free_claylings)
+			"farming":
+				_dispatch_farming(free_claylings)
+			"woodcutting":
+				_dispatch_woodcutting(free_claylings)
+			"mining":
+				_dispatch_mining(free_claylings)
+			"foraging":
+				_dispatch_foraging(free_claylings)
+
+func _dispatch_construction(free_claylings: Array) -> void:
+	if free_claylings.is_empty():
+		return
+
 	var crafting_buildings = get_tree().get_nodes_in_group("crafting_buildings")
-
-	var deliver_active = active_counts.get("Deliver", 0)
-	var deliver_quota = task_quotas.get("Deliver", 999)
-
-	for b in crafting_buildings:
-		if free_claylings.is_empty() or deliver_active >= deliver_quota:
-			break
-		if b.get("is_preview") or b is Blueprint:
-			continue
-		if _try_assign_delivery(b, "Deliver", free_claylings):
-			deliver_active += 1
-
-	# ---------- CONSTRUCTION (DELIVER TO BLUEPRINTS) ----------
-	var construct_active = active_counts.get("Construct", 0)
-	var construct_quota = task_quotas.get("Construct", 999)
-
 	var assigned_blueprints: Array = []
 
+	# First priority: Deliver construction materials to blueprints
 	for b in crafting_buildings:
-		if free_claylings.is_empty() or construct_active >= construct_quota:
+		if free_claylings.is_empty():
 			break
 		if not (b is Blueprint):
 			continue
 		if assigned_blueprints.has(b):
 			continue
 		if _try_assign_delivery(b, "Construct", free_claylings):
-			construct_active += 1
 			assigned_blueprints.append(b)
 
-	# ---------- COLLECT OUTPUTS ----------
-	var collect_active = active_counts.get("CollectOutput", 0)
-	var collect_quota = task_quotas.get("CollectOutput", 999)
-
+	# Second priority: Deliver raw ingredients to active crafting stations
 	for b in crafting_buildings:
-		if free_claylings.is_empty() or collect_active >= collect_quota:
+		if free_claylings.is_empty():
 			break
-		if b is Blueprint:
+		if b.get("is_preview") or b is Blueprint:
 			continue
-		if b.get("is_preview") or b.output_inventory.is_empty():
+		_try_assign_delivery(b, "Deliver", free_claylings)
+
+func _dispatch_logistics(free_claylings: Array) -> void:
+	if free_claylings.is_empty():
+		return
+
+	# 1. Haul carried items to storage
+	for c in free_claylings.duplicate():
+		if c.is_inventory_empty():
+			continue
+		var nearest_storage = find_nearest_storage_with_space(c.global_position)
+		if nearest_storage:
+			c.assign_task("Haul", {"storage": nearest_storage})
+			free_claylings.erase(c)
+		else:
+			c.drop_item(-1, true)
+
+	if free_claylings.is_empty():
+		return
+
+	# 2. Collect outputs from finished crafting stations
+	var crafting_buildings = get_tree().get_nodes_in_group("crafting_buildings")
+	for b in crafting_buildings:
+		if free_claylings.is_empty():
+			break
+		if b is Blueprint or b.get("is_preview") or b.output_inventory.is_empty():
 			continue
 		if reserved_outputs.has(b):
 			continue
@@ -309,63 +389,24 @@ func assign_tasks_to_claylings():
 			reserved_outputs[b] = chosen
 			chosen.assign_task("CollectOutput", {"building": b})
 			free_claylings.erase(chosen)
-			collect_active += 1
 
-	# ---------- WORK (ARTISAN) ----------
-	var work_active = active_counts.get("Work", 0)
-	var work_quota = task_quotas.get("Work", 999)
+	if free_claylings.is_empty():
+		return
 
-	for b in crafting_buildings:
-		if free_claylings.is_empty() or work_active >= work_quota:
-			break
-		if b.get("is_preview"):
-			continue
-
-		if b.get("is_crafting") and b.get("active_recipe") and b.active_recipe.get("need_clayling"):
-			if not b.get("worker_present") and not reserved_work.has(b):
-				var chosen = get_nearest_clayling(get_grid_position(b.global_position), free_claylings, true)
-				if chosen:
-					reserved_work[b] = chosen
-					chosen.assign_task("Work", {"building": b})
-					free_claylings.erase(chosen)
-					work_active += 1
-
-	# ---------- HARVEST ----------
-	var harvest_active = active_counts.get("Harvest", 0)
-	var harvest_quota = task_quotas.get("Harvest", 999)
-
-	for pos in crops_dic.keys():
-		if free_claylings.is_empty() or harvest_active >= harvest_quota:
-			break
-		if crops.get_cell_source_id(pos) != -1 and crops_dic[pos]["duration"] < 0:
-			if reserved_harvest.has(pos):
-				continue
-			var chosen = get_nearest_clayling(pos, free_claylings, true)
-			if chosen:
-				reserved_harvest[pos] = chosen
-				chosen.assign_task("Harvest", {"pos": pos})
-				free_claylings.erase(chosen)
-				harvest_active += 1
-
-	# ---------- PICK UP ----------
-	var pickup_active = active_counts.get("Pick up", 0)
-	var pickup_quota = task_quotas.get("Pick up", 999)
-
+	# 3. Pick up items lying on the ground
 	var ground_items = get_tree().get_nodes_in_group("ground_items")
 	for item in ground_items:
-		if pickup_active >= pickup_quota:
+		if free_claylings.is_empty():
 			break
-		if item == null or !is_instance_valid(item):
+		if item == null or not is_instance_valid(item):
 			continue
-		if reserved_pickups.has(item):
-			continue
-		if item.quantity <= 0:
+		if reserved_pickups.has(item) or item.quantity <= 0:
 			continue
 
 		var best = null
 		var best_dist = INF
 		for c in free_claylings:
-			if !c.is_inventory_empty():
+			if not c.is_inventory_empty():
 				continue
 			if find_nearest_storage_with_space(c.global_position) == null:
 				continue
@@ -380,17 +421,85 @@ func assign_tasks_to_claylings():
 			reserved_pickups[item] = best
 			best.assign_task("Pick up", {"node": item})
 			free_claylings.erase(best)
-			pickup_active += 1
+
+func _dispatch_crafting(free_claylings: Array) -> void:
+	if free_claylings.is_empty():
+		return
+
+	var crafting_buildings = get_tree().get_nodes_in_group("crafting_buildings")
+	for b in crafting_buildings:
+		if free_claylings.is_empty():
+			break
+		if b.get("is_preview"):
+			continue
+
+		if b.get("is_crafting") and b.get("active_recipe") and b.active_recipe.get("need_clayling"):
+			if not b.get("worker_present") and not reserved_work.has(b):
+				var chosen = get_nearest_clayling(get_grid_position(b.global_position), free_claylings, true)
+				if chosen:
+					reserved_work[b] = chosen
+					chosen.assign_task("Work", {"building": b})
+					free_claylings.erase(chosen)
+
+func _dispatch_farming(free_claylings: Array) -> void:
+	if free_claylings.is_empty():
+		return
+
+	# 1. Harvest mature crops
+	for pos in crops_dic.keys():
+		if free_claylings.is_empty():
+			break
+		if crops.get_cell_source_id(pos) != -1 and crops_dic[pos]["duration"] < 0:
+			if reserved_harvest.has(pos):
+				continue
+			var chosen = get_nearest_clayling(pos, free_claylings, true)
+			if chosen:
+				reserved_harvest[pos] = chosen
+				chosen.assign_task("Harvest", {"pos": pos})
+				free_claylings.erase(chosen)
+
+	if free_claylings.is_empty():
+		return
+
+	# 2. Water dry soil (skip when raining)
+	var weather_mgr = get_tree().get_first_node_in_group("weather_manager")
+	var is_raining = weather_mgr != null and weather_mgr.is_raining()
+	if not is_raining:
+		for pos in water_level.keys():
 			if free_claylings.is_empty():
 				break
+			if water_level[pos] < 5.0:
+				if reserved_water.has(pos):
+					continue
+				var chosen = get_nearest_clayling(pos, free_claylings, true)
+				if chosen:
+					reserved_water[pos] = chosen
+					chosen.assign_task("Water", {"pos": pos})
+					free_claylings.erase(chosen)
 
-	# ---------- CHOP TREES ----------
-	var chop_active = active_counts.get("Chop", 0)
-	var chop_quota = task_quotas.get("Chop", 999)
+	if free_claylings.is_empty():
+		return
+
+	# 3. Plant seeds on hydrated soil
+	for pos in water_level.keys():
+		if free_claylings.is_empty():
+			break
+		if water_level[pos] > 1.0 and not crops_dic.has(pos):
+			if reserved_plant.has(pos):
+				continue
+			var chosen = get_nearest_clayling(pos, free_claylings, true)
+			if chosen:
+				reserved_plant[pos] = chosen
+				chosen.assign_task("Plant", {"pos": pos})
+				free_claylings.erase(chosen)
+
+func _dispatch_woodcutting(free_claylings: Array) -> void:
+	if free_claylings.is_empty():
+		return
 
 	var trees = get_tree().get_nodes_in_group("trees")
 	for tree in trees:
-		if free_claylings.is_empty() or chop_active >= chop_quota:
+		if free_claylings.is_empty():
 			break
 		if not is_instance_valid(tree) or tree.is_in_group("saplings"):
 			continue
@@ -404,15 +513,14 @@ func assign_tasks_to_claylings():
 			reserved_trees[tree] = chosen
 			chosen.assign_task("Chop", {"target": tree})
 			free_claylings.erase(chosen)
-			chop_active += 1
 
-	# ---------- MINE ROCKS & ORES ----------
-	var mine_active = active_counts.get("Mine", 0)
-	var mine_quota = task_quotas.get("Mine", 999)
+func _dispatch_mining(free_claylings: Array) -> void:
+	if free_claylings.is_empty():
+		return
 
 	var rocks_and_ores = get_tree().get_nodes_in_group("rocks") + get_tree().get_nodes_in_group("ores")
 	for rock in rocks_and_ores:
-		if free_claylings.is_empty() or mine_active >= mine_quota:
+		if free_claylings.is_empty():
 			break
 		if not is_instance_valid(rock):
 			continue
@@ -426,15 +534,14 @@ func assign_tasks_to_claylings():
 			reserved_rocks[rock] = chosen
 			chosen.assign_task("Mine", {"target": rock})
 			free_claylings.erase(chosen)
-			mine_active += 1
 
-	# ---------- FORAGE PLANTS ----------
-	var forage_active = active_counts.get("Forage", 0)
-	var forage_quota = task_quotas.get("Forage", 999)
+func _dispatch_foraging(free_claylings: Array) -> void:
+	if free_claylings.is_empty():
+		return
 
 	var wild_plants = get_tree().get_nodes_in_group("plants")
 	for plant in wild_plants:
-		if free_claylings.is_empty() or forage_active >= forage_quota:
+		if free_claylings.is_empty():
 			break
 		if not is_instance_valid(plant):
 			continue
@@ -448,45 +555,6 @@ func assign_tasks_to_claylings():
 			reserved_forages[plant] = chosen
 			chosen.assign_task("Forage", {"target": plant})
 			free_claylings.erase(chosen)
-			forage_active += 1
-
-	# ---------- PLANT ----------
-	var plant_active = active_counts.get("Plant", 0)
-	var plant_quota = task_quotas.get("Plant", 999)
-
-	for pos in water_level.keys():
-		if free_claylings.is_empty() or plant_active >= plant_quota:
-			break
-		if water_level[pos] > 1.0 and not crops_dic.has(pos):
-			if reserved_plant.has(pos):
-				continue
-			var chosen = get_nearest_clayling(pos, free_claylings, true)
-			if chosen:
-				reserved_plant[pos] = chosen
-				chosen.assign_task("Plant", {"pos": pos})
-				free_claylings.erase(chosen)
-				plant_active += 1
-
-	# ---------- WATER ----------
-	var weather_mgr = get_tree().get_first_node_in_group("weather_manager")
-	var is_raining = weather_mgr != null and weather_mgr.is_raining()
-
-	if not is_raining:
-		var water_task_active = active_counts.get("Water", 0)
-		var water_task_quota = task_quotas.get("Water", 999)
-
-		for pos in water_level.keys():
-			if free_claylings.is_empty() or water_task_active >= water_task_quota:
-				break
-			if water_level[pos] < 5.0:
-				if reserved_water.has(pos):
-					continue
-				var chosen = get_nearest_clayling(pos, free_claylings, true)
-				if chosen:
-					reserved_water[pos] = chosen
-					chosen.assign_task("Water", {"pos": pos})
-					free_claylings.erase(chosen)
-					water_task_active += 1
 
 # ---------- SURVIVAL ----------
 
@@ -806,9 +874,16 @@ func _ready():
 	if plant_menu:
 		plant_menu.start_building.connect(_on_build_menu_start_building)
 
+	if task_priority_orders.is_empty():
+		for o in DEFAULT_TASK_ORDERS:
+			task_priority_orders.append(o.duplicate())
+
 	var task_menu = get_node_or_null("CanvasLayer/TaskPriorityMenu")
 	if task_menu:
-		task_menu.quota_changed.connect(_on_quota_changed)
+		if task_menu.has_signal("order_priorities_changed"):
+			task_menu.order_priorities_changed.connect(_on_order_priorities_changed)
+		if task_menu.has_signal("quota_changed"):
+			task_menu.quota_changed.connect(_on_quota_changed)
 
 	if building_manager and building_manager.has_signal("initial_crystal_placed"):
 		building_manager.initial_crystal_placed.connect(_on_initial_crystal_placed)

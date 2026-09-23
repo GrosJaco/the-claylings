@@ -18,15 +18,11 @@ func _ready() -> void:
 
 # When a clayling enters Area2D
 func _on_area_2d_body_entered(body: Node2D) -> void:
-	if body.world.find_nearest_storage_with_space(body.global_position) == null:
-		return
-	if !body.has_method("pick_item"):
+	if not body.has_method("pick_item"):
 		return
 	if data == null or quantity <= 0:
 		return
-	
-	# Check if there is a storage
-	if body.world.find_nearest_storage_with_space(body.global_position) == null:
+	if body.get("world") == null or body.world.find_nearest_storage_with_space(body.global_position) == null:
 		return
 	
 	var taken: int = body.pick_item(data, quantity)

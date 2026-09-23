@@ -31,6 +31,7 @@ var current_wave: int = 0
 var active_enemies: Array[Node2D] = []
 var is_wave_active: bool = false
 var is_spawning: bool = false
+var _completion_check_timer: float = 0.0
 
 # ========== REFERENCES ==========
 
@@ -44,9 +45,13 @@ func _ready() -> void:
 	# Connect to DayNightCycle once the scene tree is fully ready
 	call_deferred("_connect_day_night")
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if is_wave_active and not is_spawning:
-		_check_wave_completion()
+		_completion_check_timer -= delta
+		if _completion_check_timer <= 0.0:
+			_completion_check_timer = 0.4
+			_check_wave_completion()
+
 
 func _connect_day_night() -> void:
 	day_night = get_tree().get_first_node_in_group("day_night_cycle")

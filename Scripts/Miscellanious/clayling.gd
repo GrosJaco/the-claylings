@@ -47,6 +47,18 @@ var is_under_attack: bool = false
 var _under_attack_timer: float = 0.0
 var _threat_scan_timer: float = 0.0
 var knockback_velocity: Vector2 = Vector2.ZERO
+var _cached_crystal: Node2D = null
+var _cached_day_night: Node = null
+
+func _get_crystal() -> Node2D:
+	if _cached_crystal == null or not is_instance_valid(_cached_crystal):
+		_cached_crystal = get_tree().get_first_node_in_group("central_crystal")
+	return _cached_crystal
+
+func _get_day_night() -> Node:
+	if _cached_day_night == null or not is_instance_valid(_cached_day_night):
+		_cached_day_night = get_tree().get_first_node_in_group("day_night_cycle")
+	return _cached_day_night
 
 # ---------- STATE MACHINE ----------
 
@@ -495,7 +507,7 @@ func _update_needs(delta: float) -> void:
 		if personality_trait == "Resilient":
 			current_energy_decay *= 0.8
 		elif personality_trait == "NightOwl":
-			var day_night = get_tree().get_first_node_in_group("day_night_cycle")
+			var day_night = _get_day_night()
 			if day_night and day_night.has_method("is_night") and day_night.is_night():
 				current_energy_decay = 0.0
 		
@@ -721,12 +733,12 @@ func _physics_process(delta: float) -> void:
 	
 	var effective_speed = speed * speed_multiplier * weather_speed_multiplier
 	if personality_trait == "Hermit":
-		var crystal = get_tree().get_first_node_in_group("central_crystal")
+		var crystal = _get_crystal()
 		if crystal and is_instance_valid(crystal):
 			if global_position.distance_squared_to(crystal.global_position) > 122500.0:
 				effective_speed *= 1.25
 	elif personality_trait == "NightOwl":
-		var day_night = get_tree().get_first_node_in_group("day_night_cycle")
+		var day_night = _get_day_night()
 		if day_night and day_night.has_method("is_night"):
 			if day_night.is_night():
 				effective_speed *= 1.25

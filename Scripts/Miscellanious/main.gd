@@ -32,6 +32,9 @@ var _is_restoring_save: bool = false
 var _initial_claylings_spawned: bool = false
 var assign_cooldown: float = 0.0
 const ASSIGN_INTERVAL: float = 0.2
+const AGRI_TICK_INTERVAL: float = 0.5
+var _agri_tick_cooldown: float = 0.5
+var _agri_delta_accumulator: float = 0.0
 
 var reserved_harvest: Dictionary = {}
 var reserved_water: Dictionary = {}
@@ -94,6 +97,9 @@ var _hovered_sprite: CanvasItem = null
 var _previous_material: Material = null
 var _last_mouse_pos: Vector2 = Vector2(-99999, -99999)
 var _hover_refresh_timer: float = 0.0
+const HOVER_MIN_INTERVAL: float = 0.07
+const HOVER_FORCE_INTERVAL: float = 0.25
+const HOVER_MOVE_THRESHOLD_SQ: float = 16.0
 var _sprite_cache: Dictionary = {}
 
 # ========== FUNCTIONS ==========
@@ -394,9 +400,20 @@ func _dispatch_logistics(free_claylings: Array) -> void:
 		return
 
 	# 3. Pick up items lying on the ground
+	if not has_any_storage_with_space():
+		return
+
+	var candidate_claylings: Array = []
+	for c in free_claylings:
+		if c.is_inventory_empty() and find_nearest_storage_with_space(c.global_position) != null:
+			candidate_claylings.append(c)
+
+	if candidate_claylings.is_empty():
+		return
+
 	var ground_items = get_tree().get_nodes_in_group("ground_items")
 	for item in ground_items:
-		if free_claylings.is_empty():
+		if candidate_claylings.is_empty():
 			break
 		if item == null or not is_instance_valid(item):
 			continue
@@ -404,23 +421,21 @@ func _dispatch_logistics(free_claylings: Array) -> void:
 			continue
 
 		var best = null
-		var best_dist = INF
-		for c in free_claylings:
-			if not c.is_inventory_empty():
-				continue
-			if find_nearest_storage_with_space(c.global_position) == null:
-				continue
+		var best_dist_sq: float = 250.0 * 250.0
+		for c in candidate_claylings:
 			if c._carry_capacity_for(item.data) <= 0:
 				continue
-			var d = c.global_position.distance_to(item.global_position)
-			if d < 250.0 and d < best_dist:
-				best_dist = d
+			var d_sq = c.global_position.distance_squared_to(item.global_position)
+			if d_sq < best_dist_sq:
+				best_dist_sq = d_sq
 				best = c
 
 		if best:
 			reserved_pickups[item] = best
 			best.assign_task("Pick up", {"node": item})
+			candidate_claylings.erase(best)
 			free_claylings.erase(best)
+
 
 func _dispatch_crafting(free_claylings: Array) -> void:
 	if free_claylings.is_empty():
@@ -751,21 +766,24 @@ func release_pickup(item: Node) -> void:
 	if reserved_pickups.has(item):
 		reserved_pickups.erase(item)
 
+func has_any_storage_with_space() -> bool:
+	for s in get_tree().get_nodes_in_group("storage"):
+		if is_instance_valid(s) and not s.is_preview and not s.is_full():
+			return true
+	return false
+
 func find_nearest_storage_with_space(pos: Vector2) -> StorageBuilding:
 	var nearest: StorageBuilding = null
-	var nearest_d = INF
+	var nearest_dist_sq: float = INF
 	for s in get_tree().get_nodes_in_group("storage"):
-		if not is_instance_valid(s):
+		if not is_instance_valid(s) or s.is_preview or s.is_full():
 			continue
-		if s.is_preview:
-			continue
-		if s.is_full():
-			continue
-		var d = pos.distance_to(s.global_position)
-		if d < nearest_d:
+		var d_sq = pos.distance_squared_to(s.global_position)
+		if d_sq < nearest_dist_sq:
 			nearest = s
-			nearest_d = d
+			nearest_dist_sq = d_sq
 	return nearest
+
 
 
 # ---------- COMBAT LOGIC (Call to Arms & Call to Work) ----------
@@ -1093,6 +1111,17 @@ func _physics_process(delta: float) -> void:
 		assign_tasks_to_claylings()
 		assign_cooldown = ASSIGN_INTERVAL
 
+	_agri_delta_accumulator += delta
+	_agri_tick_cooldown -= delta
+	if _agri_tick_cooldown <= 0.0:
+		_simulate_agriculture(_agri_delta_accumulator)
+		_agri_delta_accumulator = 0.0
+		_agri_tick_cooldown = AGRI_TICK_INTERVAL
+
+func _simulate_agriculture(sim_delta: float) -> void:
+	if water_level.is_empty() and crops_dic.is_empty():
+		return
+
 	var weather_mgr = get_tree().get_first_node_in_group("weather_manager")
 	var raining = weather_mgr != null and weather_mgr.is_raining()
 
@@ -1100,7 +1129,7 @@ func _physics_process(delta: float) -> void:
 		if raining:
 			# Staggered droplet impacts per tile instead of uniform watering
 			var drop_rate = 1.0 if (weather_mgr.current_weather == WeatherManager.WeatherType.THUNDERSTORM) else 0.4
-			if randf() < drop_rate * delta:
+			if randf() < drop_rate * sim_delta:
 				water_level[pos] = min(water_level[pos] + randf_range(0.5, 0.9), 5.0)
 				if water_level[pos] >= 1.5 and custom_tile.has("soil") and ground:
 					var data = ground.get_cell_tile_data(pos)
@@ -1111,16 +1140,13 @@ func _physics_process(delta: float) -> void:
 				if water_level[pos] >= 4.0:
 					reserved_water.erase(pos)
 		else:
-			var i = randi_range(1, 2)
-			if i == 1:
-				water_level[pos] = max(water_level[pos] - delta, 0)
-				if water_level[pos] <= 0:
-					drying_tile(pos)
+			water_level[pos] = max(water_level[pos] - (sim_delta * 0.5), 0)
+			if water_level[pos] <= 0:
+				drying_tile(pos)
 
 	for pos in crops_dic.keys():
-		var i = randi_range(1, 2)
-		if water_level.get(pos, 0) > 0 and i == 1:
-			crops_dic[pos]["duration"] += delta
+		if water_level.get(pos, 0.0) > 0.0:
+			crops_dic[pos]["duration"] += sim_delta
 			var duration = crops_dic[pos]["duration"]
 			var crop_name = crops_dic[pos]["name"]
 			if duration >= custom_tile[crop_name].duration:
@@ -1132,8 +1158,12 @@ func _physics_process(delta: float) -> void:
 
 func _process(delta: float) -> void:
 	_hover_refresh_timer += delta
+	if _hover_refresh_timer < HOVER_MIN_INTERVAL:
+		return
+
 	var mouse_pos = get_global_mouse_position()
-	if mouse_pos != _last_mouse_pos or _hover_refresh_timer >= 0.1:
+	var moved_dist_sq = mouse_pos.distance_squared_to(_last_mouse_pos)
+	if moved_dist_sq >= HOVER_MOVE_THRESHOLD_SQ or _hover_refresh_timer >= HOVER_FORCE_INTERVAL:
 		_hover_refresh_timer = 0.0
 		_last_mouse_pos = mouse_pos
 		_update_hover()
@@ -1220,12 +1250,18 @@ func _get_entity_sprite(node: Node) -> CanvasItem:
 func _is_point_in_entity(node: Node2D, mouse_world_pos: Vector2) -> bool:
 	if not is_instance_valid(node) or not node.is_inside_tree() or not node.visible:
 		return false
+
+	var node_pos = node.global_position
+	# Fast bounding box rejection before computing vector distance
+	if absf(node_pos.x - mouse_world_pos.x) > 16.0 or absf(node_pos.y - mouse_world_pos.y) > 20.0:
+		return false
+
 	if node is CharacterBody2D:
-		var visual_center = node.global_position + Vector2(0, -6)
+		var visual_center = node_pos + Vector2(0, -6)
 		return visual_center.distance_squared_to(mouse_world_pos) <= 144.0
 	elif node is WorldItem:
-		return node.global_position.distance_squared_to(mouse_world_pos) <= 100.0
-	return node.global_position.distance_squared_to(mouse_world_pos) <= 144.0
+		return node_pos.distance_squared_to(mouse_world_pos) <= 100.0
+	return node_pos.distance_squared_to(mouse_world_pos) <= 144.0
 
 func _clear_hover() -> void:
 	if _hovered_sprite != null and is_instance_valid(_hovered_sprite):
@@ -1257,6 +1293,16 @@ func _set_hovered_entity(entity: Node2D) -> void:
 	sprite.material = _outline_material
 	hovered_entity_changed.emit(_hovered_entity)
 
+func _query_entities_at(pos: Vector2) -> Array[Dictionary]:
+	var space_state = get_world_2d().direct_space_state
+	if space_state == null:
+		return []
+	var query = PhysicsPointQueryParameters2D.new()
+	query.position = pos
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	return space_state.intersect_point(query, 16)
+
 func _update_hover() -> void:
 	if _is_hover_suppressed():
 		_clear_hover()
@@ -1268,42 +1314,33 @@ func _update_hover() -> void:
 	var mouse_pos = _last_mouse_pos
 	var chosen_entity: Node2D = null
 
-	# Priority 1: Living entities (Claylings, threats/enemies, chickens)
-	var hit_characters: Array = []
-	for c in active_claylings:
-		if is_instance_valid(c) and not c.get("is_dead"):
-			if _is_point_in_entity(c, mouse_pos):
-				hit_characters.append(c)
+	var hits = _query_entities_at(mouse_pos)
+	if hits.is_empty():
+		hits = _query_entities_at(mouse_pos + Vector2(0, 6))
 
-	if hit_characters.is_empty():
-		for ch in get_tree().get_nodes_in_group("threats"):
-			if is_instance_valid(ch) and not ch.get("is_dead"):
-				if _is_point_in_entity(ch, mouse_pos):
-					hit_characters.append(ch)
+	var hit_characters: Array[Node2D] = []
+	var hit_items: Array[Node2D] = []
 
-	if hit_characters.is_empty():
-		for ch in get_tree().get_nodes_in_group("animals"):
-			if is_instance_valid(ch):
-				if _is_point_in_entity(ch, mouse_pos):
-					hit_characters.append(ch)
+	for hit in hits:
+		var col = hit.get("collider")
+		if not is_instance_valid(col):
+			continue
+		if col is CharacterBody2D:
+			if col.visible and not col.get("is_dead"):
+				if col.is_in_group("claylings") or col.is_in_group("threats") or col.is_in_group("animals"):
+					hit_characters.append(col)
+		elif col is Area2D:
+			var parent = col.get_parent()
+			if parent is WorldItem and is_instance_valid(parent) and parent.visible and parent.quantity > 0:
+				hit_items.append(parent)
 
 	if not hit_characters.is_empty():
 		if hit_characters.size() > 1:
 			hit_characters.sort_custom(func(a, b): return a.global_position.y > b.global_position.y)
 		chosen_entity = hit_characters[0]
-
-	# Priority 2: Ground items
-	if chosen_entity == null:
-		var ground_items = get_tree().get_nodes_in_group("ground_items")
-		var hit_items: Array = []
-		for item in ground_items:
-			if is_instance_valid(item) and item.quantity > 0:
-				if _is_point_in_entity(item, mouse_pos):
-					hit_items.append(item)
-
-		if not hit_items.is_empty():
-			if hit_items.size() > 1:
-				hit_items.sort_custom(func(a, b): return a.global_position.distance_squared_to(mouse_pos) < b.global_position.distance_squared_to(mouse_pos))
-			chosen_entity = hit_items[0]
+	elif not hit_items.is_empty():
+		if hit_items.size() > 1:
+			hit_items.sort_custom(func(a, b): return a.global_position.distance_squared_to(mouse_pos) < b.global_position.distance_squared_to(mouse_pos))
+		chosen_entity = hit_items[0]
 
 	_set_hovered_entity(chosen_entity)

@@ -39,6 +39,7 @@ var _spawn_pos: Vector2 = Vector2.ZERO
 var _stuck_timer: float = 0.0
 var _scan_timer: float = 0.0
 var _last_direction: String = "down"
+var _current_base_anim: String = ""
 var knockback_velocity: Vector2 = Vector2.ZERO
 
 # ========== REFERENCES ==========
@@ -139,19 +140,18 @@ func _find_closest_target() -> Node2D:
 	if closest_clayling:
 		return closest_clayling
 
-	# If in assault mode, target nearby colony buildings if no claylings in sight
+	# If in assault mode, target nearby colony buildings when approaching colony
 	if has_assault_target or state == "assault":
-		return _find_closest_building()
+		var colony_approach_sq = (aggro_range + 200.0) * (aggro_range + 200.0)
+		if global_position.distance_squared_to(assault_target) <= colony_approach_sq:
+			return _find_closest_building()
+		return null
 
-	# If wandering near the crystal, aggro on it
-	var closest_building = _find_closest_building()
-	if closest_building and closest_building.is_in_group("crystal"):
-		return closest_building
-
-	return null
+	# If wandering, only aggro on crystal if nearby
+	return _find_closest_crystal()
 
 func _find_closest_clayling() -> Node2D:
-	var claylings = get_tree().get_nodes_in_group("claylings")
+	var claylings = world.active_claylings if (world and "active_claylings" in world) else get_tree().get_nodes_in_group("claylings")
 	var closest: Node2D = null
 	var closest_dist_sq: float = aggro_range * aggro_range
 
@@ -163,6 +163,18 @@ func _find_closest_clayling() -> Node2D:
 			closest = c
 			closest_dist_sq = d_sq
 
+	return closest
+
+func _find_closest_crystal() -> Node2D:
+	var closest: Node2D = null
+	var closest_dist_sq: float = aggro_range * aggro_range
+	for c in get_tree().get_nodes_in_group("crystal"):
+		if not is_instance_valid(c) or c.get("is_preview") or c.get("_is_destroyed") or ("current_health" in c and c.current_health <= 0):
+			continue
+		var d_sq = global_position.distance_squared_to(c.global_position)
+		if d_sq <= closest_dist_sq:
+			closest = c
+			closest_dist_sq = d_sq
 	return closest
 
 func _find_closest_building() -> Node2D:
@@ -217,7 +229,7 @@ func _enter_wander() -> void:
 	_play_animation("run")
 
 func _process_wander(delta: float) -> void:
-	if agent.is_navigation_finished() or global_position.distance_to(agent.target_position) < 8.0:
+	if agent.is_navigation_finished() or global_position.distance_squared_to(agent.target_position) < 64.0:
 		_enter_idle()
 		return
 
@@ -226,7 +238,7 @@ func _process_wander(delta: float) -> void:
 	velocity = dir * (speed * 0.6)
 	_update_direction(dir)
 
-	if get_real_velocity().length() < 3.0:
+	if get_real_velocity().length_squared() < 9.0:
 		_stuck_timer += delta
 		if _stuck_timer >= 1.5:
 			_stuck_timer = 0.0
@@ -244,7 +256,7 @@ func _enter_assault() -> void:
 
 func _process_assault(delta: float) -> void:
 	# Arrived near assault target or navigation path completed
-	if agent.is_navigation_finished() or global_position.distance_to(assault_target) < 32.0:
+	if agent.is_navigation_finished() or global_position.distance_squared_to(assault_target) < 1024.0:
 		_spawn_pos = global_position
 		has_assault_target = false
 		_enter_wander()
@@ -261,7 +273,7 @@ func _process_assault(delta: float) -> void:
 		_update_direction(dir)
 
 		# Anti-stuck watchdog during assault
-		if get_real_velocity().length() < 3.0:
+		if get_real_velocity().length_squared() < 9.0:
 			_stuck_timer += delta
 			if _stuck_timer >= 2.0:
 				_stuck_timer = 0.0
@@ -312,7 +324,7 @@ func _process_chase(delta: float) -> void:
 		_update_direction(dir)
 
 		# Anti-stuck watchdog: if blocked against wall for > 2.0s, drop pursuit
-		if get_real_velocity().length() < 5.0:
+		if get_real_velocity().length_squared() < 25.0:
 			_stuck_timer += delta
 			if _stuck_timer >= 2.0:
 				_stuck_timer = 0.0
@@ -402,6 +414,7 @@ func _play_animation(anim_name: String) -> void:
 	if sprite == null or sprite.sprite_frames == null:
 		return
 
+	_current_base_anim = anim_name
 	var full_anim = anim_name
 	# Check directional variants first if available
 	if sprite.sprite_frames.has_animation(anim_name + "_" + _last_direction):
@@ -411,23 +424,39 @@ func _play_animation(anim_name: String) -> void:
 	elif sprite.sprite_frames.has_animation(anim_name):
 		full_anim = anim_name
 
-	if sprite.animation != full_anim:
+	if sprite.animation != full_anim or not sprite.is_playing():
 		sprite.play(full_anim)
 
 func _update_direction(dir_vec: Vector2) -> void:
-	if abs(dir_vec.x) > abs(dir_vec.y):
-		_last_direction = "side"
+	if abs(dir_vec.x) > 0.05:
 		sprite.flip_h = dir_vec.x < 0
+
+	var new_dir = "down"
+	if abs(dir_vec.x) > abs(dir_vec.y):
+		new_dir = "side"
 	else:
-		_last_direction = "up" if dir_vec.y < 0 else "down"
+		new_dir = "up" if dir_vec.y < 0 else "down"
+
+	if _last_direction != new_dir:
+		_last_direction = new_dir
+		if _current_base_anim != "":
+			_play_animation(_current_base_anim)
 
 func _face_position(target_pos: Vector2) -> void:
 	var diff = target_pos - global_position
-	if abs(diff.x) > abs(diff.y):
-		_last_direction = "side"
+	if abs(diff.x) > 1.0:
 		sprite.flip_h = diff.x < 0
+
+	var new_dir = "down"
+	if abs(diff.x) > abs(diff.y):
+		new_dir = "side"
 	else:
-		_last_direction = "up" if diff.y < 0 else "down"
+		new_dir = "up" if diff.y < 0 else "down"
+
+	if _last_direction != new_dir:
+		_last_direction = new_dir
+		if _current_base_anim != "":
+			_play_animation(_current_base_anim)
 
 # ---------- DAMAGE & DEATH ----------
 

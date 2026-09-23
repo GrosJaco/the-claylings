@@ -59,6 +59,7 @@
 [ext_resource type="PackedScene" path="res://Scenes/UI/PauseMenu.tscn" id="56_pause"]
 [ext_resource type="PackedScene" uid="uid://btv7ycagfbyn2" path="res://Scenes/WeatherManager.tscn" id="57_weather"]
 [ext_resource type="PackedScene" uid="uid://cue8yypwv6qcc" path="res://Scenes/Buildings/ClayRock.tscn" id="58_clayrock"]
+[ext_resource type="Script" uid="uid://bfkemdy4lkmwm" path="res://Scripts/UI/offscreen_threat_indicators.gd" id="59_offscreen"]
 
 [sub_resource type="Gradient" id="Gradient_r33sp"]
 offsets = PackedFloat32Array(0.15, 0.25, 0.35, 0.65, 0.75, 0.85)
@@ -1144,6 +1145,16 @@ time_of_day = 0.33
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=528902149]
 layer = 5
 script = ExtResource("51_hud")
+
+[node name="OffscreenThreatIndicators" type="Control" parent="CanvasLayer" unique_id=2081938572]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("59_offscreen")
 
 [node name="InventoryUI" type="Control" parent="CanvasLayer" unique_id=959480218]
 visible = false

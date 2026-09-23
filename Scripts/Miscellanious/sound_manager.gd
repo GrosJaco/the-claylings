@@ -7,7 +7,7 @@ var sounds: Dictionary = {
 	"rock break": preload("res://Audio/SFX/rock_break.wav"),
 	"grass": preload("res://Audio/SFX/grass.wav"),
 	"furnace": preload("res://Audio/SFX/furnace.wav"),
-	"thunder": preload("res://Audio/SFX/thunder_strike.wav"),
+	"thunder": null,
 	}
 
 @export_group("Spatial Audio")
@@ -26,6 +26,9 @@ func play_at(sound_name: String, world_position: Vector2, pitch_variation: float
 	_spawn_player(sound_name, pitch_variation, world_position)
 
 func _spawn_player(sound_name: String, pitch_variation: float, world_position) -> void:
+	if not sounds.has(sound_name) or sounds[sound_name] == null:
+		return
+
 	var player: Node
 	if world_position != null:
 		var p2d := AudioStreamPlayer2D.new()

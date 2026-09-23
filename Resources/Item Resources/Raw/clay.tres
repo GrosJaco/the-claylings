@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://djwiebmxpurra"]
+
+[ext_resource type="Texture2D" uid="uid://deddaqcmm5hut" path="res://Art/Items.png" id="1_8qfmb"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="1_38frj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vnpmb"]
+atlas = ExtResource("1_8qfmb")
+region = Rect2(0, 128, 16, 16)
+
+[resource]
+script = ExtResource("1_38frj")
+name = "clay"
+display_name = "Clay"
+icon = SubResource("AtlasTexture_vnpmb")
+stack_size = 99
+metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

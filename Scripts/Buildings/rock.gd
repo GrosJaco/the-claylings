@@ -58,7 +58,7 @@ func _apply_random_visuals():
 			sprite.texture = random_tex
 			sprite.flip_h = (randi() % 2 == 0) 
 			
-			original_modulate = Color(randf_range(0.9, 1.0), randf_range(0.9, 1.0), randf_range(0.9, 1.0))
+			original_modulate = Color(randf_range(0.98, 1.0), randf_range(0.98, 1.0), randf_range(0.98, 1.0))
 			sprite.modulate = original_modulate
 
 func _play_shake_effect():

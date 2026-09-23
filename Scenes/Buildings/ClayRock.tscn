@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://cue8yypwv6qcc"]
+
+[ext_resource type="PackedScene" uid="uid://d1s5nm2cbytdn" path="res://Scenes/Buildings/BaseRock.tscn" id="1_xeqpd"]
+[ext_resource type="Resource" uid="uid://djwiebmxpurra" path="res://Resources/Item Resources/Raw/clay.tres" id="2_xeqpd"]
+[ext_resource type="Texture2D" uid="uid://7f37weduwl7p" path="res://Art/Rocks and ores.png" id="3_a67cf"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jhfrb"]
+atlas = ExtResource("3_a67cf")
+region = Rect2(0, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_he4ww"]
+atlas = ExtResource("3_a67cf")
+region = Rect2(16, 64, 16, 16)
+
+[node name="BaseRock" unique_id=1642009857 instance=ExtResource("1_xeqpd")]
+resource_item = ExtResource("2_xeqpd")
+min_drop = 4
+max_drop = 8
+possible_sprites = Array[Texture2D]([SubResource("AtlasTexture_jhfrb"), SubResource("AtlasTexture_he4ww")])
+building_type = "rock"
+max_health = 50
+
+[node name="SpriteRoot" parent="." index="0" unique_id=528446015]
+position = Vector2(0, -8)
+
+[node name="Sprite2D" parent="SpriteRoot" index="0" unique_id=841418761]
+texture = SubResource("AtlasTexture_jhfrb")
+
+[node name="InteractionPoint" parent="." index="1" unique_id=517834981]
+position = Vector2(0, -8)

@@ -58,6 +58,7 @@
 [ext_resource type="PackedScene" path="res://Scenes/UI/WorldTooltip.tscn" id="55_tooltip"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/PauseMenu.tscn" id="56_pause"]
 [ext_resource type="PackedScene" uid="uid://btv7ycagfbyn2" path="res://Scenes/WeatherManager.tscn" id="57_weather"]
+[ext_resource type="PackedScene" uid="uid://cue8yypwv6qcc" path="res://Scenes/Buildings/ClayRock.tscn" id="58_clayrock"]
 
 [sub_resource type="Gradient" id="Gradient_r33sp"]
 offsets = PackedFloat32Array(0.15, 0.25, 0.35, 0.65, 0.75, 0.85)
@@ -259,6 +260,7 @@ texture = ExtResource("2_jjvhh")
 texture = ExtResource("7_6iyac")
 0:0/0 = 0
 0:0/0/terrain_set = 0
+0:0/0/terrain = 0
 0:0/0/terrains_peering_bit/bottom_side = 0
 1:0/0 = 0
 1:0/0/terrain_set = 0
@@ -1606,6 +1608,7 @@ rock_scenes = Array[PackedScene]([ExtResource("8_b3802")])
 copper_scenes = Array[PackedScene]([ExtResource("10_ee4r6")])
 iron_scenes = Array[PackedScene]([ExtResource("9_fevyy")])
 gold_scenes = Array[PackedScene]([ExtResource("15_gt3je")])
+clay_scenes = Array[PackedScene]([ExtResource("58_clayrock")])
 walls_threshold = 0.3
 water_threshold = -0.3
 iron_patch_size = 20

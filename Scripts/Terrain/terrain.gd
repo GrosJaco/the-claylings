@@ -19,6 +19,7 @@ extends Node
 @export var copper_scenes: Array[PackedScene] = [] 
 @export var iron_scenes: Array[PackedScene] = []   
 @export var gold_scenes: Array[PackedScene] = []   
+@export var clay_scenes: Array[PackedScene] = []
 
 # ========== SETTINGS ==========
 
@@ -48,6 +49,10 @@ const TILE_SIZE: int = 16
 @export var gold_patches: int = 3
 @export var gold_patch_size: int = 8
 @export var gold_fill: float = 0.30
+
+@export var clay_patches: int = 10
+@export var clay_patch_size: int = 30
+@export var clay_fill: float = 0.55
 
 @export_subgroup("Vegetation")
 @export var forest_threshold: float = 0.2
@@ -124,6 +129,7 @@ func apply_world_settings(cfg: Dictionary) -> void:
 	copper_patches = maxi(1, int(round(8.0 * total_scale)))
 	iron_patches = maxi(1, int(round(6.0 * total_scale)))
 	gold_patches = maxi(1, int(round(3.0 * total_scale)))
+	clay_patches = maxi(1, int(round(10.0 * total_scale)))
 
 func setup_noise():
 	rng.seed = terrain_seed
@@ -213,6 +219,7 @@ func generate_all_ore_patches():
 	if copper_scenes.size() > 0: create_patches(copper_scenes, copper_patches, copper_patch_size, copper_fill)
 	if iron_scenes.size() > 0:   create_patches(iron_scenes, iron_patches, iron_patch_size, iron_fill)
 	if gold_scenes.size() > 0:   create_patches(gold_scenes, gold_patches, gold_patch_size, gold_fill)
+	if clay_scenes.size() > 0:   create_patches(clay_scenes, clay_patches, clay_patch_size, clay_fill)
 
 func create_patches(scenes: Array[PackedScene], count: int, target_size: int, fill_rate: float):
 	var dirs = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]

@@ -21,10 +21,7 @@ enum WeatherType {
 @export var clear_duration_range: Vector2 = Vector2(120.0, 240.0)
 @export var rain_duration_range: Vector2 = Vector2(60.0, 120.0)
 @export var storm_duration_range: Vector2 = Vector2(35.0, 60.0)
-
-# ========== CONSTANTS ==========
-
-const RAIN_SFX: AudioStream = preload("res://Audio/SFX/rain_ambient.wav")
+@export var rain_sfx: AudioStream = null
 
 # ========== REFERENCES ==========
 
@@ -46,8 +43,8 @@ var _flash_tween: Tween = null
 func _ready() -> void:
 	add_to_group("weather_manager")
 
-	if is_instance_valid(ambient_rain_player):
-		ambient_rain_player.stream = RAIN_SFX
+	if is_instance_valid(ambient_rain_player) and rain_sfx != null:
+		ambient_rain_player.stream = rain_sfx
 
 	get_viewport().size_changed.connect(_update_particle_bounds)
 	_update_particle_bounds()
@@ -260,7 +257,7 @@ func _apply_visuals(immediate: bool) -> void:
 			)
 
 func _apply_audio(immediate: bool) -> void:
-	if not is_instance_valid(ambient_rain_player):
+	if not is_instance_valid(ambient_rain_player) or ambient_rain_player.stream == null:
 		return
 
 	var target_volume_db: float = -80.0

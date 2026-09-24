@@ -18,10 +18,32 @@ func _ready() -> void:
 
 # When a clayling enters Area2D
 func _on_area_2d_body_entered(body: Node2D) -> void:
+	if not is_instance_valid(body) or body.get("is_dead"):
+		return
 	if not body.has_method("pick_item"):
+		return
+	if body.get("is_combat_ready") or body.get("role") != "villager":
 		return
 	if data == null or quantity <= 0:
 		return
+
+	# Only allow passive pickup for idle/wandering villagers or active haulers
+	if "current_state" in body and "states" in body and body.states is Dictionary:
+		var allowed_states = [
+			body.states.get("Idle"),
+			body.states.get("Wander"),
+			body.states.get("Haul"),
+			body.states.get("Pick up")
+		]
+		if body.current_state not in allowed_states:
+			return
+
+	# If already carrying an item, only pick up items of the exact same type
+	if body.has_method("carried_type"):
+		var carried = body.carried_type()
+		if carried != null and carried != data:
+			return
+
 	if body.get("world") == null or body.world.find_nearest_storage_with_space(body.global_position) == null:
 		return
 	

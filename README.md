@@ -61,6 +61,7 @@ A Godot 4.6 2D colony simulation and real-time strategy (RTS) defense game where
 | `Y` | Fill Weapon Racks with random kits |
 | `S` | Equip all Claylings as Spearmen |
 | `K` | Kill all Claylings |
+| `B` / `Shift + K` | Kill all enemies |
 | `R` | Restart Game (on Defeat screen) |
 
 ## Getting Started

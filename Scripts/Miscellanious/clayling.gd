@@ -92,6 +92,9 @@ var equipped_kit: KitData = null
 # ---------- STATE MACHINE ----------
 
 func change_state(name: String, msg := {}) -> void:
+	if is_dead:
+		return
+
 	if current_state:
 		current_state.exit()
 	
@@ -102,6 +105,8 @@ func change_state(name: String, msg := {}) -> void:
 		push_error("State " + name + " does not exist.")
 
 func assign_task(state_name: String, msg := {}) -> void:
+	if is_dead:
+		return
 	change_state(state_name, msg)
 
 func watering_tile(pos: Vector2i) -> void:
@@ -514,7 +519,7 @@ func _update_needs(delta: float) -> void:
 		energy -= current_energy_decay * delta
 		energy = clamp(energy, 0.0, max_energy)
 
-	if personality_trait == "Optimistic" and (current_state == states.get("Idle") or current_state == states.get("Wandering")):
+	if not is_dead and personality_trait == "Optimistic" and (current_state == states.get("Idle") or current_state == states.get("Wander")):
 		health = min(max_health, health + 0.5 * delta)
 		
 	if hunger <= 0:
@@ -648,6 +653,10 @@ func _start_corpse_decay() -> void:
 	fade_tween.tween_callback(queue_free)
 
 # ---------- GENERAL ----------
+
+func _exit_tree() -> void:
+	if world and "active_claylings" in world:
+		world.active_claylings.erase(self)
 
 func _ready():
 	add_to_group("claylings")

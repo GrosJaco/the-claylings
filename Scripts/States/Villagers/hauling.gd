@@ -15,10 +15,18 @@ func enter(msg := {}) -> void:
 		clayling.change_state("Idle")
 		return
 	
-	clayling.move_to(storage.global_position + storage.interaction_point.position)
+	clayling.move_to(_get_storage_destination())
 
 func exit() -> void:
 	clayling.force_animation = ""
+
+func _get_storage_destination() -> Vector2:
+	if storage and is_instance_valid(storage):
+		var dest = storage.global_position
+		if "interaction_point" in storage and storage.interaction_point:
+			dest += storage.interaction_point.position
+		return dest
+	return clayling.global_position
 
 func update(delta: float) -> void:
 	if clayling.is_inventory_empty():
@@ -36,7 +44,7 @@ func update(delta: float) -> void:
 				clayling.drop_item(-1, true)
 			clayling.change_state("Idle")
 			return
-		clayling.move_to(storage.global_position + storage.interaction_point.position)
+		clayling.move_to(_get_storage_destination())
 	
 	scan_cooldown -= delta
 	if scan_cooldown <= 0.0:
@@ -44,7 +52,7 @@ func update(delta: float) -> void:
 		if storage and is_instance_valid(storage):
 			_scan_and_pick_same_items()
 
-	if clayling.global_position.distance_to(storage.global_position + storage.interaction_point.position) < 12.0:
+	if clayling.global_position.distance_to(_get_storage_destination()) < 12.0:
 		_deliver_to_storage()
 		clayling.change_state("Idle")
 

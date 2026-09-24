@@ -223,9 +223,15 @@ func _on_crafting_stopped():
 func interact(clayling):
 	super.interact(clayling)
 	
-	if clayling.held_item != null and clayling.held_item_amount > 0:
-		var item = clayling.held_item
-		var amount = clayling.held_item_amount
+	if not clayling or not is_instance_valid(clayling):
+		return
+
+	var carried_item = clayling.inventory.get("item", null) if "inventory" in clayling else null
+	var carried_amount = clayling.inventory.get("count", 0) if "inventory" in clayling else 0
+
+	if carried_item != null and carried_amount > 0:
+		var item = carried_item
+		var amount = carried_amount
 		var item_accepted = false
 		
 		for fuel_input in accepted_fuels:
@@ -239,10 +245,8 @@ func interact(clayling):
 			item_accepted = true
 					
 		if item_accepted:
-			clayling.held_item = null
-			clayling.held_item_amount = 0
-			if clayling.has_method("update_held_item_visuals"):
-				clayling.update_held_item_visuals()
+			if clayling.has_method("drop_item"):
+				clayling.drop_item(amount, false)
 			clayling.change_state("Idle")
 
 func take_output() -> Dictionary:

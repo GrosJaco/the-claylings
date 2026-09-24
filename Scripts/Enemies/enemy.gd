@@ -207,6 +207,16 @@ func _find_closest_building() -> Node2D:
 
 	return closest
 
+func _check_wall_collision() -> Node2D:
+	for i in range(get_slide_collision_count()):
+		var collision = get_slide_collision(i)
+		var collider = collision.get_collider()
+		if collider:
+			var node = collider.get_parent()
+			if (node is Wall or (node and node.is_in_group("walls"))) and is_instance_valid(node) and not node.is_queued_for_deletion():
+				return node
+	return null
+
 # ---------- STATE MACHINE ----------
 
 func _enter_idle() -> void:
@@ -272,9 +282,16 @@ func _process_assault(delta: float) -> void:
 		velocity = dir * speed
 		_update_direction(dir)
 
-		# Anti-stuck watchdog during assault
+		# Anti-stuck watchdog during assault: attack blocking wall if colliding
 		if get_real_velocity().length_squared() < 9.0:
 			_stuck_timer += delta
+			if _stuck_timer >= 0.4:
+				var wall = _check_wall_collision()
+				if wall:
+					_stuck_timer = 0.0
+					current_target = wall
+					_enter_attack()
+					return
 			if _stuck_timer >= 2.0:
 				_stuck_timer = 0.0
 				var detour = assault_target + Vector2(randf_range(-48.0, 48.0), randf_range(-48.0, 48.0))
@@ -323,9 +340,16 @@ func _process_chase(delta: float) -> void:
 		velocity = dir * speed
 		_update_direction(dir)
 
-		# Anti-stuck watchdog: if blocked against wall for > 2.0s, drop pursuit
+		# Anti-stuck watchdog: attack wall if blocked, or drop pursuit if stuck
 		if get_real_velocity().length_squared() < 25.0:
 			_stuck_timer += delta
+			if _stuck_timer >= 0.4:
+				var wall = _check_wall_collision()
+				if wall:
+					_stuck_timer = 0.0
+					current_target = wall
+					_enter_attack()
+					return
 			if _stuck_timer >= 2.0:
 				_stuck_timer = 0.0
 				current_target = null
@@ -379,6 +403,8 @@ func _process_attack(delta: float) -> void:
 				_enter_idle()
 
 func _execute_attack() -> void:
+	if not current_target:
+		return
 	if _is_target_invalid(current_target):
 		return
 

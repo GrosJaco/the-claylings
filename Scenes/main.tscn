@@ -135,6 +135,10 @@ region = Rect2(16, 16, 16, 16)
 atlas = ExtResource("8_gt3je")
 region = Rect2(16, 32, 16, 16)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_6ml46"]
+atlas = ExtResource("8_gt3je")
+region = Rect2(16, 48, 16, 16)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_kqrg6"]
 atlas = ExtResource("6_pdsj5")
 region = Rect2(0, 0, 32, 32)
@@ -1280,6 +1284,7 @@ frame_normal = SubResource("AtlasTexture_8cuat")
 frame_pressed = SubResource("AtlasTexture_aa8k8")
 category_icons = {
 &"Decoration": null,
+"Defense": SubResource("AtlasTexture_6ml46"),
 &"Production": SubResource("AtlasTexture_o1aky"),
 &"Storage": SubResource("AtlasTexture_kwxat"),
 &"Survival": SubResource("AtlasTexture_ptfg5")

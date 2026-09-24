@@ -23,7 +23,8 @@ signal start_building(building_data)
 	"Production": AtlasTexture, 
 	"Storage": AtlasTexture,    
 	"Survival": AtlasTexture,   
-	"Decoration": AtlasTexture
+	"Decoration": AtlasTexture,
+	"Defense": AtlasTexture
 }
 
 func _ready():
@@ -40,6 +41,17 @@ func _ready():
 		for child in items_container.get_children():
 			child.queue_free()
 
+	if show_categories:
+		var palisade_res = load("res://Resources/Building Resources/wood_palisade.tres")
+		if palisade_res is BuildingData:
+			var already_has = false
+			for b in all_buildings:
+				if b and b.resource_path == palisade_res.resource_path:
+					already_has = true
+					break
+			if not already_has:
+				all_buildings.append(palisade_res)
+
 	if not show_categories or tabs_container == null:
 		if tabs_container:
 			tabs_container.visible = false
@@ -47,7 +59,13 @@ func _ready():
 			_create_build_button(b_data)
 		return
 
+	var desired_order = ["Production", "Storage", "Defense", "Survival", "Decoration"]
 	var active_categories = []
+	for cat in desired_order:
+		for b in all_buildings:
+			if b.category == cat and not active_categories.has(cat):
+				active_categories.append(cat)
+				break
 	for b in all_buildings:
 		if not active_categories.has(b.category):
 			active_categories.append(b.category)

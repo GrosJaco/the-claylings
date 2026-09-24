@@ -82,8 +82,12 @@ func _input(event):
 						is_dragging_placement = true
 						place_tile_type(b_type)
 						get_viewport().set_input_as_handled()
+					elif b_type == "wall":
+						is_dragging_placement = true
+						confirm_placement(true)
+						get_viewport().set_input_as_handled()
 					else:
-						confirm_placement()
+						confirm_placement(false)
 						get_viewport().set_input_as_handled()
 			else:
 				is_dragging_placement = false
@@ -98,6 +102,10 @@ func _input(event):
 			_update_preview_under_mouse()
 			if preview_can_place:
 				place_tile_type("ground_tile")
+		elif not _is_mouse_over_ui() and _is_wall_preview():
+			_update_preview_under_mouse()
+			if preview_can_place:
+				confirm_placement(true)
 
 # ---------- PREVIEW ----------
 
@@ -117,9 +125,11 @@ func _process(_delta):
 	if !is_previewing or !preview_instance:
 		return
 	_update_preview_under_mouse()
-	if is_dragging_placement and not _is_mouse_over_ui() and _is_crop_preview():
-		if preview_can_place:
+	if is_dragging_placement and not _is_mouse_over_ui():
+		if _is_crop_preview() and preview_can_place:
 			place_tile_type("ground_tile")
+		elif _is_wall_preview() and preview_can_place:
+			confirm_placement(true)
 
 func _update_preview_under_mouse():
 	var size: Vector2i = Vector2i(1, 1)
@@ -181,7 +191,7 @@ func place_tile_type(x):
 	
 	cancel_preview()
 
-func confirm_placement():
+func confirm_placement(keep_preview: bool = false):
 	if !is_previewing or !preview_instance:
 		return
 	_update_preview_under_mouse()
@@ -223,7 +233,10 @@ func confirm_placement():
 	var was_mandatory = is_mandatory_placement
 	is_mandatory_placement = false
 
-	cancel_preview()
+	if not keep_preview:
+		cancel_preview()
+	else:
+		_update_preview_under_mouse()
 
 	if was_mandatory:
 		placed.add_to_group("crystal")
@@ -249,6 +262,11 @@ func _is_crop_preview() -> bool:
 	if not preview_instance:
 		return false
 	return preview_instance.get("building_type") == "ground_tile"
+
+func _is_wall_preview() -> bool:
+	if not preview_instance:
+		return false
+	return preview_instance.get("building_type") == "wall"
 
 func _is_mouse_over_ui() -> bool:
 	var vp = get_viewport()

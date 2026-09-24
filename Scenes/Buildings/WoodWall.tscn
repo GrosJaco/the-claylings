@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://ce4t0dhhll7xr"]
+
+[ext_resource type="Script" uid="uid://cat1unylnrjmk" path="res://Scripts/Buildings/wall.gd" id="1_wall"]
+[ext_resource type="Texture2D" uid="uid://n6v7vmcoy8er" path="res://Art/Buildings/Wooden Walls.png" id="2_wood_wall"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(16, 16)
+
+[node name="WoodWall" type="Node2D" unique_id=991950745]
+y_sort_enabled = true
+script = ExtResource("1_wall")
+building_type = "wall"
+max_health = 150
+
+[node name="SpriteRoot" type="Node2D" parent="." unique_id=1126331854]
+position = Vector2(0, -16)
+
+[node name="Sprite2D" type="Sprite2D" parent="SpriteRoot" unique_id=830444531]
+texture = ExtResource("2_wood_wall")
+region_enabled = true
+region_rect = Rect2(0, 64, 16, 32)
+
+[node name="InteractionPoint" type="Node2D" parent="." unique_id=1773634003]
+position = Vector2(0, -8)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=386677478]
+position = Vector2(0, -8)
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=101293065]
+shape = SubResource("RectangleShape2D_wall")

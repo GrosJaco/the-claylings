@@ -23,7 +23,7 @@ var health: float = 100.0
 
 var max_hunger: float = 100.0
 var hunger: float = 100.0
-var hunger_decay_rate: float = 1
+@export var hunger_decay_rate: float = 0.25
 
 var max_energy: float = 100.0
 var energy: float = 100.0

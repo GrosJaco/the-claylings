@@ -48,6 +48,18 @@ func update_inventory():
 			
 			cat_data[cat]["total"] += amount
 			cat_data[cat]["items"][item] = cat_data[cat]["items"].get(item, 0) + amount
+
+	var racks = get_tree().get_nodes_in_group("weapon_racks")
+	for r in racks:
+		if r.get("is_preview"): continue
+		if "slots_data" in r:
+			for slot in r.slots_data:
+				for item in slot.get("items", []):
+					if not item: continue
+					var cat = _get_item_category(item)
+					if not cat_data.has(cat): cat = "Special"
+					cat_data[cat]["total"] += 1
+					cat_data[cat]["items"][item] = cat_data[cat]["items"].get(item, 0) + 1
 			
 	for child in categories_container.get_children():
 		child.queue_free()

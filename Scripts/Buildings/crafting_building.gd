@@ -160,10 +160,16 @@ func _try_consume_fuel() -> bool:
 # ---------- LOGISTICS ----------
 
 func receive_item(item: ItemData, amount: int):
-	if incoming_deliveries.has(item):
-		incoming_deliveries[item] -= amount
-		if incoming_deliveries[item] <= 0:
-			incoming_deliveries.erase(item)
+	var incoming_key = item
+	if not incoming_deliveries.has(incoming_key):
+		for k in incoming_deliveries.keys():
+			if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+				incoming_key = k
+				break
+	if incoming_deliveries.has(incoming_key):
+		incoming_deliveries[incoming_key] -= amount
+		if incoming_deliveries[incoming_key] <= 0:
+			incoming_deliveries.erase(incoming_key)
 			
 	var is_fuel = false
 	for fuel_input in accepted_fuels:
@@ -177,6 +183,20 @@ func receive_item(item: ItemData, amount: int):
 	
 	if not is_crafting:
 		_try_start_crafting()
+
+func cancel_delivery(item: ItemData, amount: int):
+	if item == null or amount <= 0:
+		return
+	var incoming_key = item
+	if not incoming_deliveries.has(incoming_key):
+		for k in incoming_deliveries.keys():
+			if k is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+				incoming_key = k
+				break
+	if incoming_deliveries.has(incoming_key):
+		incoming_deliveries[incoming_key] -= amount
+		if incoming_deliveries[incoming_key] <= 0:
+			incoming_deliveries.erase(incoming_key)
 
 func get_needed_items() -> Dictionary:
 	var needed = {}
@@ -196,7 +216,19 @@ func get_needed_items() -> Dictionary:
 				desired_inputs[item] = desired_inputs.get(item, 0) + r.inputs[item]
 
 	for item in desired_inputs:
-		var current_amount = input_inventory.get(item, 0) + incoming_deliveries.get(item, 0)
+		var incoming = incoming_deliveries.get(item, 0)
+		if incoming == 0:
+			for k in incoming_deliveries.keys():
+				if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+					incoming = incoming_deliveries[k]
+					break
+		var current_input = input_inventory.get(item, 0)
+		if current_input == 0:
+			for k in input_inventory.keys():
+				if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+					current_input = input_inventory[k]
+					break
+		var current_amount = current_input + incoming
 		if current_amount < desired_inputs[item]:
 			needed[item] = desired_inputs[item] - current_amount
 

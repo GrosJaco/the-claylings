@@ -147,7 +147,7 @@ func save_game(slot_name: String = "quicksave") -> bool:
 
 	# 3. Player buildings
 	var seen_buildings: Dictionary = {}
-	var building_groups = ["storage", "crafting_buildings", "weapon_racks", "crystal", "central_crystal"]
+	var building_groups = ["storage", "crafting_buildings", "weapon_racks", "crystal", "central_crystal", "walls"]
 	for grp in building_groups:
 		for b in get_tree().get_nodes_in_group(grp):
 			if not is_instance_valid(b) or b.is_queued_for_deletion() or b.get("is_preview"):
@@ -573,6 +573,7 @@ func apply_pending_load(main: Node2D) -> void:
 					main.set_tile(c_name, pos, main.crops, idx)
 
 	# 7. Restore Buildings
+	Wall.walls_map.clear()
 	var placed_crystal = null
 	for b_dict in data.get("buildings", []):
 		var scene_path = b_dict.get("scene_path", "")

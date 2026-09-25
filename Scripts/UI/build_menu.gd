@@ -42,15 +42,15 @@ func _ready():
 			child.queue_free()
 
 	if show_categories:
-		var palisade_res = load("res://Resources/Building Resources/wood_palisade.tres")
-		if palisade_res is BuildingData:
+		var wall_res = load("res://Resources/Building Resources/wood_wall.tres")
+		if wall_res is BuildingData:
 			var already_has = false
 			for b in all_buildings:
-				if b and b.resource_path == palisade_res.resource_path:
+				if b and b.resource_path == wall_res.resource_path:
 					already_has = true
 					break
 			if not already_has:
-				all_buildings.append(palisade_res)
+				all_buildings.append(wall_res)
 
 	if not show_categories or tabs_container == null:
 		if tabs_container:

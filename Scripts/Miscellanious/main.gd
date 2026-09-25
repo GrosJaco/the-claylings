@@ -301,7 +301,7 @@ func assign_tasks_to_claylings() -> void:
 	if is_order_enabled("logistics"):
 		for c in free_claylings.duplicate():
 			if not c.is_inventory_empty():
-				var nearest_storage = find_nearest_storage_with_space(c.global_position)
+				var nearest_storage = find_nearest_storage_with_space(c.global_position, c.carried_type())
 				if nearest_storage:
 					c.assign_task("Haul", {"storage": nearest_storage})
 					free_claylings.erase(c)
@@ -368,7 +368,8 @@ func _dispatch_logistics(free_claylings: Array) -> void:
 	for c in free_claylings.duplicate():
 		if c.is_inventory_empty():
 			continue
-		var nearest_storage = find_nearest_storage_with_space(c.global_position)
+		var carried = c.carried_type()
+		var nearest_storage = find_nearest_storage_with_space(c.global_position, carried)
 		if nearest_storage:
 			c.assign_task("Haul", {"storage": nearest_storage})
 			free_claylings.erase(c)
@@ -387,7 +388,8 @@ func _dispatch_logistics(free_claylings: Array) -> void:
 			continue
 		if reserved_outputs.has(b):
 			continue
-		if find_nearest_storage_with_space(b.global_position) == null:
+		var output_item = b.output_inventory.keys()[0] if not b.output_inventory.is_empty() else null
+		if find_nearest_storage_with_space(b.global_position, output_item) == null:
 			continue
 
 		var chosen = get_nearest_clayling(get_grid_position(b.global_position), free_claylings, true)
@@ -400,24 +402,26 @@ func _dispatch_logistics(free_claylings: Array) -> void:
 		return
 
 	# 3. Pick up items lying on the ground
-	if not has_any_storage_with_space():
+	var ground_items = get_tree().get_nodes_in_group("ground_items")
+	if ground_items.is_empty():
 		return
 
 	var candidate_claylings: Array = []
 	for c in free_claylings:
-		if c.is_inventory_empty() and find_nearest_storage_with_space(c.global_position) != null:
+		if c.is_inventory_empty():
 			candidate_claylings.append(c)
 
 	if candidate_claylings.is_empty():
 		return
 
-	var ground_items = get_tree().get_nodes_in_group("ground_items")
 	for item in ground_items:
 		if candidate_claylings.is_empty():
 			break
 		if item == null or not is_instance_valid(item):
 			continue
 		if reserved_pickups.has(item) or item.quantity <= 0:
+			continue
+		if find_nearest_storage_with_space(item.global_position, item.data) == null:
 			continue
 
 		var best = null
@@ -719,7 +723,14 @@ func _should_release_reservation(c: Node) -> bool:
 		return true
 	if c.current_state == null:
 		return true
-	return c.current_state in [c.states.get("Idle"), c.states.get("Wander"), c.states.get("Flee"), c.states.get("Equip"), c.states.get("Unequip")]
+	return c.current_state in [
+		c.states.get("Idle"),
+		c.states.get("Wander"),
+		c.states.get("Flee"),
+		c.states.get("Equip"),
+		c.states.get("Unequip"),
+		c.states.get("Eat")
+	]
 
 func _cleanup_reservations():
 	for pos in reserved_harvest.keys().duplicate():
@@ -767,6 +778,46 @@ func _cleanup_reservations():
 		if b == null or !is_instance_valid(b) or _should_release_reservation(c):
 			reserved_work.erase(b)
 
+	_reconcile_incoming_deliveries()
+
+func _reconcile_incoming_deliveries() -> void:
+	var active_by_building: Dictionary = {}
+	for c in active_claylings:
+		if not is_instance_valid(c) or c.get("is_dead"):
+			continue
+		if c.current_state == null or not ("current_state" in c and "states" in c):
+			continue
+		var is_delivering = (c.current_state == c.states.get("Deliver") or c.current_state == c.states.get("ConstructDelivery") or c.current_state == c.states.get("Construct"))
+		if not is_delivering:
+			continue
+		var st = c.current_state
+		var target_b = st.get("target_building") if "target_building" in st else (st.get("target_blueprint") if "target_blueprint" in st else null)
+		var item = st.get("item_to_fetch") if "item_to_fetch" in st else null
+		var amount = int(st.get("amount_to_fetch") if "amount_to_fetch" in st else (st.get("amount_needed") if "amount_needed" in st else 0))
+		if target_b and is_instance_valid(target_b) and item:
+			if not active_by_building.has(target_b):
+				active_by_building[target_b] = {}
+			active_by_building[target_b][item] = active_by_building[target_b].get(item, 0) + amount
+
+	for b in get_tree().get_nodes_in_group("crafting_buildings"):
+		if not is_instance_valid(b) or not ("incoming_deliveries" in b):
+			continue
+		if b.incoming_deliveries.is_empty():
+			continue
+		var b_active = active_by_building.get(b, {})
+		for item in b.incoming_deliveries.keys().duplicate():
+			var expected = b_active.get(item, 0)
+			if expected == 0:
+				for k in b_active.keys():
+					if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+						expected = b_active[k]
+						break
+			if b.incoming_deliveries[item] > expected:
+				if expected <= 0:
+					b.incoming_deliveries.erase(item)
+				else:
+					b.incoming_deliveries[item] = expected
+
 func reserve_pickup(item: Node, c: Node) -> bool:
 	if item == null or !is_instance_valid(item):
 		return false
@@ -779,17 +830,39 @@ func release_pickup(item: Node) -> void:
 	if reserved_pickups.has(item):
 		reserved_pickups.erase(item)
 
-func has_any_storage_with_space() -> bool:
+func has_any_storage_with_space(item_data: ItemData = null) -> bool:
+	if item_data != null and Global.is_kit_item(item_data):
+		for r in get_tree().get_nodes_in_group("weapon_racks"):
+			if is_instance_valid(r) and not r.get("is_preview") and r.has_method("can_accept_item") and r.can_accept_item(item_data):
+				return true
+		return false
+
 	for s in get_tree().get_nodes_in_group("storage"):
 		if is_instance_valid(s) and not s.is_preview and not s.is_full():
-			return true
+			if item_data == null or (s.has_method("can_accept") and s.can_accept(item_data)):
+				return true
 	return false
 
-func find_nearest_storage_with_space(pos: Vector2) -> StorageBuilding:
+func find_nearest_storage_with_space(pos: Vector2, item_data: ItemData = null) -> Node2D:
+	if item_data != null and Global.is_kit_item(item_data):
+		var nearest_rack: Node2D = null
+		var nearest_rack_dist_sq: float = INF
+		for r in get_tree().get_nodes_in_group("weapon_racks"):
+			if not is_instance_valid(r) or r.get("is_preview"):
+				continue
+			if r.has_method("can_accept_item") and r.can_accept_item(item_data):
+				var d_sq = pos.distance_squared_to(r.global_position)
+				if d_sq < nearest_rack_dist_sq:
+					nearest_rack = r
+					nearest_rack_dist_sq = d_sq
+		return nearest_rack
+
 	var nearest: StorageBuilding = null
 	var nearest_dist_sq: float = INF
 	for s in get_tree().get_nodes_in_group("storage"):
 		if not is_instance_valid(s) or s.is_preview or s.is_full():
+			continue
+		if item_data != null and s.has_method("can_accept") and not s.can_accept(item_data):
 			continue
 		var d_sq = pos.distance_squared_to(s.global_position)
 		if d_sq < nearest_dist_sq:

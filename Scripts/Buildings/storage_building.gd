@@ -12,6 +12,11 @@ func _ready() -> void:
 	add_to_group("storage")
 	update_sprite()
 
+func can_accept(data: ItemData) -> bool:
+	if data == null or is_full() or Global.is_kit_item(data):
+		return false
+	return true
+
 func store_item(item: Dictionary) -> int:
 	return deposit(item)
 
@@ -20,7 +25,7 @@ func deposit(item: Dictionary) -> int:
 		return 0
 	var data: ItemData = item.get("item", null)
 	var amount: int = int(item.get("count", 0))
-	if data == null or amount <= 0:
+	if data == null or amount <= 0 or Global.is_kit_item(data):
 		return 0
 	
 	var room = max(0, capacity - current_fill)

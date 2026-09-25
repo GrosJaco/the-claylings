@@ -7,11 +7,15 @@
 [ext_resource type="Texture2D" uid="uid://dmc7u3ua36pct" path="res://Art/Buildings/Loom.png" id="4_p5toa"]
 [ext_resource type="PackedScene" uid="uid://iaieia5ouyso" path="res://Scenes/Buildings/Loom.tscn" id="5_0irn4"]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_015an"]
+atlas = ExtResource("4_p5toa")
+region = Rect2(0, 0, 32, 32)
+
 [resource]
 script = ExtResource("2_ro5g4")
 building_name = "Loom"
 category = "Production"
-icon = ExtResource("4_p5toa")
+icon = SubResource("AtlasTexture_015an")
 scene = ExtResource("5_0irn4")
 cost = Dictionary[ExtResource("1_1mtik"), int]({
 ExtResource("2_015an"): 12,

@@ -14,6 +14,7 @@ region = Rect2(0, 0, 32, 32)
 script = ExtResource("1_k20b7")
 available_recipes = Array[ExtResource("2_khk83")]([ExtResource("3_tuvhx"), ExtResource("4_vs5yv")])
 building_type = "loom"
+size_in_tiles = Vector2i(2, 2)
 
 [node name="SpriteRoot" type="Node2D" parent="." unique_id=377504872]
 position = Vector2(0, -16)

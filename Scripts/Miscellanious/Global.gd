@@ -7,11 +7,48 @@ signal dev_mode_toggled(is_active: bool)
 # World generation parameters passed from New Game dialog to main scene
 var custom_world_settings: Dictionary = {}
 
+var kit_items: Array[ItemData] = []
+var _kit_item_names: Dictionary = {}
+
 var _dev_layer: CanvasLayer = null
 var _dev_label: Label = null
 
 func _ready() -> void:
 	_setup_dev_indicator()
+	_load_kit_items()
+
+func _load_kit_items() -> void:
+	kit_items.clear()
+	_kit_item_names.clear()
+	var dir = DirAccess.open("res://Resources/Kit Resources/")
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if file_name.ends_with(".tres"):
+				var kit = load("res://Resources/Kit Resources/" + file_name)
+				if kit is KitData:
+					for it in kit.required_items:
+						if it is ItemData:
+							if not kit_items.has(it):
+								kit_items.append(it)
+							_kit_item_names[it.name] = true
+			file_name = dir.get_next()
+		dir.list_dir_end()
+
+func is_kit_item(item: ItemData) -> bool:
+	if item == null:
+		return false
+	if _kit_item_names.is_empty():
+		_load_kit_items()
+	if _kit_item_names.has(item.name):
+		return true
+	if item.resource_path != "" and "equipment" in item.resource_path.to_lower():
+		return true
+	for ki in kit_items:
+		if ki == item or ki.name == item.name or (ki.resource_path != "" and ki.resource_path == item.resource_path):
+			return true
+	return false
 
 func _setup_dev_indicator() -> void:
 	_dev_layer = CanvasLayer.new()

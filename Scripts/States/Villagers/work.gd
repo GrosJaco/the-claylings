@@ -22,9 +22,10 @@ func exit() -> void:
 	clayling.force_animation = ""
 	clayling.offset_sprite(0, 0)
 	if target_building and is_instance_valid(target_building):
-		if target_building.get("worker_present") == true and is_working:
+		if "worker_present" in target_building:
 			target_building.worker_present = false
 	is_working = false
+	target_building = null
 
 
 func update(delta: float) -> void:

@@ -37,7 +37,7 @@ func _grab_output_and_haul() -> void:
 		
 		if not extracted.is_empty():
 			clayling.pick_item(extracted["item"], extracted["count"])
-			var storage = clayling.world.find_nearest_storage_with_space(clayling.global_position)
+			var storage = clayling.world.find_nearest_storage_with_space(clayling.global_position, extracted["item"])
 			if storage:
 				clayling.change_state("Haul", {"storage": storage})
 				return

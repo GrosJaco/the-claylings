@@ -159,6 +159,33 @@ func _get_preferred_slot_index_for_kit(kit_resource: KitData) -> int:
 
 # ---------- ITEM MANAGEMENT ----------
 
+func is_full() -> bool:
+	for slot in slots_data:
+		if not slot.get("is_full", false):
+			return false
+	return true
+
+func can_accept(item_data: ItemData) -> bool:
+	return can_accept_item(item_data)
+
+func store_item(item: Dictionary) -> int:
+	if item.is_empty():
+		return 0
+	var data: ItemData = item.get("item", null)
+	var amount: int = int(item.get("count", 0))
+	if data == null or amount <= 0:
+		return 0
+	var stored = 0
+	for i in range(amount):
+		if add_item(data):
+			stored += 1
+		else:
+			break
+	return stored
+
+func deposit(item: Dictionary) -> int:
+	return store_item(item)
+
 func can_accept_item(item_data: ItemData) -> bool:
 	if not item_data:
 		return false
@@ -269,6 +296,8 @@ func _check_slot_completeness(index: int):
 func _get_kit_resource_for_item(item_data: ItemData) -> KitData:
 	if not item_data:
 		return null
+	if _available_kits.is_empty():
+		_load_available_kits()
 	for kit in _available_kits:
 		for required_item in kit.required_items:
 			if required_item and (required_item == item_data or required_item.name == item_data.name):

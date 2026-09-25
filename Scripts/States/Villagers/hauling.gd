@@ -7,9 +7,13 @@ const SCAN_RADIUS := 64.0
 
 func enter(msg := {}) -> void:
 	storage = msg.get("storage", null)
+	var carried: ItemData = clayling.carried_type()
 	
-	# If no storage or storage is full, drop inventory and idle
 	if storage == null or !is_instance_valid(storage) or (storage.has_method("is_full") and storage.is_full()):
+		storage = clayling.world.find_nearest_storage_with_space(clayling.global_position, carried)
+	
+	# If no storage or storage cannot accept, drop inventory and idle
+	if storage == null or !is_instance_valid(storage) or (storage.has_method("can_accept") and not storage.can_accept(carried)) or (storage.has_method("is_full") and storage.is_full()):
 		if !clayling.is_inventory_empty():
 			clayling.drop_item(-1, true)
 		clayling.change_state("Idle")
@@ -36,8 +40,9 @@ func update(delta: float) -> void:
 	var dir = clayling.get_direction()
 	clayling.play_forced_animation("hauling_" + dir)
 	
-	if storage == null or !is_instance_valid(storage) or (storage.has_method("is_full") and storage.is_full()):
-		storage = clayling.world.find_nearest_storage_with_space(clayling.global_position)
+	var carried: ItemData = clayling.carried_type()
+	if storage == null or !is_instance_valid(storage) or (storage.has_method("can_accept") and not storage.can_accept(carried)) or (storage.has_method("is_full") and storage.is_full()):
+		storage = clayling.world.find_nearest_storage_with_space(clayling.global_position, carried)
 		if storage == null:
 			# No storage – drop everything and idle
 			if !clayling.is_inventory_empty():
@@ -57,12 +62,12 @@ func update(delta: float) -> void:
 		clayling.change_state("Idle")
 
 func _scan_and_pick_same_items() -> void:
-	if storage == null or !is_instance_valid(storage) or (storage.has_method("is_full") and storage.is_full()):
-		clayling.change_state("Idle")
-		return
-	
 	var carried: ItemData = clayling.carried_type()
 	if carried == null:
+		return
+
+	if storage == null or !is_instance_valid(storage) or (storage.has_method("can_accept") and not storage.can_accept(carried)) or (storage.has_method("is_full") and storage.is_full()):
+		clayling.change_state("Idle")
 		return
 	
 	var need = clayling._carry_capacity()
@@ -113,4 +118,13 @@ func _deliver_to_storage() -> void:
 	if storage and is_instance_valid(storage) and storage.has_method("store_item"):
 		var dropped = clayling.drop_item(-1, false)
 		if dropped.size() > 0:
-			storage.store_item(dropped)
+			var stored = storage.store_item(dropped)
+			if stored < dropped.get("count", 0):
+				var remainder = dropped.get("count", 0) - stored
+				clayling.pick_item(dropped.get("item"), remainder)
+				var next_storage = clayling.world.find_nearest_storage_with_space(clayling.global_position, dropped.get("item"))
+				if next_storage:
+					clayling.change_state("Haul", {"storage": next_storage})
+					return
+				else:
+					clayling.drop_item(-1, true)

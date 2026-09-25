@@ -5,11 +5,10 @@
 
 [resource]
 script = ExtResource("1_v2060")
-duration = 1.0
+duration = 60.0
 harvest_item = ExtResource("1_6wj42")
 harvest_min = 2
 harvest_max = 4
 tile_name = "carrot"
 atlas_coords = Array[Vector2i]([Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)])
-source_id = 0
 metadata/_custom_type_script = "uid://obxnvy6oeo20"

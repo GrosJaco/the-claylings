@@ -27,11 +27,13 @@ func update(_delta: float) -> void:
 			return
 		# Only pick up if inventory is empty
 		if clayling.is_inventory_empty():
-			var taken = clayling.pick_item(target_node.data, target_node.quantity)
+			var it_data = target_node.data
+			var taken = clayling.pick_item(it_data, target_node.quantity)
 			target_node.quantity -= taken
 			if target_node.quantity <= 0 and is_instance_valid(target_node):
 				target_node.queue_free()
-			clayling.change_state("Haul") # Go deposit
+			var dest_storage = clayling.world.find_nearest_storage_with_space(clayling.global_position, it_data)
+			clayling.change_state("Haul", {"storage": dest_storage})
 		else:
 			_release_and_idle()
 

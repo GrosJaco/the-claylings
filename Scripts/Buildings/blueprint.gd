@@ -8,6 +8,7 @@ var required_materials: Dictionary = {}
 var current_materials: Dictionary = {}
 var incoming_deliveries: Dictionary = {}
 var is_preview: bool = false 
+var interaction_point: Node2D = null
 @onready var visual_root: Node2D = $VisualRoot
 
 # ========== FUNCTIONS ==========
@@ -35,6 +36,16 @@ func _setup_visual(scene: PackedScene) -> void:
 		var visual = source_sprite_root.get_child(0)
 		if visual is AnimatedSprite2D and visual.sprite_frames and visual.sprite_frames.has_animation("filled"):
 			visual.play("filled")
+
+	var source_ip = temp.get_node_or_null("InteractionPoint")
+	if source_ip:
+		if interaction_point and is_instance_valid(interaction_point):
+			interaction_point.queue_free()
+		var ip = Node2D.new()
+		ip.name = "InteractionPoint"
+		ip.position = source_ip.position
+		add_child(ip)
+		interaction_point = ip
 	
 	temp.queue_free()
 
@@ -48,31 +59,69 @@ func _ready():
 func get_needed_items() -> Dictionary:
 	var needed = {}
 	for item in required_materials:
-		var current = current_materials.get(item, 0) + incoming_deliveries.get(item, 0)
+		var current = current_materials.get(item, 0)
+		if current == 0:
+			for k in current_materials.keys():
+				if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+					current = current_materials[k]
+					break
+
+		var incoming = incoming_deliveries.get(item, 0)
+		if incoming == 0:
+			for k in incoming_deliveries.keys():
+				if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+					incoming = incoming_deliveries[k]
+					break
+
 		var target = required_materials[item]
-		if current < target:
-			needed[item] = target - current
+		if current + incoming < target:
+			needed[item] = target - (current + incoming)
 	return needed
 
 func receive_item(item: ItemData, amount: int):
-	if incoming_deliveries.has(item):
-		incoming_deliveries[item] -= amount
-		if incoming_deliveries[item] <= 0:
-			incoming_deliveries.erase(item)
-	current_materials[item] = current_materials.get(item, 0) + amount
+	var incoming_key = item
+	if not incoming_deliveries.has(incoming_key):
+		for k in incoming_deliveries.keys():
+			if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+				incoming_key = k
+				break
+	if incoming_deliveries.has(incoming_key):
+		incoming_deliveries[incoming_key] -= amount
+		if incoming_deliveries[incoming_key] <= 0:
+			incoming_deliveries.erase(incoming_key)
+
+	var mat_key = item
+	if not current_materials.has(mat_key):
+		for k in required_materials.keys():
+			if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+				mat_key = k
+				break
+	current_materials[mat_key] = current_materials.get(mat_key, 0) + amount
 	_check_completion()
 
 func cancel_delivery(item: ItemData, amount: int):
-	if incoming_deliveries.has(item):
-		incoming_deliveries[item] -= amount
-		if incoming_deliveries[item] <= 0:
-			incoming_deliveries.erase(item)
+	var incoming_key = item
+	if not incoming_deliveries.has(incoming_key):
+		for k in incoming_deliveries.keys():
+			if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+				incoming_key = k
+				break
+	if incoming_deliveries.has(incoming_key):
+		incoming_deliveries[incoming_key] -= amount
+		if incoming_deliveries[incoming_key] <= 0:
+			incoming_deliveries.erase(incoming_key)
 
 # ---------- CONSTRUCTION ----------
 
 func _check_completion():
 	for item in required_materials:
-		if current_materials.get(item, 0) < required_materials[item]:
+		var current = current_materials.get(item, 0)
+		if current == 0:
+			for k in current_materials.keys():
+				if k is ItemData and item is ItemData and (k.resource_path == item.resource_path or k.name == item.name):
+					current = current_materials[k]
+					break
+		if current < required_materials[item]:
 			return
 	_build()
 

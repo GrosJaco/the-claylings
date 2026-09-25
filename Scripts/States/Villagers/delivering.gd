@@ -56,7 +56,7 @@ func update(_delta: float) -> void:
 		if "interaction_point" in target_storage and target_storage.interaction_point:
 			dest += target_storage.interaction_point.position
 			
-		if clayling.global_position.distance_to(dest) < 12.0:
+		if clayling.global_position.distance_to(dest) < 16.0 or clayling.agent.is_navigation_finished():
 			_take_from_storage()
 
 	elif current_phase == Phase.GOING_TO_BUILDING:
@@ -64,7 +64,7 @@ func update(_delta: float) -> void:
 		if "interaction_point" in target_building and target_building.interaction_point:
 			dest += target_building.interaction_point.position
 			
-		if clayling.global_position.distance_to(dest) < 12.0:
+		if clayling.global_position.distance_to(dest) < 16.0 or clayling.agent.is_navigation_finished():
 			_deliver_to_building()
 
 func _take_from_storage() -> void:

@@ -27,6 +27,7 @@ signal cancelled
 # ========== CONSTANTS & PRESETS ==========
 
 const DIFFICULTY_PRESETS = [
+	{"id": "leaf", "label": "Leaf (Peaceful)"},
 	{"id": "wood", "label": "Wood"},
 	{"id": "clay", "label": "Clay"},
 	{"id": "stone", "label": "Stone"}
@@ -136,9 +137,15 @@ func randomize_seed() -> void:
 	if seed_input:
 		seed_input.text = str(new_seed)
 
+func _get_difficulty_index(diff_id: String) -> int:
+	for i in range(DIFFICULTY_PRESETS.size()):
+		if DIFFICULTY_PRESETS[i]["id"] == diff_id:
+			return i
+	return 0
+
 func reset_to_defaults() -> void:
 	if difficulty_option:
-		difficulty_option.selected = 1 # Clay
+		difficulty_option.selected = _get_difficulty_index("clay")
 	if size_option:
 		size_option.selected = 1 # Medium
 	if water_option:
@@ -152,7 +159,8 @@ func reset_to_defaults() -> void:
 	randomize_seed()
 
 func build_settings_dictionary() -> Dictionary:
-	var diff_idx = difficulty_option.selected if difficulty_option else 1
+	var default_diff_idx = _get_difficulty_index("clay")
+	var diff_idx = difficulty_option.selected if difficulty_option else default_diff_idx
 	var size_idx = size_option.selected if size_option else 1
 	var water_idx = water_option.selected if water_option else 1
 	var mountain_idx = mountain_option.selected if mountain_option else 1

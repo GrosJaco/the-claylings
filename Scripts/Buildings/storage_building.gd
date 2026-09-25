@@ -33,10 +33,30 @@ func deposit(item: Dictionary) -> int:
 	update_sprite()
 	return taken
 
+func get_stored_amount(data: ItemData) -> int:
+	if data == null:
+		return 0
+	if inventory.has(data):
+		return int(inventory[data])
+	for k in inventory.keys():
+		if k is ItemData and (k.resource_path == data.resource_path or k.name == data.name):
+			return int(inventory[k])
+	return 0
+
 func withdraw(data: ItemData, amount: int) -> int:
-	var stored = int(inventory.get(data, 0))
+	if data == null or amount <= 0:
+		return 0
+	var key = data
+	if not inventory.has(key):
+		for k in inventory.keys():
+			if k is ItemData and (k.resource_path == data.resource_path or k.name == data.name):
+				key = k
+				break
+	var stored = int(inventory.get(key, 0))
 	var taken = min(stored, amount)
-	inventory[data] = stored - taken
+	inventory[key] = stored - taken
+	if inventory[key] <= 0:
+		inventory.erase(key)
 	current_fill = max(0, current_fill - taken)
 	update_sprite()
 	return taken

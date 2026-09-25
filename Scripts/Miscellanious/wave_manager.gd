@@ -13,6 +13,7 @@ signal wave_cleared(wave_num: int)
 @export var enemy_catalog: Array[EnemySpawnData] = []
 
 @export_group("Budget & Difficulty")
+@export var difficulty: String = "clay"
 @export var base_budget: int = 9  # Base budget
 @export var growth_factor: float = 6.0 # Rate of budget growth per subsequent wave
 @export var growth_exponent: float = 1.2 # Exponential scaling curve for later waves
@@ -44,6 +45,7 @@ func _ready() -> void:
 	add_to_group("wave_manager")
 	# Connect to DayNightCycle once the scene tree is fully ready
 	call_deferred("_connect_day_night")
+	call_deferred("_init_difficulty")
 
 func _process(delta: float) -> void:
 	if is_wave_active and not is_spawning:
@@ -58,14 +60,33 @@ func _connect_day_night() -> void:
 	if day_night:
 		day_night.night_started.connect(_on_night_started)
 
+func _init_difficulty() -> void:
+	difficulty = get_difficulty()
+
+func get_difficulty() -> String:
+	var terrain = world.get_node_or_null("Terrain") if world else null
+	if terrain and "difficulty" in terrain and terrain.difficulty != "":
+		return terrain.difficulty
+	var global = get_node_or_null("/root/Global")
+	if global and "custom_world_settings" in global and global.custom_world_settings.has("difficulty"):
+		return str(global.custom_world_settings["difficulty"])
+	return difficulty
+
+func is_peaceful() -> bool:
+	return get_difficulty().to_lower() == "leaf"
+
 # ---------- NIGHT TRIGGER & MANUAL TRIGGER ----------
 
 func trigger_next_wave() -> void:
+	if is_peaceful():
+		return
 	current_wave += 1
 	var budget = calculate_budget(current_wave)
 	start_procedural_wave(current_wave, budget)
 
 func _on_night_started() -> void:
+	if is_peaceful():
+		return
 	if day_night and (day_night.current_day % wave_frequency_days == 0):
 		trigger_next_wave()
 
@@ -121,6 +142,8 @@ func _pick_weighted(candidates: Array) -> EnemySpawnData:
 # ---------- WAVE SPAWN & ASSAULT ----------
 
 func start_procedural_wave(wave_num: int, budget: int) -> void:
+	if is_peaceful():
+		return
 	var roster = generate_roster(budget, wave_num)
 	if roster.is_empty():
 		return

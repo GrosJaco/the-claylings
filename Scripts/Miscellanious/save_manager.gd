@@ -100,7 +100,7 @@ func save_game(slot_name: String = "quicksave") -> bool:
 		},
 		"environment": {
 			"seed": terrain.terrain_seed if (terrain and "terrain_seed" in terrain) else 0,
-			"difficulty": terrain.difficulty if (terrain and "difficulty" in terrain) else "clay",
+			"difficulty": terrain.difficulty if (terrain and "difficulty" in terrain) else (wave_mgr.difficulty if (wave_mgr and "difficulty" in wave_mgr) else "clay"),
 			"map_size_x": terrain.map_size.x if (terrain and "map_size" in terrain) else 128,
 			"map_size_y": terrain.map_size.y if (terrain and "map_size" in terrain) else 128,
 			"water_threshold": terrain.water_threshold if (terrain and "water_threshold" in terrain) else -0.3,
@@ -467,6 +467,8 @@ func apply_pending_load(main: Node2D) -> void:
 		wave_mgr.is_wave_active = false
 		wave_mgr.is_spawning = false
 		wave_mgr.active_enemies.clear()
+		if "difficulty" in wave_mgr and env.has("difficulty"):
+			wave_mgr.difficulty = str(env["difficulty"])
 
 	var weather_mgr = get_tree().get_first_node_in_group("weather_manager")
 	if weather_mgr and weather_mgr.has_method("load_save_data") and env.has("weather"):

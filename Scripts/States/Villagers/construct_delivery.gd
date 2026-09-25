@@ -35,9 +35,10 @@ func enter(msg := {}) -> void:
 		return
 
 	# Reserve the ground item
-	if not clayling.world.reserve_pickup(target_item, clayling):
-		clayling.change_state("Idle")
-		return
+	if clayling.world and clayling.world.has_method("reserve_pickup"):
+		if not clayling.world.reserve_pickup(target_item, clayling):
+			clayling.change_state("Idle")
+			return
 
 	clayling.move_to(target_item.global_position)
 
@@ -77,7 +78,7 @@ func update(delta: float) -> void:
 	if current_phase == Phase.GOING_TO_ITEM:
 		clayling.play_forced_animation("")
 
-		if clayling.global_position.distance_to(target_item.global_position) < 10.0:
+		if clayling.global_position.distance_to(target_item.global_position) < 16.0 or clayling.agent.is_navigation_finished():
 			_pick_up_item()
 
 	elif current_phase == Phase.GOING_TO_BLUEPRINT:
@@ -92,7 +93,7 @@ func update(delta: float) -> void:
 		if "interaction_point" in target_blueprint and target_blueprint.interaction_point:
 			dest += target_blueprint.interaction_point.position
 
-		if clayling.global_position.distance_to(dest) < 12.0:
+		if clayling.global_position.distance_to(dest) < 16.0 or clayling.agent.is_navigation_finished():
 			_deliver_to_blueprint()
 			return
 
@@ -102,7 +103,8 @@ func _pick_up_item() -> void:
 		return
 
 	# Check if item matches what we need
-	if target_item.data != item_to_fetch:
+	var matches_item = (target_item.data == item_to_fetch) or (target_item.data != null and item_to_fetch != null and (target_item.data.resource_path == item_to_fetch.resource_path or target_item.data.name == item_to_fetch.name))
+	if not matches_item:
 		clayling.world.release_pickup(target_item)
 		clayling.change_state("Idle")
 		return

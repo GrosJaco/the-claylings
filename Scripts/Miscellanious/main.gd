@@ -618,7 +618,7 @@ func _try_assign_delivery(b: Node, task_name: String, free_claylings: Array) -> 
 		for s in get_tree().get_nodes_in_group("storage"):
 			if s.get("is_preview"):
 				continue
-			var stored = s.inventory.get(item, 0)
+			var stored = s.get_stored_amount(item) if s.has_method("get_stored_amount") else s.inventory.get(item, 0)
 			if stored > 0:
 				best_storage = s
 				available_in_storage = stored
@@ -672,16 +672,17 @@ func _find_ground_item(item_type: ItemData, amount_needed: int, from_pos: Vector
 	for ground_item in get_tree().get_nodes_in_group("ground_items"):
 		if ground_item == null or !is_instance_valid(ground_item):
 			continue
-		if ground_item.data != item_type:
+		var is_match = (ground_item.data == item_type) or (ground_item.data != null and item_type != null and (ground_item.data.resource_path == item_type.resource_path or ground_item.data.name == item_type.name))
+		if not is_match:
 			continue
 		if reserved_pickups.has(ground_item):
 			continue
 		if ground_item.quantity <= 0:
 			continue
 
-		var dist = ground_item.global_position.distance_to(from_pos)
-		if dist < best_dist:
-			best_dist = dist
+		var d = from_pos.distance_to(ground_item.global_position)
+		if d < best_dist:
+			best_dist = d
 			best_item = ground_item
 
 	return best_item
@@ -770,7 +771,7 @@ func reserve_pickup(item: Node, c: Node) -> bool:
 	if item == null or !is_instance_valid(item):
 		return false
 	if reserved_pickups.has(item):
-		return false
+		return reserved_pickups[item] == c
 	reserved_pickups[item] = c
 	return true
 

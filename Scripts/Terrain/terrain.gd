@@ -78,11 +78,14 @@ var noise_grass = FastNoiseLite.new()
 
 var wall_cells: Array[Vector2i] = []
 var water_cells: Array[Vector2i] = []
+var wall_cells_set: Dictionary = {}
+var water_cells_set: Dictionary = {}
 var ore_map: Dictionary = {} 
 
 # ========== FUNCTIONS ==========
 
 func _ready():
+	add_to_group("terrain")
 	if Engine.is_editor_hint():
 		return
 	var save_mgr = get_node_or_null("/root/SaveManager")
@@ -151,6 +154,8 @@ func clearing_terrain():
 	buildings.clear()
 	wall_cells.clear()
 	water_cells.clear()
+	wall_cells_set.clear()
+	water_cells_set.clear()
 	ore_map.clear()
 	
 	if building_manager:
@@ -182,10 +187,12 @@ func generate_terrain(generate_objects: bool = true):
 			
 			if elev < water_threshold:
 				water_cells.append(pos)
+				water_cells_set[pos] = true
 				if building_manager: building_manager.used_tiles.append(pos)
 				continue
 			if elev > walls_threshold:
 				wall_cells.append(pos)
+				wall_cells_set[pos] = true
 				if building_manager: building_manager.used_tiles.append(pos)
 				ground.set_cell(pos, 0, Vector2i(7,0))
 				continue
@@ -207,6 +214,12 @@ func generate_terrain(generate_objects: bool = true):
 			try_spawn_vegetation(pos)
 	
 	update_terrain_texture()
+
+func is_water_at(pos: Vector2i) -> bool:
+	return water_cells_set.has(pos) if not water_cells_set.is_empty() else pos in water_cells
+
+func is_wall_at(pos: Vector2i) -> bool:
+	return wall_cells_set.has(pos) if not wall_cells_set.is_empty() else pos in wall_cells
 
 func update_terrain_texture():
 	if wall_cells.size() > 0:

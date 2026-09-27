@@ -64,15 +64,57 @@ func is_wall_at(pos: Vector2i) -> bool:
 	var w = walls_map[pos]
 	return is_instance_valid(w) and not w.is_preview and not w.is_queued_for_deletion()
 
+func _get_terrain() -> Node:
+	if not is_inside_tree():
+		return null
+	var terrain = get_tree().get_first_node_in_group("terrain")
+	if terrain:
+		return terrain
+	var parent_node = get_parent()
+	if parent_node:
+		var t = parent_node.get_node_or_null("Terrain")
+		if t:
+			return t
+		var grand_parent = parent_node.get_parent()
+		if grand_parent:
+			t = grand_parent.get_node_or_null("Terrain")
+			if t:
+				return t
+	return null
+
+func is_connected_at(pos: Vector2i) -> bool:
+	# 1. Connected to another wooden wall
+	if is_wall_at(pos):
+		return true
+
+	# 2. Connected to water or natural terrain wall / cliff
+	var terrain = _get_terrain()
+	if terrain:
+		if terrain.has_method("is_wall_at") and terrain.is_wall_at(pos):
+			return true
+		elif "wall_cells_set" in terrain and terrain.wall_cells_set.has(pos):
+			return true
+		elif "wall_cells" in terrain and pos in terrain.wall_cells:
+			return true
+
+		if terrain.has_method("is_water_at") and terrain.is_water_at(pos):
+			return true
+		elif "water_cells_set" in terrain and terrain.water_cells_set.has(pos):
+			return true
+		elif "water_cells" in terrain and pos in terrain.water_cells:
+			return true
+
+	return false
+
 func update_connections() -> void:
 	if not sprite is Sprite2D:
 		return
 	
 	var pos = get_tile_pos()
-	var has_up = is_wall_at(pos + Vector2i(0, -1))
-	var has_down = is_wall_at(pos + Vector2i(0, 1))
-	var has_left = is_wall_at(pos + Vector2i(-1, 0))
-	var has_right = is_wall_at(pos + Vector2i(1, 0))
+	var has_up = is_connected_at(pos + Vector2i(0, -1))
+	var has_down = is_connected_at(pos + Vector2i(0, 1))
+	var has_left = is_connected_at(pos + Vector2i(-1, 0))
+	var has_right = is_connected_at(pos + Vector2i(1, 0))
 	
 	var connection_type = _determine_connection_type(has_up, has_down, has_left, has_right)
 	var variants: Array = TILE_MAP.get(connection_type, [Vector2i(0, 2)])

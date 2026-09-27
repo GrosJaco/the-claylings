@@ -157,6 +157,9 @@ func _update_preview_under_mouse():
 		for y in range(size.y):
 			preview_tiles.append(top_left_tile + Vector2i(x, y))
 	
+	if preview_instance.has_method("update_connections"):
+		preview_instance.update_connections()
+
 	preview_can_place = true
 	var terrain = world.get_node_or_null("Terrain") if world else null
 	for t in preview_tiles:

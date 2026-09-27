@@ -7,8 +7,18 @@ var sounds: Dictionary = {
 	"rock break": preload("res://Audio/SFX/rock_break.wav"),
 	"grass": preload("res://Audio/SFX/grass.wav"),
 	"furnace": preload("res://Audio/SFX/furnace.wav"),
-	"thunder": null,
-	}
+	"thunder": [preload("res://Audio/SFX/thunder.wav"), preload("res://Audio/SFX/thunder2.wav")],
+	"thunder1": preload("res://Audio/SFX/thunder.wav"),
+	"thunder2": preload("res://Audio/SFX/thunder2.wav"),
+	"watering": preload("res://Audio/SFX/watering.wav"),
+	"equipping": preload("res://Audio/SFX/equipping.wav"),
+	"step": [preload("res://Audio/SFX/step1.wav"), preload("res://Audio/SFX/step2.wav"), preload("res://Audio/SFX/step3.wav")],
+	"step1": preload("res://Audio/SFX/step1.wav"),
+	"step2": preload("res://Audio/SFX/step2.wav"),
+	"step3": preload("res://Audio/SFX/step3.wav"),
+	"shoot": preload("res://Audio/SFX/shoot.wav"),
+	"die": preload("res://Audio/SFX/die.wav"),
+}
 
 @export_group("Spatial Audio")
 @export var outside_fade_distance: float = 500.0
@@ -19,14 +29,25 @@ var sounds: Dictionary = {
 # Camera zoom value at which sounds are fully muted (your camera's max dezoom / zoom_min)
 @export var zoom_out_silence: float = 0.5
 
-func play(sound_name: String, pitch_variation: float = 0.0) -> void:
-	_spawn_player(sound_name, pitch_variation, null)
+func play(sound_name: String, pitch_variation: float = 0.0, volume_offset_db: float = 0.0) -> void:
+	_spawn_player(sound_name, pitch_variation, null, volume_offset_db)
 
-func play_at(sound_name: String, world_position: Vector2, pitch_variation: float = 0.0) -> void:
-	_spawn_player(sound_name, pitch_variation, world_position)
+func play_at(sound_name: String, world_position: Vector2, pitch_variation: float = 0.0, volume_offset_db: float = 0.0) -> void:
+	_spawn_player(sound_name, pitch_variation, world_position, volume_offset_db)
 
-func _spawn_player(sound_name: String, pitch_variation: float, world_position) -> void:
+func _spawn_player(sound_name: String, pitch_variation: float, world_position, volume_offset_db: float = 0.0) -> void:
 	if not sounds.has(sound_name) or sounds[sound_name] == null:
+		return
+
+	var stream_entry = sounds[sound_name]
+	var stream: AudioStream = null
+	if stream_entry is Array:
+		if stream_entry.is_empty():
+			return
+		stream = stream_entry.pick_random()
+	elif stream_entry is AudioStream:
+		stream = stream_entry
+	else:
 		return
 
 	var player: Node
@@ -61,18 +82,21 @@ func _spawn_player(sound_name: String, pitch_variation: float, world_position) -
 			var dist_t = clamp(distance_outside / outside_fade_distance, 0.0, 1.0)
 			var spatial_db = -max_outside_attenuation_db * dist_t
 
-			# 3. APPLY BOTH FACTORS
-			p2d.volume_db = zoom_db + spatial_db
+			# 3. APPLY BOTH FACTORS WITH VOLUME OFFSET
+			p2d.volume_db = zoom_db + spatial_db + volume_offset_db
 			p2d.attenuation = 0.0
 			p2d.max_distance = 100000.0 # very large so it never cuts abruptly
 		else:
 			p2d.attenuation = 0.0
+			p2d.volume_db = volume_offset_db
 
 		player = p2d
 	else:
-		player = AudioStreamPlayer.new()
+		var p := AudioStreamPlayer.new()
+		p.volume_db = volume_offset_db
+		player = p
 
-	player.stream = sounds[sound_name]
+	player.stream = stream
 	if pitch_variation > 0.0:
 		player.pitch_scale = 1.0 + randf_range(-pitch_variation, pitch_variation)
 	add_child(player)

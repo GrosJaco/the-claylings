@@ -75,6 +75,7 @@ var force_animation : String = ""
 
 @export var goal : Vector2
 var _stuck_timer: float = 0.0
+var _step_timer: float = 0.0
 
 # ---------- INVENTORY ----------
 
@@ -335,6 +336,7 @@ func _apply_kit(kit_data: Dictionary) -> void:
 	# Refresh animations for the new role immediately
 	force_animation = ""
 	print("Clayling " + clayling_name + " is now equipped as: " + str(kit_data.get("display_name", role)))
+	SoundManager.play_at("equipping", global_position, 0.1)
 
 	if role == "spearman":
 		change_state("SoldierToStance")
@@ -587,6 +589,7 @@ func die() -> void:
 		return
 	is_dead = true
 	is_combat_ready = false
+	SoundManager.play_at("die", global_position, 0.1)
 
 	# Close UI info panel if inspecting this clayling
 	var panel = get_tree().get_first_node_in_group("clayling_info_panel")
@@ -792,6 +795,16 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	handle_animation()
 	_update_needs(delta)
+	_update_footsteps(delta)
+
+func _update_footsteps(delta: float) -> void:
+	if get_real_velocity().length_squared() > 100.0:
+		_step_timer += delta
+		if _step_timer >= 0.40:
+			_step_timer = 0.0
+			SoundManager.play_at("step", global_position, 0.15, -12.0)
+	else:
+		_step_timer = 0.25
 
 func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

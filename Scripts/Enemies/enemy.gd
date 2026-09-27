@@ -433,6 +433,7 @@ func _execute_attack() -> void:
 			proj.target_group = "claylings"
 			proj.shooter = self
 			get_parent().add_child(proj)
+			SoundManager.play_at("shoot", global_position, 0.1)
 
 # ---------- ANIMATIONS & FACING ----------
 
@@ -539,6 +540,7 @@ func die() -> void:
 	is_dead = true
 	state = "death"
 	velocity = Vector2.ZERO
+	SoundManager.play_at("die", global_position, 0.1)
 
 	enemy_died.emit(self)
 	remove_from_group("enemies")

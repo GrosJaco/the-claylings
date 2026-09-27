@@ -21,7 +21,7 @@ enum WeatherType {
 @export var clear_duration_range: Vector2 = Vector2(120.0, 240.0)
 @export var rain_duration_range: Vector2 = Vector2(60.0, 120.0)
 @export var storm_duration_range: Vector2 = Vector2(35.0, 60.0)
-@export var rain_sfx: AudioStream = null
+@export var rain_sfx: AudioStream = preload("res://Audio/SFX/rain.wav")
 
 # ========== REFERENCES ==========
 
@@ -42,6 +42,12 @@ var _flash_tween: Tween = null
 
 func _ready() -> void:
 	add_to_group("weather_manager")
+
+	if rain_sfx == null:
+		rain_sfx = preload("res://Audio/SFX/rain.wav")
+
+	if rain_sfx is AudioStreamWAV:
+		rain_sfx.loop_mode = AudioStreamWAV.LOOP_FORWARD
 
 	if is_instance_valid(ambient_rain_player) and rain_sfx != null:
 		ambient_rain_player.stream = rain_sfx

@@ -10,8 +10,8 @@ static var walls_map: Dictionary = {}
 # Sprite atlas coordinates matching the user's layout:
 # Row 0: Top-Left L (0,0), Vertical 1 (1,0), Vertical 2 (2,0), Top-Right L (3,0)
 # Row 1: Bottom-Left L (0,1), Horizontal 1 (1,1), Horizontal 2 (2,1), Bottom-Right L (3,1)
-# Row 2: Isolated Post (0,2), End-Left (1,2), End-Right (2,2)
-# Row 3: T Right (0,3), T Left (1,3), Cross (2,3)
+# Row 2: Isolated Post (0,2), End-Left (1,2), End-Right (2,2), Cross (3,2)
+# Row 3: T BDH (0,3), T BGH (1,3), T GHD (2,3), T GBD (3,3)
 const TILE_MAP = {
 	"isolated": [Vector2i(0, 2)],
 	"horizontal": [Vector2i(1, 1), Vector2i(2, 1)],
@@ -22,9 +22,15 @@ const TILE_MAP = {
 	"corner_bottom_right": [Vector2i(3, 1)],
 	"end_left": [Vector2i(1, 2)],
 	"end_right": [Vector2i(2, 2)],
+	"cross": [Vector2i(3, 2)],
+	"t_bdh": [Vector2i(0, 3)],
+	"t_bgh": [Vector2i(1, 3)],
+	"t_ghd": [Vector2i(2, 3)],
+	"t_gbd": [Vector2i(3, 3)],
 	"t_right": [Vector2i(0, 3)],
 	"t_left": [Vector2i(1, 3)],
-	"cross": [Vector2i(2, 3)],
+	"t_up": [Vector2i(2, 3)],
+	"t_down": [Vector2i(3, 3)],
 }
 
 var _is_registered: bool = false
@@ -134,12 +140,14 @@ func _determine_connection_type(has_up: bool, has_down: bool, has_left: bool, ha
 		return "cross"
 
 	# 3-way T-junctions
-	if has_up and has_down and has_right and not has_left:
-		return "t_right"
-	if has_up and has_down and has_left and not has_right:
-		return "t_left"
-	if has_left and has_right and (has_down or has_up):
-		return "cross"
+	if has_down and has_right and has_up and not has_left:
+		return "t_bdh"
+	if has_down and has_left and has_up and not has_right:
+		return "t_bgh"
+	if has_left and has_up and has_right and not has_down:
+		return "t_ghd"
+	if has_left and has_down and has_right and not has_up:
+		return "t_gbd"
 
 	# 4 corners
 	if has_down and has_right and not has_up and not has_left:

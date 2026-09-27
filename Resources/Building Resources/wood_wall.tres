@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_idata"]
 [ext_resource type="Resource" uid="uid://vdtuohevvfkm" path="res://Resources/Item Resources/Refined/wood_plank.tres" id="2_ip8tj"]
 [ext_resource type="PackedScene" uid="uid://ce4t0dhhll7xr" path="res://Scenes/Buildings/WoodWall.tscn" id="4_scene"]
-[ext_resource type="Texture2D" uid="uid://n6v7vmcoy8er" path="res://Art/Buildings/Wooden Walls.png" id="5_tex"]
+[ext_resource type="Texture2D" uid="uid://cecq5up4ntu5q" path="res://Art/Buildings/Wooden Walls.png" id="5_tex"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
 atlas = ExtResource("5_tex")

@@ -1,9 +1,8 @@
 # The Claylings
 
-A Godot 4.6 2D colony simulation and real-time strategy (RTS) defense game where autonomous clay agents ("Claylings") harvest resources, farm crops, craft equipment, and construct a thriving settlement in a procedurally generated world. Players manage civilian logistics by day and command tactical military squads by night to defend their sacred Crystal against escalating waves of nocturnal creatures.
+A Godot 4.6 2D colony simulation and real-time strategy (RTS) defense game where autonomous clay agents ("Claylings") harvest resources, farm crops, craft equipment, and build a settlement in a procedurally generated world. Players manage colony logistics by day and command military squads by night to defend their Crystal against escalating waves of nocturnal creatures.
 
-<!-- Showcase Section: Replace placeholder paths/URLs with your demo video clips or GIFs -->
-<!-- GitHub supports both embedded videos (MP4/WebM) and animated GIFs: -->
+<!-- Showcase Section: Replace placeholder paths/URLs with demo video clips or GIFs -->
 <!--
 <p align="center">
   <video src="https://user-images.githubusercontent.com/.../gameplay-preview.mp4" width="100%" controls autoplay loop muted></video>
@@ -12,22 +11,41 @@ A Godot 4.6 2D colony simulation and real-time strategy (RTS) defense game where
 
 ## Features
 
-- **Autonomous Agent Simulation & Needs**: Driven by a modular Finite State Machine (FSM), Claylings autonomously handle colony tasks (hauling, delivering, constructing, farming, foraging, mining, chopping) while managing vital personal needs like hunger and energy.
-- **Colony Logistics & Multi-Tier Crafting**: Comprehensive production chain featuring storage depots, crafting stations (Workbench, Furnace, Forge, Loom, Chopping Block), recipe queues, dynamic fuel consumption, and an intelligent task-quota and reservation system to prevent worker bottlenecks.
-- **RTS Squad Combat & Tactical Formations**: Seamless transition between civilian life and military defense with Call to Arms (`X`) and Call to Work (`Z`). Equip Claylings via Weapon Racks into specialized combat classes (Spearmen, Knights, Archers), command units with RTS box selection, target priorities, and dynamic drag-and-drop line formations with wall collision validation.
-- **Procedural World Generation & Ecology**: FastNoiseLite-powered procedural map generation producing organic landmasses, water bodies, impassable cliff walls, harvestable flora (trees, saplings, fiber bushes), and vein clusters of valuable ores (copper, iron, gold).
-- **Day/Night Cycle & Nocturnal Wave Defense**: Real-time atmospheric lighting and day-night cycle driving procedural enemy wave spawns (melee Blue Spiders, ranged Purple Spiders) targeting the central Crystal, with difficulty scaling dynamically across surviving days.
-- **Grid Agriculture & Harvest Zones**: Dynamic soil moisture and evaporation physics, crop growth staging (carrots), and draggable harvest zones (`M`) for automated mass gathering.
-- **Colony Management HUD**: Interactive UI suite including a Task Priority & Quota management window, category-based Build Menu, Clayling Status Inspector, Day/Clock tracker, and context-sensitive radial interaction menus.
+- **Autonomous Agent Simulation & Traits**: Driven by a modular Finite State Machine (FSM), Claylings autonomously handle colony tasks (hauling, delivering, constructing, farming, foraging, mining, chopping, crafting) while managing vitals like hunger, energy, and health. Each Clayling possesses a unique name, age, and one of 13 distinct personality traits (*Resilient, Swift, Efficient, Strong, Smart, Brave, Dexterous, Optimistic, Hermit, Tough, Gourmand, NightOwl, Curious*) directly impacting their physical capabilities, energy decay, movement speed, or combat resilience.
+- **Dynamic Weather System**: A real-time weather cycle featuring Clear, Rain, and Thunderstorm conditions. Rain automatically hydrates tilled soil and halts moisture evaporation while slightly altering movement speed. Thunderstorms feature screen-shaking lightning flashes and spatial thunder audio.
+- **Fauna & Livestock Lifecycle**: Autonomous chickens that wander, forage, and lay eggs. Eggs left on the ground have a chance to hatch into chicks over time or can be collected for cooking. Chicks follow adult chickens and mature into adults over time. Animals flee from nearby threats and yield resources upon death (eggs, feathers, raw meat).
+- **Fortifications & Offscreen Threat Radar**: Placeable wooden walls that automatically connect to neighboring walls as well as natural terrain obstacles (cliffs, rocks, water bodies), supporting continuous drag-placement. An offscreen threat indicator renders pulsating border beacons pointing directly toward incoming nocturnal enemies.
+- **Colony Logistics & Multi-Tier Crafting**: Comprehensive production chain featuring storage piles, crafting buildings (Workbench, Furnace, Forge, Loom, Chopping Block), recipe queues, dynamic fuel mechanics, and an intelligent task-quota and reservation system to prevent worker bottlenecks. Raw resources include wood, stone, clay, fiber, copper, iron, gold, and food, refinable into planks, fabrics, ropes, ingots, cogs, and cooked meals.
+- **RTS Squad Combat & Formations**: Seamless transition between civilian tasks and military defense with Call to Arms (`X`) and Call to Work (`Z`). Equip Claylings via Weapon Racks into combat classes (Spearmen, Knights, Archers), command units with RTS box selection, right-click targeting, and dynamic drag-and-drop line formations with collision validation and attack knockback.
+- **Procedural World Generation & Custom Settings**: FastNoiseLite-powered map generation with customizable world seed, map sizes (64x64, 128x128, 256x256), and density presets for water, mountains, forests, and resource veins (clay, copper, iron, gold).
+- **Difficulty Presets**: Four selectable difficulty modes:
+  - **Leaf (Peaceful)**: No nocturnal enemy waves, focusing purely on building, farming, and logistics.
+  - **Wood**: Relaxed nocturnal waves for a gentle defense experience.
+  - **Clay**: Standard balanced difficulty.
+  - **Stone**: Hardcore scaling for seasoned defenders.
+- **Multi-Slot Save & Load System**: Comprehensive game state serialization supporting custom-named save slots, quicksaves, and seamless loading of terrain, natural resources, buildings, inventories, clayling stats, weather, and world state.
+- **Colony Management HUD & Controls**: Interactive UI suite including a Task Priority & Quota management window, category-based Build Menu, Clayling Status Inspector, Day/Clock tracker with weather indicator, game speed controls (Pause, 1x, 2x, 3x), entity hover outlines, and radial context menus.
 
 ## Controls
 
 ### Camera & Navigation
 | Key / Input | Action |
 | --- | --- |
-| `W` / `A` / `S` / `D` or Arrow Keys | Pan Camera |
+| `W` / `A` / `S` / `D` or `Z` / `Q` / `S` / `D` or Arrows | Pan Camera |
 | `Middle Mouse Button (Hold & Drag)` | Pan Camera |
 | `Mouse Wheel Up` / `Down` | Camera Zoom In / Zoom Out |
+| `H` / `Home` | Center Camera on Crystal |
+
+### Game Speed & Navigation
+| Key / Input | Action |
+| --- | --- |
+| `Space` | Pause / Resume Game Simulation |
+| `1` | Normal Speed (1x) |
+| `2` | Fast Speed (2x) |
+| `3` | Very Fast Speed (3x) |
+| `Tab` / `Shift + Tab` | Cycle to Next / Previous Clayling (Centers Camera) |
+| `Escape` | Open Pause Menu / Close Active Dialogs & Radial Menus |
+| `F11` or `Alt + Enter` | Toggle Fullscreen |
 
 ### RTS & Combat Commands
 | Key / Input | Action |
@@ -42,27 +60,30 @@ A Godot 4.6 2D colony simulation and real-time strategy (RTS) defense game where
 | Key / Input | Action |
 | --- | --- |
 | `Left Click` | Inspect Clayling / Interact with Building / Confirm Placement |
+| `Left Click (Hold & Drag)` | Drag-place Walls and Soil Tiles in a line or grid |
 | `Right Click` | Cancel Blueprint Preview / Close Radial Menus |
-| `A` | Quick-build Storage Pile |
-| `B` | Quick-place Soil Tile |
-| `F` | Quick-build Furnace |
-| `O` | Quick-build Forge |
-| `W` | Quick-build Weapon Rack |
-| `T` | Quick-plant Oak Sapling |
 | `M` | Place Harvest / Work Zone |
 
-### Debug & Spawning Shortcuts
-| Key / Input | Action |
-| --- | --- |
-| `C` | Spawn Clayling at mouse position |
-| `N` | Spawn Blue Spider enemy at mouse position |
-| `V` | Spawn Purple Spider enemy at mouse position |
-| `L` | Manually trigger next enemy wave |
-| `Y` | Fill Weapon Racks with random kits |
-| `S` | Equip all Claylings as Spearmen |
-| `K` | Kill all Claylings |
-| `B` / `Shift + K` | Kill all enemies |
-| `R` | Restart Game (on Defeat screen) |
+### Developer & Debug Shortcuts
+> [!NOTE]
+> Press `²` or `~` to toggle **Dev Mode**.
+
+| Key / Input | Condition | Action |
+| --- | --- | --- |
+| `²` / `~` | Always | Toggle Dev Mode overlay |
+| `J` or `Ctrl + S` | Dev Mode only | Equip all Claylings as Spearmen |
+| `F6` | Dev Mode only | Cycle Weather (Clear -> Rain -> Thunderstorm) |
+| `C` | Always | Spawn Clayling at mouse position |
+| `P` | Always | Spawn Chicken at mouse position |
+| `Shift + P` | Always | Spawn Chick at mouse position |
+| `O` | Always | Kill all chickens |
+| `N` | Always | Spawn Blue Spider at mouse position |
+| `V` | Always | Spawn Purple Spider at mouse position |
+| `L` | Always | Trigger next nocturnal enemy wave |
+| `Y` | Always | Fill Weapon Racks with random equipment kits |
+| `K` | Always | Kill all Claylings |
+| `Shift + K` or `B` | Always | Kill all enemies |
+| `R` | Defeat screen | Restart Game |
 
 ## Getting Started
 
@@ -76,7 +97,7 @@ A Godot 4.6 2D colony simulation and real-time strategy (RTS) defense game where
    ```
 2. Open the Godot Project Manager.
 3. Click **Import** and select the `project.godot` file in this directory.
-4. Open the project and press **F5** (or Run) to play the main level (`Scenes/main.tscn`).
+4. Open the project and press **F5** (or Run) to launch the Main Menu (`Scenes/UI/MainMenu.tscn`).
 
 ## License & Credits
 

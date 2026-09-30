@@ -247,6 +247,7 @@ func lay_egg() -> void:
 	if is_dead or egg_item == null:
 		return
 	_spawn_ground_item(egg_item, 1)
+	SoundManager.play_at("pop", global_position, 0.15)
 
 func _drop_loot() -> void:
 	for drop in loot_table:

@@ -270,6 +270,8 @@ func pick_item(item: ItemData, amount: int) -> int:
 		inventory["count"] += taken
 	
 	_refresh_carry_sprite()
+	if taken > 0:
+		SoundManager.play_at("pop", global_position, 0.2, -6.0)
 	return taken
 
 func drop_item(amount: int = -1, to_ground: bool = false) -> Dictionary:

@@ -23,7 +23,7 @@ signal wave_cleared(wave_num: int)
 @export var wave_frequency_days: int = 1 # How often waves trigger: 1 = every night, 2 = every 2 nights
 
 @export_group("Audio")
-@export var alert_sound: String = ""
+@export var alert_sound: String = "bell"
 @export var victory_sound: String = ""
 
 # ========== STATE ==========

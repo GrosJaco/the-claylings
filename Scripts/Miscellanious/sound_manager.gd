@@ -18,6 +18,19 @@ var sounds: Dictionary = {
 	"step3": preload("res://Audio/SFX/step3.wav"),
 	"shoot": preload("res://Audio/SFX/shoot.wav"),
 	"die": preload("res://Audio/SFX/die.wav"),
+	"bell": preload("res://Audio/SFX/bell.wav"),
+	"crystal breaks": preload("res://Audio/SFX/crystal_breaks.wav"),
+	"crystal hit": [preload("res://Audio/SFX/crystal_hit1.wav"), preload("res://Audio/SFX/crystal_hit2.wav")],
+	"crystal hit1": preload("res://Audio/SFX/crystal_hit1.wav"),
+	"crystal hit2": preload("res://Audio/SFX/crystal_hit2.wav"),
+	"forge": preload("res://Audio/SFX/forge.wav"),
+	"harvesting": preload("res://Audio/SFX/harvesting.wav"),
+	"loom": preload("res://Audio/SFX/loom.wav"),
+	"planting": preload("res://Audio/SFX/planting.wav"),
+	"pop": preload("res://Audio/SFX/pop.wav"),
+	"spider bite": preload("res://Audio/SFX/spider_bite.wav"),
+	"spider running": preload("res://Audio/SFX/spider_running.wav"),
+	"spider spit": preload("res://Audio/SFX/spider_spit.wav"),
 }
 
 @export_group("Spatial Audio")

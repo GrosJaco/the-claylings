@@ -41,6 +41,7 @@ var _scan_timer: float = 0.0
 var _last_direction: String = "down"
 var _current_base_anim: String = ""
 var knockback_velocity: Vector2 = Vector2.ZERO
+var _scurry_sound_timer: float = 0.0
 
 # ========== REFERENCES ==========
 
@@ -107,6 +108,16 @@ func _physics_process(delta: float) -> void:
 		knockback_velocity = Vector2.ZERO
 
 	move_and_slide()
+
+	# Spider movement sound
+	if state in ["chase", "assault"] and velocity.length_squared() > 100.0:
+		if "spider" in enemy_name.to_lower():
+			_scurry_sound_timer -= delta
+			if _scurry_sound_timer <= 0.0:
+				_scurry_sound_timer = 4.3
+				SoundManager.play_at("spider running", global_position, 0.1, -6.0)
+	else:
+		_scurry_sound_timer = 0.0
 
 # ---------- TARGET ACQUISITION ----------
 
@@ -413,6 +424,8 @@ func _execute_attack() -> void:
 	if attack_type == "melee":
 		var dist = global_position.distance_to(current_target.global_position)
 		if dist <= attack_range + 24.0:
+			if "spider" in enemy_name.to_lower():
+				SoundManager.play_at("spider bite", global_position, 0.15)
 			if current_target is Building:
 				current_target.take_damage(int(attack_damage))
 			elif current_target.has_method("take_damage"):
@@ -433,7 +446,10 @@ func _execute_attack() -> void:
 			proj.target_group = "claylings"
 			proj.shooter = self
 			get_parent().add_child(proj)
-			SoundManager.play_at("shoot", global_position, 0.1)
+			if "spider" in enemy_name.to_lower() or (projectile_scene and "web" in projectile_scene.resource_path.to_lower()):
+				SoundManager.play_at("spider spit", global_position, 0.1)
+			else:
+				SoundManager.play_at("shoot", global_position, 0.1)
 
 # ---------- ANIMATIONS & FACING ----------
 

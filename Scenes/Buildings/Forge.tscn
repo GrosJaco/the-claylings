@@ -16,7 +16,9 @@ available_recipes = Array[ExtResource("2_yugn8")]([ExtResource("3_yugn8"), ExtRe
 menu_offset = Vector2(0, -10)
 building_type = "furnace"
 size_in_tiles = Vector2i(2, 2)
-ambient_sounds = Array[String](["furnace"])
+ambient_sounds = Array[String](["forge"])
+worker_hit_sound = "forge"
+worker_hit_interval = 1.5
 
 [node name="SpriteRoot" type="Node2D" parent="." unique_id=304485887]
 position = Vector2(0, -16)

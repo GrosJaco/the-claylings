@@ -13,6 +13,8 @@ func update(delta: float) -> void:
 		clayling_animation_finished()
 		return
 	if clayling.global_position.distance_to(clayling.agent.target_position) < 8.0:
+		if clayling.force_animation != "harvesting_side":
+			SoundManager.play_at("harvesting", clayling.global_position, 0.1)
 		clayling.offset_sprite(8, 0)
 		clayling.play_forced_animation("harvesting_side")
 		clayling.velocity = Vector2.ZERO

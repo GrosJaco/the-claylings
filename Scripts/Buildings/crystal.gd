@@ -142,7 +142,7 @@ func take_damage(amount: int):
 	_update_health_bar()
 	_play_hit_effects()
 
-	SoundManager.play_at("rock hit", global_position, 0.2)
+	SoundManager.play_at("crystal hit", global_position, 0.15)
 	crystal_damaged.emit(current_health, max_health)
 
 	if current_health <= 0:
@@ -188,7 +188,7 @@ func destroyed() -> void:
 
 	crystal_destroyed.emit()
 	get_tree().call_group("defeat_ui", "show_defeat")
-	SoundManager.play_at("rock break", global_position, 0.4)
+	SoundManager.play_at("crystal breaks", global_position, 0.2)
 
 	# Burst magical particles outwards
 	if magic_particles:

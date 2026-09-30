@@ -875,6 +875,7 @@ func find_nearest_storage_with_space(pos: Vector2, item_data: ItemData = null) -
 # ---------- COMBAT LOGIC (Call to Arms & Call to Work) ----------
 
 func trigger_call_to_arms() -> void:
+	SoundManager.play("bell", 0.05, 0.0)
 	if rts_controller:
 		rts_controller.trigger_call_to_arms()
 

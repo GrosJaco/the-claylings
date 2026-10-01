@@ -41,7 +41,7 @@ var _scan_timer: float = 0.0
 var _last_direction: String = "down"
 var _current_base_anim: String = ""
 var knockback_velocity: Vector2 = Vector2.ZERO
-var _scurry_sound_timer: float = 0.0
+var _scurry_player: AudioStreamPlayer2D = null
 
 # ========== REFERENCES ==========
 
@@ -63,6 +63,16 @@ func _ready() -> void:
 	health = max_health
 	_spawn_pos = assault_target if has_assault_target else global_position
 	_scan_timer = randf_range(0.0, 0.2) # Jitter initial scan
+
+	if "spider" in enemy_name.to_lower():
+		_scurry_player = AudioStreamPlayer2D.new()
+		_scurry_player.name = "ScurryPlayer"
+		if SoundManager and "sounds" in SoundManager and SoundManager.sounds.has("spider running"):
+			_scurry_player.stream = SoundManager.sounds["spider running"]
+		_scurry_player.max_distance = 600.0
+		_scurry_player.attenuation = 1.0
+		add_child(_scurry_player)
+
 	if has_assault_target:
 		call_deferred("_enter_assault")
 	else:
@@ -110,14 +120,19 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	# Spider movement sound
-	if state in ["chase", "assault"] and velocity.length_squared() > 100.0:
-		if "spider" in enemy_name.to_lower():
-			_scurry_sound_timer -= delta
-			if _scurry_sound_timer <= 0.0:
-				_scurry_sound_timer = 4.3
-				SoundManager.play_at("spider running", global_position, 0.1, -6.0)
-	else:
-		_scurry_sound_timer = 0.0
+	if _scurry_player:
+		var is_moving = state in ["chase", "assault"] and velocity.length_squared() > 100.0 and not is_dead
+		if is_moving:
+			var zoom_db = SoundManager.get_camera_zoom_db() if (SoundManager and SoundManager.has_method("get_camera_zoom_db")) else 0.0
+			var base_vol: float = SoundManager.sound_base_volumes.get("spider running", -8.0) if (SoundManager and "sound_base_volumes" in SoundManager) else -8.0
+			_scurry_player.volume_db = base_vol + zoom_db
+
+			if not _scurry_player.playing:
+				_scurry_player.pitch_scale = randf_range(0.95, 1.05)
+				_scurry_player.play()
+		else:
+			if _scurry_player.playing:
+				_scurry_player.stop()
 
 # ---------- TARGET ACQUISITION ----------
 
@@ -554,6 +569,8 @@ func die() -> void:
 	if is_dead:
 		return
 	is_dead = true
+	if _scurry_player and _scurry_player.playing:
+		_scurry_player.stop()
 	state = "death"
 	velocity = Vector2.ZERO
 	SoundManager.play_at("die", global_position, 0.1)

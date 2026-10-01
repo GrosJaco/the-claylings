@@ -271,7 +271,7 @@ func pick_item(item: ItemData, amount: int) -> int:
 	
 	_refresh_carry_sprite()
 	if taken > 0:
-		SoundManager.play_at("pop", global_position, 0.2, -6.0)
+		SoundManager.play_at("pop", global_position, 0.2)
 	return taken
 
 func drop_item(amount: int = -1, to_ground: bool = false) -> Dictionary:
@@ -804,7 +804,7 @@ func _update_footsteps(delta: float) -> void:
 		_step_timer += delta
 		if _step_timer >= 0.40:
 			_step_timer = 0.0
-			SoundManager.play_at("step", global_position, 0.15, -12.0)
+			SoundManager.play_at("step", global_position, 0.15)
 	else:
 		_step_timer = 0.25
 

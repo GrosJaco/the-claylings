@@ -33,6 +33,49 @@ var sounds: Dictionary = {
 	"spider spit": preload("res://Audio/SFX/spider_spit.wav"),
 }
 
+# Base volume offsets (in dB) to balance all sounds across the game
+var sound_base_volumes: Dictionary = {
+	# Ambient & loops
+	"furnace": -8.0,
+
+	# Heavy impacts & destruction
+	"thunder": -15.0,
+	"thunder1": -15.0,
+	"thunder2": -15.0,
+	"bell": -3.0,
+	"crystal breaks": -3.0,
+	"tree fall": -4.0,
+	"rock break": -4.0,
+
+	# Frequent movements & pickups
+	"step": -4.0,
+	"step1": -4.0,
+	"step2": -4.0,
+	"step3": -4.0,
+	"pop": -11.0,
+	"spider running": -12.0,
+
+	# Work, harvest & gathering
+	"chop": -4.0,
+	"rock hit": -5.0,
+	"crystal hit": -5.0,
+	"crystal hit1": -5.0,
+	"crystal hit2": -5.0,
+	"grass": -6.0,
+	"harvesting": -3.0,
+	"planting": -3.0,
+	"watering": -3.0,
+	"forge": -5.0,
+	"loom": 4.0,
+
+	# Combat & projectiles
+	"shoot": -6.0,
+	"die": -5.0,
+	"equipping": -6.0,
+	"spider bite": -5.0,
+	"spider spit": -6.0,
+}
+
 @export_group("Spatial Audio")
 @export var outside_fade_distance: float = 500.0
 # Total volume drop (in dB) once a sound is outside_fade_distance away from the frame edge
@@ -42,26 +85,37 @@ var sounds: Dictionary = {
 # Camera zoom value at which sounds are fully muted (your camera's max dezoom / zoom_min)
 @export var zoom_out_silence: float = 0.5
 
-func play(sound_name: String, pitch_variation: float = 0.0, volume_offset_db: float = 0.0) -> void:
-	_spawn_player(sound_name, pitch_variation, null, volume_offset_db)
+func get_camera_zoom_db() -> float:
+	var camera = get_viewport().get_camera_2d()
+	if not camera:
+		return 0.0
+	var current_zoom = camera.zoom.x
+	var zoom_t = clamp(inverse_lerp(zoom_reference, zoom_out_silence, current_zoom), 0.0, 1.0)
+	var zoom_factor = 1.0 - zoom_t
+	return linear_to_db(max(zoom_factor, 0.0001))
 
-func play_at(sound_name: String, world_position: Vector2, pitch_variation: float = 0.0, volume_offset_db: float = 0.0) -> void:
-	_spawn_player(sound_name, pitch_variation, world_position, volume_offset_db)
+func play(sound_name: String, pitch_variation: float = 0.0, volume_offset_db: float = 0.0) -> Node:
+	return _spawn_player(sound_name, pitch_variation, null, volume_offset_db)
 
-func _spawn_player(sound_name: String, pitch_variation: float, world_position, volume_offset_db: float = 0.0) -> void:
+func play_at(sound_name: String, world_position: Vector2, pitch_variation: float = 0.0, volume_offset_db: float = 0.0) -> Node:
+	return _spawn_player(sound_name, pitch_variation, world_position, volume_offset_db)
+
+func _spawn_player(sound_name: String, pitch_variation: float, world_position, volume_offset_db: float = 0.0) -> Node:
 	if not sounds.has(sound_name) or sounds[sound_name] == null:
-		return
+		return null
 
 	var stream_entry = sounds[sound_name]
 	var stream: AudioStream = null
 	if stream_entry is Array:
 		if stream_entry.is_empty():
-			return
+			return null
 		stream = stream_entry.pick_random()
 	elif stream_entry is AudioStream:
 		stream = stream_entry
 	else:
-		return
+		return null
+
+	var base_vol: float = sound_base_volumes.get(sound_name, 0.0)
 
 	var player: Node
 	if world_position != null:
@@ -95,18 +149,18 @@ func _spawn_player(sound_name: String, pitch_variation: float, world_position, v
 			var dist_t = clamp(distance_outside / outside_fade_distance, 0.0, 1.0)
 			var spatial_db = -max_outside_attenuation_db * dist_t
 
-			# 3. APPLY BOTH FACTORS WITH VOLUME OFFSET
-			p2d.volume_db = zoom_db + spatial_db + volume_offset_db
+			# 3. APPLY BOTH FACTORS WITH BASE VOLUME AND OFFSET
+			p2d.volume_db = zoom_db + spatial_db + base_vol + volume_offset_db
 			p2d.attenuation = 0.0
 			p2d.max_distance = 100000.0 # very large so it never cuts abruptly
 		else:
 			p2d.attenuation = 0.0
-			p2d.volume_db = volume_offset_db
+			p2d.volume_db = base_vol + volume_offset_db
 
 		player = p2d
 	else:
 		var p := AudioStreamPlayer.new()
-		p.volume_db = volume_offset_db
+		p.volume_db = base_vol + volume_offset_db
 		player = p
 
 	player.stream = stream
@@ -115,3 +169,4 @@ func _spawn_player(sound_name: String, pitch_variation: float, world_position, v
 	add_child(player)
 	player.finished.connect(player.queue_free)
 	player.play()
+	return player

@@ -37,6 +37,7 @@ var weather_timer: float = 120.0
 var _lightning_timer: float = 8.0
 var _weather_tween: Tween = null
 var _flash_tween: Tween = null
+var _audio_tween: Tween = null
 
 # ========== FUNCTIONS ==========
 
@@ -48,9 +49,17 @@ func _ready() -> void:
 
 	if rain_sfx is AudioStreamWAV:
 		rain_sfx.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		rain_sfx.loop_begin = 0
+		var sample_count = int(rain_sfx.get_length() * rain_sfx.mix_rate)
+		if sample_count > 0:
+			rain_sfx.loop_end = sample_count
 
 	if is_instance_valid(ambient_rain_player) and rain_sfx != null:
 		ambient_rain_player.stream = rain_sfx
+		ambient_rain_player.finished.connect(func():
+			if is_raining() and is_instance_valid(ambient_rain_player):
+				ambient_rain_player.play()
+		)
 
 	get_viewport().size_changed.connect(_update_particle_bounds)
 	_update_particle_bounds()
@@ -266,6 +275,9 @@ func _apply_audio(immediate: bool) -> void:
 	if not is_instance_valid(ambient_rain_player) or ambient_rain_player.stream == null:
 		return
 
+	if _audio_tween and _audio_tween.is_valid():
+		_audio_tween.kill()
+
 	var target_volume_db: float = -80.0
 	var should_play: bool = false
 
@@ -274,10 +286,10 @@ func _apply_audio(immediate: bool) -> void:
 			target_volume_db = -80.0
 			should_play = false
 		WeatherType.RAIN:
-			target_volume_db = -9.0
+			target_volume_db = -4.0
 			should_play = true
 		WeatherType.THUNDERSTORM:
-			target_volume_db = -4.0
+			target_volume_db = -0.5
 			should_play = true
 
 	if immediate:
@@ -287,15 +299,15 @@ func _apply_audio(immediate: bool) -> void:
 		elif not should_play and ambient_rain_player.playing:
 			ambient_rain_player.stop()
 	else:
-		var audio_tween = create_tween()
+		_audio_tween = create_tween()
 		if should_play:
 			if not ambient_rain_player.playing:
 				ambient_rain_player.volume_db = -80.0
 				ambient_rain_player.play()
-			audio_tween.tween_property(ambient_rain_player, "volume_db", target_volume_db, 2.0)
+			_audio_tween.tween_property(ambient_rain_player, "volume_db", target_volume_db, 2.0)
 		else:
-			audio_tween.tween_property(ambient_rain_player, "volume_db", -80.0, 2.0)
-			audio_tween.tween_callback(func():
+			_audio_tween.tween_property(ambient_rain_player, "volume_db", -80.0, 2.0)
+			_audio_tween.tween_callback(func():
 				if current_weather == WeatherType.CLEAR and is_instance_valid(ambient_rain_player):
 					ambient_rain_player.stop()
 			)

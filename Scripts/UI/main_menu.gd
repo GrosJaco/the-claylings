@@ -3,6 +3,7 @@ class_name MainMenu
 
 # ========== REFERENCES ==========
 
+@onready var continue_button: Button = $VBoxContainer/ContinueButton
 @onready var new_game_button: Button = $VBoxContainer/NewGameButton
 @onready var load_game_button: Button = $VBoxContainer/LoadGameButton
 @onready var settings_button: Button = $VBoxContainer/SettingsButton
@@ -30,11 +31,13 @@ func _ready() -> void:
 		credits_panel.visible = false
 
 	# Connect main navigation buttons
+	if continue_button:
+		continue_button.pressed.connect(_on_continue_pressed)
 	if new_game_button:
 		new_game_button.pressed.connect(_on_new_game_pressed)
 	if load_game_button:
 		load_game_button.pressed.connect(_on_load_game_pressed)
-		_check_save_availability()
+	_check_save_availability()
 	if settings_button:
 		settings_button.pressed.connect(_on_settings_pressed)
 	if credits_button:
@@ -72,6 +75,26 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 
 # ========== ACTIONS ==========
+
+func _on_continue_pressed() -> void:
+	var save_mgr = get_node_or_null("/root/SaveManager")
+	if not save_mgr:
+		return
+	var latest_slot = ""
+	if save_mgr.has_method("get_latest_save_slot"):
+		latest_slot = save_mgr.get_latest_save_slot()
+	elif save_mgr.has_method("get_all_saves_metadata"):
+		var metas = save_mgr.get_all_saves_metadata()
+		if not metas.is_empty():
+			latest_slot = metas[0].get("slot_name", "")
+	elif save_mgr.has_method("get_save_slots"):
+		var slots = save_mgr.get_save_slots()
+		if not slots.is_empty():
+			latest_slot = slots[0]
+
+	if latest_slot != "":
+		_close_modals()
+		save_mgr.load_game(latest_slot)
 
 func _on_new_game_pressed() -> void:
 	_close_modals()
@@ -131,6 +154,8 @@ func _check_save_availability() -> void:
 		elif save_mgr.has_method("has_save"):
 			has_save = save_mgr.has_save("quicksave")
 
+	if continue_button:
+		continue_button.disabled = not has_save
 	if load_game_button:
 		load_game_button.disabled = not has_save
 

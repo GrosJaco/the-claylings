@@ -820,6 +820,12 @@ func get_all_saves_metadata() -> Array[Dictionary]:
 	result.sort_custom(func(a, b): return a["timestamp"] > b["timestamp"])
 	return result
 
+func get_latest_save_slot() -> String:
+	var metas = get_all_saves_metadata()
+	if not metas.is_empty():
+		return metas[0].get("slot_name", "")
+	return ""
+
 func has_save(slot_name: String) -> bool:
 	return FileAccess.file_exists(SAVE_DIR + slot_name + ".json")
 

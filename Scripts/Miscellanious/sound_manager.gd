@@ -44,20 +44,20 @@ var sound_base_volumes: Dictionary = {
 	"thunder2": -15.0,
 	"bell": -3.0,
 	"crystal breaks": -3.0,
-	"tree fall": -4.0,
-	"rock break": -4.0,
+	"tree fall": -7.0,
+	"rock break": -7.0,
 
 	# Frequent movements & pickups
 	"step": -4.0,
 	"step1": -4.0,
 	"step2": -4.0,
 	"step3": -4.0,
-	"pop": -11.0,
+	"pop": -13.0,
 	"spider running": -12.0,
 
 	# Work, harvest & gathering
-	"chop": -4.0,
-	"rock hit": -5.0,
+	"chop": -10.0,
+	"rock hit": -7.0,
 	"crystal hit": -5.0,
 	"crystal hit1": -5.0,
 	"crystal hit2": -5.0,

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ce4t0dhhll7xr"]
 
 [ext_resource type="Script" uid="uid://cat1unylnrjmk" path="res://Scripts/Buildings/wall.gd" id="1_wall"]
-[ext_resource type="Texture2D" uid="uid://n6v7vmcoy8er" path="res://Art/Buildings/Wooden Walls.png" id="2_wood_wall"]
+[ext_resource type="Texture2D" uid="uid://cecq5up4ntu5q" path="res://Art/Buildings/Wooden Walls.png" id="2_wood_wall"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(16, 16)

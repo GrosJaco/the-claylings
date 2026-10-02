@@ -46,6 +46,7 @@
 [ext_resource type="Resource" uid="uid://ctf0xeeto6cpd" path="res://Resources/Building Resources/weapon_rack.tres" id="28_bv80c"]
 [ext_resource type="Script" uid="uid://bfast4qluu4tk" path="res://Scripts/Miscellanious/wave_manager.gd" id="41_aa8k8"]
 [ext_resource type="Script" uid="uid://civhgkjhpq0pu" path="res://Scripts/Data/EnemySpawnData.gd" id="42_s8vy0"]
+[ext_resource type="PackedScene" uid="uid://datliv70vvbos" path="res://Scenes/UI/CallToArmsButton.tscn" id="42_y86h7"]
 [ext_resource type="Resource" uid="uid://d2dt6bb3mjlad" path="res://Resources/Enemies Resources/blue_spider_spawn_data.tres" id="43_jut3y"]
 [ext_resource type="Resource" uid="uid://c2625pr7h5arp" path="res://Resources/Enemies Resources/purple_spider_spawn_data.tres" id="44_v2nl5"]
 [ext_resource type="PackedScene" uid="uid://dft2ui8m4k01" path="res://Scenes/UI/DefeatUI.tscn" id="48_defeat"]
@@ -1268,7 +1269,6 @@ vertical_alignment = 1
 script = ExtResource("14_k2e45")
 
 [node name="BuildMenu" type="Control" parent="CanvasLayer" unique_id=1071837459]
-visible = false
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -1611,6 +1611,12 @@ texture_progress = SubResource("AtlasTexture_jwpg7")
 texture_progress_offset = Vector2(1, 1)
 
 [node name="WorldTooltip" parent="CanvasLayer" unique_id=610226823 instance=ExtResource("55_tooltip")]
+
+[node name="CallToArmsButton" parent="CanvasLayer" unique_id=839797794 instance=ExtResource("42_y86h7")]
+offset_left = 1113.0
+offset_top = 607.0
+offset_right = 1145.0
+offset_bottom = 639.0
 
 [node name="RTSController" type="Node2D" parent="." unique_id=892348123]
 z_index = 100

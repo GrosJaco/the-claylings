@@ -12,6 +12,7 @@ class_name HUDController
 @onready var defeat_ui: DefeatUI = $DefeatUI
 @onready var plant_menu: Control = get_node_or_null("PlantMenu")
 @onready var harvest_zone_button: TextureButton = get_node_or_null("HarvestZoneButton")
+@onready var call_to_arms_button: Control = get_node_or_null("CallToArmsButton")
 
 var _gameplay_hud_elements: Array[Control] = []
 var _is_hud_visible: bool = true
@@ -36,6 +37,9 @@ func _ready() -> void:
 		_gameplay_hud_elements.append(harvest_zone_button)
 		harvest_zone_button.pressed.connect(_on_harvest_zone_button_pressed)
 		harvest_zone_button.focus_mode = Control.FOCUS_NONE
+
+	if call_to_arms_button:
+		_gameplay_hud_elements.append(call_to_arms_button)
 
 	# Hide HUD if waiting for initial crystal placement
 	var has_crystal = _has_active_crystal()

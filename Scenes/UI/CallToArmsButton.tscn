@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://datliv70vvbos"]
+
+[ext_resource type="Texture2D" uid="uid://c0ifnqvm28c01" path="res://Art/UI/InventoryUI.png" id="1_frame"]
+[ext_resource type="Texture2D" uid="uid://7lryyktm2wj5" path="res://Art/UI/UIIcons.png" id="2_icons"]
+[ext_resource type="Theme" uid="uid://c3dd5c3bgthql" path="res://Art/Fonts/ClaylingInfoFont.tres" id="3_theme"]
+[ext_resource type="Script" uid="uid://cu0wgvr2rvcdo" path="res://Scripts/UI/call_to_arms_button.gd" id="4_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_btn_normal"]
+atlas = ExtResource("1_frame")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_btn_pressed"]
+atlas = ExtResource("1_frame")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bell"]
+atlas = ExtResource("2_icons")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_crossed_bell"]
+atlas = ExtResource("2_icons")
+region = Rect2(16, 16, 16, 16)
+
+[node name="CallToArmsButton" type="TextureButton" unique_id=1484177284]
+custom_minimum_size = Vector2(32, 32)
+offset_right = 32.0
+offset_bottom = 32.0
+tooltip_text = "Call to Arms (X)"
+focus_mode = 0
+theme = ExtResource("3_theme")
+texture_normal = SubResource("AtlasTexture_btn_normal")
+texture_pressed = SubResource("AtlasTexture_btn_pressed")
+script = ExtResource("4_script")
+bell_texture = SubResource("AtlasTexture_bell")
+crossed_bell_texture = SubResource("AtlasTexture_crossed_bell")
+
+[node name="Icon" type="TextureRect" parent="." unique_id=881013145]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 14.0
+offset_bottom = 14.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("AtlasTexture_bell")
+expand_mode = 1
+stretch_mode = 5

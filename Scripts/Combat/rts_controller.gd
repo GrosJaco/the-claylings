@@ -21,9 +21,15 @@ var line_end: Vector2 = Vector2.ZERO
 var is_line_valid: bool = true
 var line_points: Array[Vector2] = []
 
+# ========== SIGNALS ==========
+
+signal call_to_arms_triggered
+signal call_to_work_triggered
+
 # ========== FUNCTIONS ==========
 
 func _ready() -> void:
+	add_to_group("rts_controller")
 	z_index = 100
 
 func _draw() -> void:
@@ -283,6 +289,7 @@ func _spawn_attack_marker(pos: Vector2) -> void:
 # ---------- CALL TO ARMS & CALL TO WORK ----------
 
 func trigger_call_to_arms() -> void:
+	call_to_arms_triggered.emit()
 	var racks = get_tree().get_nodes_in_group("weapon_racks")
 	var active_claylings = world.active_claylings if world and "active_claylings" in world else get_tree().get_nodes_in_group("claylings")
 
@@ -312,6 +319,7 @@ func trigger_call_to_arms() -> void:
 				candidates.erase(best_candidate)
 
 func trigger_call_to_work() -> void:
+	call_to_work_triggered.emit()
 	var racks = get_tree().get_nodes_in_group("weapon_racks")
 	var soldiers = get_tree().get_nodes_in_group("soldiers")
 

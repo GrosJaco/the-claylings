@@ -75,6 +75,8 @@ var force_animation : String = ""
 
 @export var goal : Vector2
 var _stuck_timer: float = 0.0
+var _persistent_stuck_timer: float = 0.0
+var _last_progress_pos: Vector2 = Vector2.ZERO
 var _step_timer: float = 0.0
 
 # ---------- INVENTORY ----------
@@ -223,10 +225,27 @@ func _on_animated_sprite_2d_animation_looped() -> void:
 
 func move_to(target_position: Vector2):
 	agent.target_position = target_position
+	_persistent_stuck_timer = 0.0
+	_last_progress_pos = global_position
 
 func stop_moving() -> void:
 	agent.target_position = global_position 
 	velocity = Vector2.ZERO
+	_persistent_stuck_timer = 0.0
+	_last_progress_pos = global_position
+
+func _on_movement_stuck() -> void:
+	stop_moving()
+	if is_combat_ready:
+		if role == "spearman":
+			change_state("SoldierStance", {"target_facing": formation_facing})
+		else:
+			change_state("SoldierIdle")
+		return
+	if not is_inventory_empty() and current_state == states.get("Haul"):
+		drop_item(-1, true)
+	if current_state != states.get("Idle"):
+		change_state("Idle")
 
 # ---------- INVENTORY ----------
 
@@ -762,7 +781,19 @@ func _physics_process(delta: float) -> void:
 	if agent.is_navigation_finished():
 		velocity = Vector2.ZERO
 		_stuck_timer = 0.0
+		_persistent_stuck_timer = 0.0
 	else:
+		if global_position.distance_squared_to(_last_progress_pos) > 144.0:
+			_last_progress_pos = global_position
+			_persistent_stuck_timer = 0.0
+		else:
+			_persistent_stuck_timer += delta
+
+		if _persistent_stuck_timer >= 2.5 or (_persistent_stuck_timer > 0.6 and not agent.is_target_reachable()):
+			_persistent_stuck_timer = 0.0
+			_on_movement_stuck()
+			return
+
 		var next_path_position = agent.get_next_path_position()
 		var new_velocity = global_position.direction_to(next_path_position) * effective_speed
 		

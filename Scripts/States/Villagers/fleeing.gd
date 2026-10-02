@@ -32,23 +32,35 @@ func exit() -> void:
 	threat_node = null
 
 func _pick_flee_destination() -> void:
-	var away_dir = Vector2.RIGHT.rotated(randf() * TAU)
+	var base_away_dir = Vector2.RIGHT.rotated(randf() * TAU)
+	var threat_pos = clayling.global_position
 	if threat_node and is_instance_valid(threat_node):
-		var diff = clayling.global_position - threat_node.global_position
+		threat_pos = threat_node.global_position
+		var diff = clayling.global_position - threat_pos
 		if diff.length_squared() > 0.01:
-			away_dir = diff.normalized()
-
-	# Add random angular spread to disperse fleeing villagers
-	away_dir = away_dir.rotated(randf_range(-0.5, 0.5))
-	var target = clayling.global_position + away_dir * 110.0
+			base_away_dir = diff.normalized()
 
 	var nav_map = clayling.get_world_2d().navigation_map
-	if nav_map.is_valid():
-		var valid_pt = NavigationServer2D.map_get_closest_point(nav_map, target)
-		if valid_pt != Vector2.ZERO:
-			target = valid_pt
+	var best_target: Vector2 = Vector2.ZERO
+	var best_dist_sq: float = -1.0
 
-	clayling.move_to(target)
+	# Test multiple angles along the flee arc to avoid running into walls or dead ends
+	var angles = [0.0, -0.6, 0.6, -1.2, 1.2]
+	for a in angles:
+		var dir = base_away_dir.rotated(a)
+		var candidate = clayling.global_position + dir * 110.0
+		if nav_map.is_valid():
+			var valid_pt = NavigationServer2D.map_get_closest_point(nav_map, candidate)
+			if valid_pt != Vector2.ZERO and valid_pt.distance_to(candidate) < 28.0:
+				var dist_sq = valid_pt.distance_squared_to(threat_pos)
+				if dist_sq > best_dist_sq:
+					best_dist_sq = dist_sq
+					best_target = valid_pt
+
+	if best_target != Vector2.ZERO:
+		clayling.move_to(best_target)
+	else:
+		clayling.move_to(clayling.global_position + base_away_dir * 80.0)
 
 func _find_nearest_threat(max_dist: float) -> Node2D:
 	var threats = clayling.get_tree().get_nodes_in_group("threats")

@@ -130,4 +130,17 @@ func _build():
 		var real_building = target_building_scene.instantiate()
 		real_building.global_position = global_position
 		get_parent().add_child(real_building)
+		_push_overlapping_entities(global_position)
 		queue_free()
+
+func _push_overlapping_entities(building_pos: Vector2) -> void:
+	var center = building_pos + Vector2(0, -8)
+	var entities = get_tree().get_nodes_in_group("claylings") + get_tree().get_nodes_in_group("enemies")
+	for e in entities:
+		if is_instance_valid(e) and not e.get("is_dead"):
+			var d = e.global_position - center
+			if abs(d.x) < 9.0 and abs(d.y) < 9.0:
+				var push_dir = d.normalized()
+				if push_dir.length_squared() < 0.1:
+					push_dir = Vector2.DOWN
+				e.global_position = center + push_dir * 15.0

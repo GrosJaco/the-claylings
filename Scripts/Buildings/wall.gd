@@ -35,6 +35,9 @@ const TILE_MAP = {
 
 var _is_registered: bool = false
 var _hit_tween: Tween = null
+var _previous_ground_source: int = -1
+var _previous_ground_atlas: Vector2i = Vector2i(-1, -1)
+var _previous_ground_alt: int = -1
 
 func _ready() -> void:
 	super._ready()
@@ -44,6 +47,9 @@ func _ready() -> void:
 		_register_wall()
 		update_connections()
 		_notify_neighbors()
+
+func _exit_tree() -> void:
+	_unregister_wall()
 
 func get_tile_pos() -> Vector2i:
 	return Vector2i(
@@ -56,6 +62,7 @@ func _register_wall() -> void:
 		var pos = get_tile_pos()
 		walls_map[pos] = self
 		_is_registered = true
+		_block_navigation(pos)
 
 func _unregister_wall() -> void:
 	if _is_registered:
@@ -63,6 +70,38 @@ func _unregister_wall() -> void:
 		if walls_map.get(pos) == self:
 			walls_map.erase(pos)
 		_is_registered = false
+		_restore_navigation(pos)
+
+func _get_ground() -> TileMapLayer:
+	var terrain = _get_terrain()
+	if terrain:
+		if "ground" in terrain and terrain.ground is TileMapLayer:
+			return terrain.ground
+		var g = terrain.get_node_or_null("Ground")
+		if g is TileMapLayer:
+			return g
+	return null
+
+func _block_navigation(pos: Vector2i) -> void:
+	var ground = _get_ground()
+	if not ground:
+		call_deferred("_block_navigation", pos)
+		return
+	if _previous_ground_source != -1:
+		return
+	_previous_ground_source = ground.get_cell_source_id(pos)
+	_previous_ground_atlas = ground.get_cell_atlas_coords(pos)
+	_previous_ground_alt = ground.get_cell_alternative_tile(pos)
+	if _previous_ground_source != -1:
+		# Ground tile (7, 0) has no navigation polygon in the TileSet
+		ground.set_cell(pos, 0, Vector2i(7, 0), 0)
+
+func _restore_navigation(pos: Vector2i) -> void:
+	if _previous_ground_source != -1:
+		var ground = _get_ground()
+		if ground:
+			ground.set_cell(pos, _previous_ground_source, _previous_ground_atlas, _previous_ground_alt)
+		_previous_ground_source = -1
 
 func is_wall_at(pos: Vector2i) -> bool:
 	if not walls_map.has(pos):

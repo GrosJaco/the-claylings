@@ -1,0 +1,75 @@
+[gd_scene format=3 uid="uid://uio7lucm2oag"]
+
+[ext_resource type="Script" uid="uid://02om2ylrf6iq" path="res://Scripts/Buildings/cooking_pot.gd" id="1_cpot"]
+[ext_resource type="Texture2D" uid="uid://1pcgideiu58a" path="res://Art/Buildings/Cooking Pot.png" id="2_cpot_tex"]
+[ext_resource type="Script" uid="uid://dxdv24kryr4dt" path="res://Scripts/Miscellanious/fuel_input.gd" id="3_fuel_in"]
+[ext_resource type="Script" uid="uid://cu2wr1xya8kuf" path="res://Scripts/Data/RecipeData.gd" id="4_rec_data"]
+[ext_resource type="Resource" uid="uid://bx7ff0us50hfr" path="res://Resources/Fuel Resources/wood_fuel.tres" id="5_wood_fuel"]
+[ext_resource type="Resource" uid="uid://cookchick0001" path="res://Resources/Recipe Resources/cooked_chicken_recipe.tres" id="6_chicken_rec"]
+[ext_resource type="Resource" uid="uid://be6qipk07uqjo" path="res://Resources/Recipe Resources/omelette_recipe.tres" id="7_omelette_rec"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cpot"]
+atlas = ExtResource("2_cpot_tex")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="Curve" id="Curve_fire"]
+_data = [Vector2(0.27, 1), 0.0, 0.0, 0, 0, Vector2(0.98, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_fire"]
+colors = PackedColorArray(0.9, 0.95, 0.1, 1, 1, 0.4, 0.07, 1)
+
+[sub_resource type="Gradient" id="Gradient_smoke"]
+colors = PackedColorArray(1, 1, 1, 0.8, 0.7, 0.7, 0.7, 0)
+
+[sub_resource type="Gradient" id="Gradient_light"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_light"]
+gradient = SubResource("Gradient_light")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.9, 0.5)
+
+[node name="CookingPot" type="Node2D" unique_id=2107772499]
+script = ExtResource("1_cpot")
+available_recipes = Array[ExtResource("4_rec_data")]([ExtResource("6_chicken_rec"), ExtResource("7_omelette_rec")])
+requires_fuel = true
+accepted_fuels = Array[ExtResource("3_fuel_in")]([ExtResource("5_wood_fuel")])
+menu_offset = Vector2(0, -10)
+building_type = "cooking_pot"
+size_in_tiles = Vector2i(2, 2)
+ambient_sounds = Array[String](["furnace"])
+
+[node name="SpriteRoot" type="Node2D" parent="." unique_id=304485999]
+position = Vector2(0, -12)
+
+[node name="Sprite2D" type="Sprite2D" parent="SpriteRoot" unique_id=1638924999]
+texture = SubResource("AtlasTexture_cpot")
+
+[node name="InteractionPoint" type="Node2D" parent="." unique_id=1077743999]
+
+[node name="FireParticles" type="CPUParticles2D" parent="." unique_id=1942629999]
+position = Vector2(0, -2)
+amount = 24
+emission_shape = 1
+emission_sphere_radius = 4.0
+gravity = Vector2(0, -12)
+scale_amount_curve = SubResource("Curve_fire")
+color_ramp = SubResource("Gradient_fire")
+
+[node name="SmokeParticles" type="CPUParticles2D" parent="." unique_id=310716999]
+position = Vector2(0, -14)
+amount = 16
+emission_shape = 1
+emission_sphere_radius = 2.0
+gravity = Vector2(0, -25)
+initial_velocity_min = 4.0
+initial_velocity_max = 7.0
+scale_amount_max = 2.0
+color_ramp = SubResource("Gradient_smoke")
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1515893999]
+position = Vector2(0, -6)
+color = Color(1, 0.55, 0.15, 1)
+texture = SubResource("GradientTexture2D_light")

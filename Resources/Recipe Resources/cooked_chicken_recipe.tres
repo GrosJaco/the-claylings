@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RecipeData" format=3 uid="uid://cookchick0001"]
+
+[ext_resource type="Script" uid="uid://cu2wr1xya8kuf" path="res://Scripts/Data/RecipeData.gd" id="1_recipe"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_item"]
+[ext_resource type="Resource" uid="uid://caywek7ebt373" path="res://Resources/Item Resources/Raw/raw_chicken.tres" id="3_raw"]
+[ext_resource type="Resource" uid="uid://cmj1hoxdiqtm8" path="res://Resources/Item Resources/Crops & Foods/cooked_chicken.tres" id="4_cooked"]
+
+[resource]
+script = ExtResource("1_recipe")
+inputs = Dictionary[ExtResource("2_item"), int]({
+ExtResource("3_raw"): 1
+})
+output_item = ExtResource("4_cooked")
+craft_time = 6.0
+need_clayling = false
+metadata/_custom_type_script = "uid://cu2wr1xya8kuf"

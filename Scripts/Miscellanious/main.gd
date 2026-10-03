@@ -594,17 +594,30 @@ func _handle_clayling_needs():
 					"food": food_data["item"]
 				})
 
+func _is_food_item(item: ItemData) -> bool:
+	if not item: return false
+	if "is_food" in item and item.is_food:
+		return true
+	if item.name in ["cooked_chicken", "omelette", "carrot", "raw_chicken", "egg"]:
+		return true
+	var cat = item.category if "category" in item else ""
+	if cat == "Consommables" or "food" in item.resource_path.to_lower() or "crop" in item.resource_path.to_lower():
+		return true
+	return false
+
 func _find_available_food():
 	var storages = get_tree().get_nodes_in_group("storage")
+	var fallback_food = null
 	for s in storages:
 		if s.get("is_preview"): continue
 
 		for item in s.inventory:
-			if s.inventory[item] > 0:
-				var cat = item.category if "category" in item else ""
-				if cat == "Consommables" or "food" in item.resource_path.to_lower() or "crop" in item.resource_path.to_lower():
+			if s.inventory[item] > 0 and _is_food_item(item):
+				if item.name in ["cooked_chicken", "omelette"]:
 					return {"storage": s, "item": item}
-	return null
+				if fallback_food == null:
+					fallback_food = {"storage": s, "item": item}
+	return fallback_food
 
 # ---------- LOGISTICS ----------
 

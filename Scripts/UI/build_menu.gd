@@ -45,15 +45,19 @@ func _ready():
 			child.queue_free()
 
 	if show_categories:
-		var wall_res = load("res://Resources/Building Resources/wood_wall.tres")
-		if wall_res is BuildingData:
-			var already_has = false
-			for b in all_buildings:
-				if b and b.resource_path == wall_res.resource_path:
-					already_has = true
-					break
-			if not already_has:
-				all_buildings.append(wall_res)
+		for res_path in [
+			"res://Resources/Building Resources/wood_wall.tres",
+			"res://Resources/Building Resources/cooking_pot.tres"
+		]:
+			var b_res = load(res_path)
+			if b_res is BuildingData:
+				var already_has = false
+				for b in all_buildings:
+					if b and b.resource_path == b_res.resource_path:
+						already_has = true
+						break
+				if not already_has:
+					all_buildings.append(b_res)
 
 	if not show_categories or tabs_container == null:
 		if tabs_container:

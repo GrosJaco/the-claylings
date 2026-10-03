@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3 uid="uid://bi0gbmy2fkv3y"]
+
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="1_itemdata"]
+[ext_resource type="Script" uid="uid://bg164elkow3gd" path="res://Scripts/Data/BuildingData.gd" id="2_bdata"]
+[ext_resource type="PackedScene" uid="uid://cookpotscene001" path="res://Scenes/Buildings/CookingPot.tscn" id="3_scene"]
+[ext_resource type="Resource" uid="uid://c87fiysb531ll" path="res://Resources/Item Resources/Raw/wood.tres" id="4_wood"]
+[ext_resource type="Resource" uid="uid://cu45tf4mmyhkg" path="res://Resources/Item Resources/Raw/stone.tres" id="5_stone"]
+[ext_resource type="Resource" uid="uid://c3lf1pdtfkby3" path="res://Resources/Item Resources/Refined/iron_bar.tres" id="6_iron"]
+[ext_resource type="Texture2D" uid="uid://1pcgideiu58a" path="res://Art/Buildings/Cooking Pot.png" id="7_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cpot_icon"]
+atlas = ExtResource("7_tex")
+region = Rect2(0, 0, 32, 32)
+
+[resource]
+script = ExtResource("2_bdata")
+building_name = "Cooking Pot"
+category = "Production"
+icon = SubResource("AtlasTexture_cpot_icon")
+scene = ExtResource("3_scene")
+cost = Dictionary[ExtResource("1_itemdata"), int]({
+ExtResource("4_wood"): 4,
+ExtResource("5_stone"): 2,
+ExtResource("6_iron"): 1
+})
+metadata/_custom_type_script = "uid://bg164elkow3gd"

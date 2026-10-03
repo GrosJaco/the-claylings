@@ -84,12 +84,27 @@ func update(_delta: float) -> void:
 	# Check destination reached
 	var dist_sq = clayling.global_position.distance_squared_to(target_position)
 	if clayling.agent.is_navigation_finished() or dist_sq <= 16.0:
-		clayling.stop_moving()
-		if is_player_order and (target_enemy == null or not is_instance_valid(target_enemy) or target_enemy.get("is_dead")):
-			clayling.guard_position = clayling.global_position
 		if target_enemy and is_instance_valid(target_enemy) and not target_enemy.get("is_dead"):
-			_face_target(target_enemy.global_position)
-		elif target_facing != Vector2.ZERO:
+			var dist_to_enemy_sq = clayling.global_position.distance_squared_to(target_enemy.global_position)
+			if dist_to_enemy_sq <= attack_range * attack_range:
+				clayling.stop_moving()
+				_face_target(target_enemy.global_position)
+				clayling.change_state("SoldierAttack", { 
+					"target_enemy": target_enemy, 
+					"target_facing": target_facing,
+					"is_player_order": is_player_order
+				})
+				return
+			else:
+				# Target is still running away, continue pursuit
+				target_position = target_enemy.global_position
+				clayling.agent.target_position = target_position
+				return
+
+		clayling.stop_moving()
+		if is_player_order:
+			clayling.guard_position = clayling.global_position
+		if target_facing != Vector2.ZERO:
 			_face_direction(target_facing)
 		elif "formation_facing" in clayling and clayling.formation_facing != Vector2.ZERO:
 			_face_direction(clayling.formation_facing)

@@ -47,6 +47,7 @@ var _egg_timer: float = 0.0
 var _growth_timer: float = 0.0
 var leader_animal: Animal = null
 var _leader_search_timer: float = 0.0
+var knockback_velocity: Vector2 = Vector2.ZERO
 
 # FSM
 var states := {}
@@ -119,6 +120,12 @@ func _physics_process(delta: float) -> void:
 		velocity = dir * speed
 	else:
 		velocity = Vector2.ZERO
+
+	if knockback_velocity.length_squared() > 1.0:
+		velocity += knockback_velocity
+		knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 1000.0 * delta)
+	else:
+		knockback_velocity = Vector2.ZERO
 	
 	move_and_slide()
 	_handle_sprite_flip()
@@ -191,12 +198,40 @@ func _find_nearest_leader(max_dist: float) -> Animal:
 
 # ---------- LIFE, DEATH & LOOT ----------
 
-func take_damage(amount: float, _attacker: Node2D = null) -> void:
+func apply_knockback(source_pos: Vector2, force: float = 60.0) -> void:
+	if is_dead or force <= 0.0:
+		return
+	var dir = (global_position - source_pos).normalized()
+	if dir == Vector2.ZERO:
+		dir = Vector2.RIGHT.rotated(randf() * TAU)
+	var impulse = dir * force
+	if impulse.length_squared() > knockback_velocity.length_squared():
+		knockback_velocity = impulse
+
+func take_damage(amount: float, attacker: Node2D = null) -> void:
 	if is_dead:
 		return
 	health = max(0.0, health - amount)
+
+	# Sharp white hit flash
+	modulate = Color(5.0, 5.0, 5.0, 1.0)
+	var hit_tween = create_tween()
+	hit_tween.tween_interval(0.07)
+	hit_tween.tween_callback(func(): modulate = Color.WHITE)
+
+	if attacker and is_instance_valid(attacker):
+		var kb_force: float = 60.0
+		var kit = attacker.get("equipped_kit")
+		if kit and kit is KitData:
+			kb_force = kit.knockback_force
+		apply_knockback(attacker.global_position, kb_force)
+
 	if health <= 0.0:
 		die()
+	else:
+		if attacker and is_instance_valid(attacker) and current_state != states.get("Flee"):
+			threat = attacker
+			change_state("Flee", {"threat": threat})
 
 func die() -> void:
 	if is_dead:

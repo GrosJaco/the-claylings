@@ -13,4 +13,7 @@ name = "cooked_chicken"
 display_name = "Cooked Chicken"
 icon = SubResource("AtlasTexture_n80do")
 stack_size = 99
+is_food = true
+nutrition = 75.0
+heal_amount = 15.0
 metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

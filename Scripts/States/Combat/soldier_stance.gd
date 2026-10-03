@@ -12,17 +12,31 @@ var assist_range: float = 70.0
 var max_leash_dist: float = 45.0
 var _scan_timer: float = 0.0
 
+var is_player_order: bool = false
+
 func enter(msg := {}) -> void:
 	target_enemy = msg.get("target_enemy", null)
 	if target_enemy and (not is_instance_valid(target_enemy) or target_enemy.get("is_dead")):
 		target_enemy = null
 
+	is_player_order = msg.get("is_player_order", false)
 	target_facing = msg.get("target_facing", clayling.formation_facing if "formation_facing" in clayling else Vector2.ZERO)
 	tension_timer = 0.0
 	max_tension_duration = base_tension_duration + randf_range(-1.0, 1.0)
 	_scan_timer = randf_range(0.0, 0.1)
 	clayling.stop_moving()
 	clayling.force_animation = ""
+
+	# If ordered target is alive and outside attack reach, resume pursuit immediately
+	if target_enemy and is_instance_valid(target_enemy) and not target_enemy.get("is_dead") and is_player_order:
+		var reach_sq = (attack_range + 4.0) * (attack_range + 4.0)
+		if clayling.global_position.distance_squared_to(target_enemy.global_position) > reach_sq:
+			clayling.change_state("SoldierMove", { 
+				"target_enemy": target_enemy, 
+				"target_facing": target_facing,
+				"is_player_order": true
+			})
+			return
 
 	# Clean up dead attacker reference
 	if clayling.last_attacker and (not is_instance_valid(clayling.last_attacker) or clayling.last_attacker.get("is_dead")):
@@ -46,7 +60,26 @@ func update(delta: float) -> void:
 		clayling.is_under_attack = false
 		clayling._under_attack_timer = 0.0
 
-	# 2. PRIORITY #1: Strike ANY living enemy in spear reach (<= 30px) immediately!
+	# 2. Priority 0: Active targeted entity (e.g. from player attack order against enemy or chicken)
+	if target_enemy and is_instance_valid(target_enemy) and not target_enemy.get("is_dead"):
+		var dist_to_target_sq = clayling.global_position.distance_squared_to(target_enemy.global_position)
+		var reach_sq = (attack_range + 4.0) * (attack_range + 4.0)
+		if dist_to_target_sq <= reach_sq:
+			clayling.change_state("SoldierAttack", { 
+				"target_enemy": target_enemy, 
+				"target_facing": target_facing,
+				"is_player_order": is_player_order
+			})
+			return
+		elif is_player_order:
+			clayling.change_state("SoldierMove", { 
+				"target_enemy": target_enemy, 
+				"target_facing": target_facing,
+				"is_player_order": true
+			})
+			return
+
+	# 3. PRIORITY #1: Strike ANY living enemy in spear reach (<= 30px) immediately!
 	var melee_target = clayling.find_nearest_enemy(attack_range + 4.0)
 	if melee_target:
 		clayling.change_state("SoldierAttack", { "target_enemy": melee_target, "target_facing": target_facing })

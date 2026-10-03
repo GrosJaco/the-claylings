@@ -479,17 +479,23 @@ func _input(event: InputEvent) -> void:
 					_execute_line_formation(line_start, line_end, line_points)
 				# If not valid (blocked by wall), the order is cancelled automatically!
 			else:
-				# Check if clicked directly on an enemy
-				var clicked_enemy: Node2D = null
-				var enemies = get_tree().get_nodes_in_group("enemies")
-				for e in enemies:
-					if is_instance_valid(e) and not e.get("is_dead") and e.global_position.distance_to(line_start) < 22.0:
-						clicked_enemy = e
-						break
+				# Check if clicked directly on an enemy or animal (e.g. chickens)
+				var clicked_target: Node2D = null
+				var candidates: Array = []
+				candidates.append_array(get_tree().get_nodes_in_group("enemies"))
+				candidates.append_array(get_tree().get_nodes_in_group("animals"))
 
-				if clicked_enemy:
-					command_attack_selected(clicked_enemy)
-					_spawn_attack_marker(clicked_enemy.global_position)
+				var min_dist: float = 24.0
+				for target in candidates:
+					if is_instance_valid(target) and not target.get("is_dead"):
+						var d = target.global_position.distance_to(line_start)
+						if d < min_dist:
+							min_dist = d
+							clicked_target = target
+
+				if clicked_target:
+					command_attack_selected(clicked_target)
+					_spawn_attack_marker(clicked_target.global_position)
 				else:
 					# Simple right-click point move
 					command_move_selected(line_start)

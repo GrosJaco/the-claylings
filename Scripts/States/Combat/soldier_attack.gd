@@ -44,7 +44,11 @@ func update(delta: float) -> void:
 		var next_target = target_enemy if (target_enemy and is_instance_valid(target_enemy) and not target_enemy.get("is_dead")) else null
 		if is_player_order and next_target == null:
 			clayling.guard_position = clayling.global_position
-		clayling.change_state("SoldierStance", { "target_enemy": next_target, "target_facing": target_facing })
+		clayling.change_state("SoldierStance", { 
+			"target_enemy": next_target, 
+			"target_facing": target_facing,
+			"is_player_order": is_player_order
+		})
 
 func exit() -> void:
 	clayling.force_animation = ""

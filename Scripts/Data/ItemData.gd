@@ -12,3 +12,8 @@ class_name ItemData
 @export var hatch_chance: float = 0.125
 @export var hatch_duration_min: float = 160.0
 @export var hatch_duration_max: float = 200.0
+
+@export_group("Food")
+@export var is_food: bool = false
+@export var nutrition: float = 50.0
+@export var heal_amount: float = 0.0

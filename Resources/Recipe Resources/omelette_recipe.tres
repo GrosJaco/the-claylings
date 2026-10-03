@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RecipeData" format=3 uid="uid://be6qipk07uqjo"]
+
+[ext_resource type="Script" uid="uid://cu2wr1xya8kuf" path="res://Scripts/Data/RecipeData.gd" id="1_recipe"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_item"]
+[ext_resource type="Resource" uid="uid://bdp45k1ysuscj" path="res://Resources/Item Resources/Raw/egg.tres" id="3_egg"]
+[ext_resource type="Resource" uid="uid://b3idfoe030hgx" path="res://Resources/Item Resources/Crops & Foods/omelette.tres" id="4_omelette"]
+
+[resource]
+script = ExtResource("1_recipe")
+inputs = Dictionary[ExtResource("2_item"), int]({
+ExtResource("3_egg"): 1
+})
+output_item = ExtResource("4_omelette")
+craft_time = 4.0
+need_clayling = false
+metadata/_custom_type_script = "uid://cu2wr1xya8kuf"

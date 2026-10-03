@@ -34,8 +34,16 @@ func _setup_visual(scene: PackedScene) -> void:
 		source_sprite_root.modulate = Color(0.2, 0.6, 0.8, 0.5)
 		
 		var visual = source_sprite_root.get_child(0)
-		if visual is AnimatedSprite2D and visual.sprite_frames and visual.sprite_frames.has_animation("filled"):
-			visual.play("filled")
+		if visual is AnimatedSprite2D and visual.sprite_frames:
+			if has_meta("gate_orientation"):
+				var ori = get_meta("gate_orientation")
+				if ori == 1:
+					visual.animation = "open_vertical"
+				else:
+					visual.animation = "open_horizontal"
+				visual.frame = 0
+			elif visual.sprite_frames.has_animation("filled"):
+				visual.play("filled")
 
 	var source_ip = temp.get_node_or_null("InteractionPoint")
 	if source_ip:
@@ -128,6 +136,10 @@ func _check_completion():
 func _build():
 	if target_building_scene:
 		var real_building = target_building_scene.instantiate()
+		if has_meta("gate_orientation") and "orientation" in real_building:
+			real_building.orientation = get_meta("gate_orientation")
+		if has_meta("is_manual_orientation") and "is_manual_orientation" in real_building:
+			real_building.is_manual_orientation = get_meta("is_manual_orientation")
 		real_building.global_position = global_position
 		get_parent().add_child(real_building)
 		_push_overlapping_entities(global_position)

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3 uid="uid://cwoodgate1234"]
+
+[ext_resource type="Script" uid="uid://bg164elkow3gd" path="res://Scripts/Data/BuildingData.gd" id="1_bdata"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_idata"]
+[ext_resource type="Resource" uid="uid://vdtuohevvfkm" path="res://Resources/Item Resources/Refined/wood_plank.tres" id="2_plank"]
+[ext_resource type="PackedScene" path="res://Scenes/Buildings/WoodGate.tscn" id="3_scene"]
+[ext_resource type="Texture2D" uid="uid://pemhbmh0ph67" path="res://Art/Buildings/Wooden Door.png" id="4_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gate_icon"]
+atlas = ExtResource("4_tex")
+region = Rect2(11, 13, 26, 20)
+
+[resource]
+script = ExtResource("1_bdata")
+building_name = "Wood Gate"
+category = "Defense"
+icon = SubResource("AtlasTexture_gate_icon")
+scene = ExtResource("3_scene")
+cost = Dictionary[ExtResource("2_idata"), int]({
+ExtResource("2_plank"): 3
+})
+metadata/_custom_type_script = "uid://bg164elkow3gd"

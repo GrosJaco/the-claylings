@@ -69,6 +69,10 @@ func _input(event):
 			if is_previewing and not is_mandatory_placement:
 				cancel_preview()
 				get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_R:
+			if is_previewing and preview_instance and preview_instance.has_method("toggle_orientation"):
+				preview_instance.toggle_orientation()
+				get_viewport().set_input_as_handled()
 	
 	# Mouse interaction during preview
 	if is_previewing and event is InputEventMouseButton:
@@ -223,11 +227,21 @@ func confirm_placement(keep_preview: bool = false):
 		add_child(placed)
 
 	if is_blueprint:
+		if preview_instance and "orientation" in preview_instance:
+			placed.set_meta("gate_orientation", preview_instance.orientation)
+			if "is_manual_orientation" in preview_instance:
+				placed.set_meta("is_manual_orientation", preview_instance.is_manual_orientation)
 		placed.setup(current_preview_scene, current_build_cost)
 	else:
 		placed.modulate = Color(1, 1, 1, 1)
 		if "is_preview" in placed:
 			placed.is_preview = false
+		if preview_instance and "orientation" in preview_instance and "orientation" in placed:
+			placed.orientation = preview_instance.orientation
+			if "is_manual_orientation" in preview_instance and "is_manual_orientation" in placed:
+				placed.is_manual_orientation = preview_instance.is_manual_orientation
+			if placed.has_method("_apply_orientation"):
+				placed._apply_orientation()
 
 	for t in preview_tiles:
 		if t not in used_tiles:

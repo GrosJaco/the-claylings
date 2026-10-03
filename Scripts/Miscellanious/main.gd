@@ -1313,8 +1313,12 @@ func get_entity_info(node: Node2D) -> Dictionary:
 		var b_name = node.name
 		if "building_type" in node and node.building_type != "":
 			b_name = node.building_type.replace("_", " ").capitalize()
-		if node is Blueprint:
-			b_name = "Blueprint: " + b_name
+		entity_name = b_name
+	elif node is Blueprint:
+		var b_name = "Blueprint"
+		if node.target_building_scene:
+			var scene_name = node.target_building_scene.resource_path.get_file().get_basename()
+			b_name = "Blueprint: " + scene_name.capitalize()
 		entity_name = b_name
 	else:
 		entity_name = node.name

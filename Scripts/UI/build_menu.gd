@@ -137,7 +137,17 @@ func _create_build_button(b_data: BuildingData):
 		center.add_child(icon_rect)
 		btn.add_child(center)
 
-	btn.tooltip_text = b_data.building_name
+	var tip = b_data.building_name
+	if not b_data.cost.is_empty():
+		var cost_strs: Array[String] = []
+		for item in b_data.cost.keys():
+			if not item:
+				continue
+			var item_name = item.display_name if (item and "display_name" in item and item.display_name != "") else (item.name.capitalize() if item else "Unknown")
+			cost_strs.append(str(b_data.cost[item]) + " " + item_name)
+		tip += " (" + ", ".join(cost_strs) + ")"
+
+	btn.tooltip_text = tip
 
 	btn.pressed.connect(func():
 		var data = {

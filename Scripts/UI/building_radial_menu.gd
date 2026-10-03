@@ -7,6 +7,8 @@ var menu_inner_radius: float = 14.0
 var menu_outer_radius: float = 36.0
 var hovered_slice: int = -1
 
+var _world_tooltip: WorldTooltip = null
+
 @onready var queue_container: HBoxContainer = $QueueContainer
 @onready var repeat_checkbox: CheckBox = $RepeatCheckbox
 
@@ -17,14 +19,20 @@ func _ready():
 	hide()
 	repeat_checkbox.toggled.connect(_on_repeat_toggled)
 	
-	repeat_checkbox.toggled.connect(func(toggled_on): if building:building.repeat_infinite = toggled_on)
+	repeat_checkbox.toggled.connect(func(toggled_on): if building: building.repeat_infinite = toggled_on)
 	
 	queue_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	queue_container.mouse_filter = Control.MOUSE_FILTER_PASS
 
+func _get_world_tooltip() -> WorldTooltip:
+	if _world_tooltip == null or not is_instance_valid(_world_tooltip):
+		_world_tooltip = get_tree().get_first_node_in_group("world_tooltip") as WorldTooltip
+	return _world_tooltip
+
 func open(target_building: CraftingBuilding):
 	building = target_building
 	global_position = building.global_position + building.menu_offset 
+	_clear_tooltip()
 	
 	repeat_checkbox.set_pressed_no_signal(building.repeat_infinite)
 	
@@ -33,6 +41,9 @@ func open(target_building: CraftingBuilding):
 		
 	show()
 	update_queue_ui()
+
+func _exit_tree():
+	_clear_tooltip()
 
 func _process(_delta):
 	if not visible or building == null or building.available_recipes.is_empty():
@@ -46,8 +57,11 @@ func _process(_delta):
 		if angle < 0: angle += TAU
 		var slice_angle = TAU / building.available_recipes.size()
 		hovered_slice = int(angle / slice_angle) % building.available_recipes.size()
+		_show_slice_tooltip(hovered_slice)
 	else:
-		hovered_slice = -1
+		if hovered_slice != -1:
+			hovered_slice = -1
+			_clear_tooltip()
 
 	queue_redraw()
 
@@ -134,6 +148,7 @@ func _unhandled_input(event: InputEvent):
 				get_viewport().set_input_as_handled()
 				
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_clear_tooltip()
 			hide()
 			get_viewport().set_input_as_handled()
 
@@ -165,6 +180,7 @@ func update_queue_ui():
 			btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			
 			btn.mouse_filter = Control.MOUSE_FILTER_STOP
+			btn.tooltip_text = _format_recipe_tooltip(recipe)
 			btn.pressed.connect(_on_queue_item_clicked.bind(i))
 			
 			queue_container.add_child(btn)
@@ -174,3 +190,44 @@ func _on_queue_item_clicked(index: int):
 	if building and index < building.recipe_queue.size():
 		building.recipe_queue.remove_at(index)
 		update_queue_ui()
+
+# ---------- TOOLTIP HANDLING ----------
+
+func _format_recipe_tooltip(recipe: RecipeData) -> String:
+	if not recipe or not recipe.output_item:
+		return ""
+	var item_name = recipe.output_item.display_name if (recipe.output_item.display_name and not recipe.output_item.display_name.is_empty()) else recipe.output_item.name.capitalize()
+	if recipe.output_amount > 1:
+		item_name = str(recipe.output_amount) + "x " + item_name
+
+	var cost_parts: Array[String] = []
+	for input_item in recipe.inputs.keys():
+		if not input_item:
+			continue
+		var count = recipe.inputs[input_item]
+		var in_name = input_item.display_name if (input_item.display_name and not input_item.display_name.is_empty()) else input_item.name.capitalize()
+		cost_parts.append(str(count) + " " + in_name)
+
+	if not cost_parts.is_empty():
+		return item_name + " (" + ", ".join(cost_parts) + ")"
+	return item_name
+
+func _show_slice_tooltip(slice_idx: int) -> void:
+	if slice_idx < 0 or building == null or slice_idx >= building.available_recipes.size():
+		_clear_tooltip()
+		return
+
+	var recipe = building.available_recipes[slice_idx]
+	var text = _format_recipe_tooltip(recipe)
+	if text.is_empty():
+		_clear_tooltip()
+		return
+
+	var wt = _get_world_tooltip()
+	if wt:
+		wt.show_custom_text(text)
+
+func _clear_tooltip() -> void:
+	var wt = _get_world_tooltip()
+	if wt:
+		wt.clear_custom_text()

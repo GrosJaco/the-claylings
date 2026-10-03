@@ -7,6 +7,7 @@ var _tracked_entity: Node2D = null
 var _main_node: Node2D = null
 var _refresh_timer: float = 0.0
 var _fade_tween: Tween = null
+var _custom_text: String = ""
 
 func _ready() -> void:
 	add_to_group("world_tooltip")
@@ -34,6 +35,10 @@ func _setup_connections() -> void:
 
 func _process(delta: float) -> void:
 	if not visible and modulate.a <= 0.0:
+		return
+
+	if _custom_text != "":
+		_update_position()
 		return
 
 	if not is_instance_valid(_tracked_entity) or (_tracked_entity.has_method("get") and _tracked_entity.get("is_dead")):
@@ -71,6 +76,8 @@ func _update_position() -> void:
 	global_position = Vector2(round(target_x), round(target_y))
 
 func _on_hovered_entity_changed(entity: Node2D) -> void:
+	if _custom_text != "":
+		return
 	if entity == null or not is_instance_valid(entity):
 		hide_tooltip()
 		return
@@ -80,10 +87,28 @@ func _on_hovered_entity_changed(entity: Node2D) -> void:
 	_update_position()
 	show_tooltip()
 
+func show_custom_text(text: String) -> void:
+	_tracked_entity = null
+	var changed = (_custom_text != text)
+	_custom_text = text
+	if changed or label.text != text:
+		label.text = text
+		reset_size()
+	_update_position()
+	if not visible or modulate.a < 1.0:
+		show_tooltip()
+
+func clear_custom_text() -> void:
+	if _custom_text != "":
+		_custom_text = ""
+		hide_tooltip()
+
 func show_tooltip() -> void:
 	visible = true
 	if not is_inside_tree():
 		modulate.a = 1.0
+		return
+	if modulate.a >= 1.0 and (_fade_tween == null or not _fade_tween.is_valid()):
 		return
 	if _fade_tween and _fade_tween.is_valid():
 		_fade_tween.kill()
@@ -92,6 +117,7 @@ func show_tooltip() -> void:
 
 func hide_tooltip() -> void:
 	_tracked_entity = null
+	_custom_text = ""
 	if not is_inside_tree():
 		modulate.a = 0.0
 		visible = false
@@ -101,7 +127,7 @@ func hide_tooltip() -> void:
 	_fade_tween = create_tween()
 	_fade_tween.tween_property(self, "modulate:a", 0.0, 0.08)
 	_fade_tween.tween_callback(func():
-		if _tracked_entity == null:
+		if _tracked_entity == null and _custom_text == "":
 			visible = false
 	)
 

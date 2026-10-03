@@ -1309,6 +1309,13 @@ func get_entity_info(node: Node2D) -> Dictionary:
 			entity_name = item_data.display_name if (item_data.display_name and not item_data.display_name.is_empty()) else item_data.name
 		else:
 			entity_name = "Item"
+	elif node is Building:
+		var b_name = node.name
+		if "building_type" in node and node.building_type != "":
+			b_name = node.building_type.replace("_", " ").capitalize()
+		if node is Blueprint:
+			b_name = "Blueprint: " + b_name
+		entity_name = b_name
 	else:
 		entity_name = node.name
 	return {"name": entity_name}

@@ -29,6 +29,9 @@ signal start_building(building_data)
 
 func _ready():
 	margin_container.visible = false
+	margin_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child in margin_container.find_children("*", "Container", true, false):
+		child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	if toggle_button:
 		toggle_button.pressed.connect(_on_toggle_pressed)

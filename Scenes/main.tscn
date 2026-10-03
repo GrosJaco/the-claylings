@@ -1297,15 +1297,19 @@ offset_top = -233.0
 offset_right = 300.0
 offset_bottom = -10.0
 grow_vertical = 0
+mouse_filter = 2
 
 [node name="VBoxContainer" type="HBoxContainer" parent="CanvasLayer/BuildMenu/MarginContainer" unique_id=261525852]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="TabsContainer" type="VBoxContainer" parent="CanvasLayer/BuildMenu/MarginContainer/VBoxContainer" unique_id=2040309784]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="ItemsContainer" type="GridContainer" parent="CanvasLayer/BuildMenu/MarginContainer/VBoxContainer" unique_id=2063392054]
 layout_mode = 2
+mouse_filter = 2
 columns = 5
 
 [node name="ToggleButton" type="TextureButton" parent="CanvasLayer/BuildMenu" unique_id=1693207639]
@@ -1363,15 +1367,19 @@ offset_top = -233.0
 offset_right = 259.0
 offset_bottom = -10.0
 grow_vertical = 0
+mouse_filter = 2
 
 [node name="VBoxContainer" type="HBoxContainer" parent="CanvasLayer/PlantMenu/MarginContainer" unique_id=1840998937]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="TabsContainer" type="VBoxContainer" parent="CanvasLayer/PlantMenu/MarginContainer/VBoxContainer" unique_id=1770898617]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="ItemsContainer" type="GridContainer" parent="CanvasLayer/PlantMenu/MarginContainer/VBoxContainer" unique_id=1234366074]
 layout_mode = 2
+mouse_filter = 2
 columns = 5
 
 [node name="ToggleButton" type="TextureButton" parent="CanvasLayer/PlantMenu" unique_id=1537502670]

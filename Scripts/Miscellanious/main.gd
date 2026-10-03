@@ -113,6 +113,7 @@ func spawn_clayling(pos, mob):
 			clayling.global_position = pos
 			add_child(clayling)
 			active_claylings.append(clayling)
+			clayling.play_voice("spawn")
 			return clayling
 	if mob == "chicken":
 		if chicken_scene:
@@ -1169,6 +1170,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var clayling_ui = get_tree().get_first_node_in_group("clayling_info_panel")
 			if clayling_ui and clayling_ui.has_method("show_clayling"):
 				clayling_ui.show_clayling(clicked_villager)
+			clicked_villager.play_voice("interrogation")
 			get_viewport().set_input_as_handled()
 			return
 

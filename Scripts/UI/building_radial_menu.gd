@@ -75,12 +75,17 @@ func _draw():
 	var slice_count = recipes.size()
 	var slice_angle = TAU / slice_count
 	
+	var half_gap: float = 1.0
+	var gap_out: float = half_gap / menu_outer_radius
+	var gap_in: float = half_gap / menu_inner_radius
+
 	for i in range(slice_count):
 		var start_a = i * slice_angle
 		var end_a = (i + 1) * slice_angle
-		var gap = 0.05
-		var a1 = start_a + gap
-		var a2 = end_a - gap
+		var a1_out = start_a + gap_out
+		var a2_out = end_a - gap_out
+		var a1_in = start_a + gap_in
+		var a2_in = end_a - gap_in
 		
 		var poly_color = Color(0.1, 0.1, 0.1, 0.85)
 		if i == hovered_slice: 
@@ -90,11 +95,11 @@ func _draw():
 		var res = 16
 		for j in range(res + 1):
 			var t = j / float(res)
-			var cur_angle = lerp(a1, a2, t)
+			var cur_angle = lerp(a1_out, a2_out, t)
 			points.append(Vector2(cos(cur_angle), sin(cur_angle)) * menu_outer_radius)
 		for j in range(res + 1):
 			var t = j / float(res)
-			var cur_angle = lerp(a2, a1, t)
+			var cur_angle = lerp(a2_in, a1_in, t)
 			points.append(Vector2(cos(cur_angle), sin(cur_angle)) * menu_inner_radius)
 			
 		draw_polygon(points, PackedColorArray([poly_color]))

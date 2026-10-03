@@ -78,6 +78,7 @@ var _stuck_timer: float = 0.0
 var _persistent_stuck_timer: float = 0.0
 var _last_progress_pos: Vector2 = Vector2.ZERO
 var _step_timer: float = 0.0
+var _last_voice_time: int = 0
 
 # ---------- INVENTORY ----------
 
@@ -595,8 +596,11 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 
 	if health <= 0:
 		die()
-	elif role == "villager" and not is_combat_ready and current_state != states.get("Flee") and current_state != states.get("Equip") and current_state != states.get("Unequip"):
-		change_state("Flee", {"threat": source if source else last_attacker})
+	else:
+		if source != null:
+			play_voice("attacked")
+		if role == "villager" and not is_combat_ready and current_state != states.get("Flee") and current_state != states.get("Equip") and current_state != states.get("Unequip"):
+			change_state("Flee", {"threat": source if source else last_attacker})
 
 func apply_slow(factor: float, duration: float) -> void:
 	if is_dead:
@@ -839,11 +843,25 @@ func _update_footsteps(delta: float) -> void:
 	else:
 		_step_timer = 0.25
 
+func play_voice(category: String = "spawn") -> void:
+	if is_dead:
+		return
+	var now = Time.get_ticks_msec()
+	if now - _last_voice_time < 350:
+		return
+	_last_voice_time = now
+	SoundManager.play_voice(category, global_position, 0.15)
+
 func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# Soldier clicks and squad responses are handled exclusively by RTSController
+		if is_combat_ready:
+			return
+		play_voice("interrogation")
 		var panel = get_tree().get_first_node_in_group("clayling_info_panel")
 		if panel:
 			panel.show_clayling(self)
+		viewport.set_input_as_handled()
 
 func _on_velocity_computed(safe_velocity: Vector2) -> void:
 	velocity = safe_velocity

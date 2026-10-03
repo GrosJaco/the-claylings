@@ -31,6 +31,64 @@ var sounds: Dictionary = {
 	"spider bite": preload("res://Audio/SFX/spider_bite.wav"),
 	"spider running": preload("res://Audio/SFX/spider_running.wav"),
 	"spider spit": preload("res://Audio/SFX/spider_spit.wav"),
+
+	# Clayling voices (categorized)
+	"voice_spawn": [
+		preload("res://Audio/Voices/Joy/Enregistrement.wav"),
+		preload("res://Audio/Voices/Joy/Enregistrement (2).wav"),
+		preload("res://Audio/Voices/Joy/Enregistrement (3).wav"),
+		preload("res://Audio/Voices/Joy/Enregistrement (4).wav"),
+		preload("res://Audio/Voices/Joy/Enregistrement (5).wav"),
+	],
+	"voice_joy": [
+		preload("res://Audio/Voices/Joy/Enregistrement.wav"),
+		preload("res://Audio/Voices/Joy/Enregistrement (2).wav"),
+		preload("res://Audio/Voices/Joy/Enregistrement (3).wav"),
+		preload("res://Audio/Voices/Joy/Enregistrement (4).wav"),
+		preload("res://Audio/Voices/Joy/Enregistrement (5).wav"),
+	],
+	"voice_select": [
+		preload("res://Audio/Voices/Interrogation/Enregistrement.wav"),
+		preload("res://Audio/Voices/Interrogation/Enregistrement (2).wav"),
+		preload("res://Audio/Voices/Interrogation/Enregistrement (3).wav"),
+		preload("res://Audio/Voices/Interrogation/Enregistrement (4).wav"),
+		preload("res://Audio/Voices/Interrogation/Enregistrement (5).wav"),
+	],
+	"voice_interrogation": [
+		preload("res://Audio/Voices/Interrogation/Enregistrement.wav"),
+		preload("res://Audio/Voices/Interrogation/Enregistrement (2).wav"),
+		preload("res://Audio/Voices/Interrogation/Enregistrement (3).wav"),
+		preload("res://Audio/Voices/Interrogation/Enregistrement (4).wav"),
+		preload("res://Audio/Voices/Interrogation/Enregistrement (5).wav"),
+	],
+	"voice_affirmation": [
+		preload("res://Audio/Voices/Affirmation/Enregistrement.wav"),
+		preload("res://Audio/Voices/Affirmation/Enregistrement (2).wav"),
+		preload("res://Audio/Voices/Affirmation/Enregistrement (3).wav"),
+		preload("res://Audio/Voices/Affirmation/Enregistrement (4).wav"),
+		preload("res://Audio/Voices/Affirmation/Enregistrement (5).wav"),
+	],
+	"voice_grumpy": [
+		preload("res://Audio/Voices/Grumpy/Enregistrement.wav"),
+		preload("res://Audio/Voices/Grumpy/Enregistrement (2).wav"),
+		preload("res://Audio/Voices/Grumpy/Enregistrement (3).wav"),
+		preload("res://Audio/Voices/Grumpy/Enregistrement (4).wav"),
+		preload("res://Audio/Voices/Grumpy/Enregistrement (5).wav"),
+	],
+	"voice_attacked": [
+		preload("res://Audio/Voices/Attacked/Enregistrement.wav"),
+		preload("res://Audio/Voices/Attacked/Enregistrement (2).wav"),
+		preload("res://Audio/Voices/Attacked/Enregistrement (3).wav"),
+		preload("res://Audio/Voices/Attacked/Enregistrement (4).wav"),
+		preload("res://Audio/Voices/Attacked/Enregistrement (5).wav"),
+	],
+	"voice_hurt": [
+		preload("res://Audio/Voices/Attacked/Enregistrement.wav"),
+		preload("res://Audio/Voices/Attacked/Enregistrement (2).wav"),
+		preload("res://Audio/Voices/Attacked/Enregistrement (3).wav"),
+		preload("res://Audio/Voices/Attacked/Enregistrement (4).wav"),
+		preload("res://Audio/Voices/Attacked/Enregistrement (5).wav"),
+	],
 }
 
 # Base volume offsets (in dB) to balance all sounds across the game
@@ -74,6 +132,16 @@ var sound_base_volumes: Dictionary = {
 	"equipping": -6.0,
 	"spider bite": -5.0,
 	"spider spit": -6.0,
+
+	# Clayling voices
+	"voice_spawn": -12.5,
+	"voice_joy": -12.5,
+	"voice_select": -12.5,
+	"voice_interrogation": -12.5,
+	"voice_affirmation": -12.5,
+	"voice_work": -12.5,
+	"voice_attacked": -12.5,
+	"voice_hurt": -12.5,
 }
 
 @export_group("Spatial Audio")
@@ -99,6 +167,23 @@ func play(sound_name: String, pitch_variation: float = 0.0, volume_offset_db: fl
 
 func play_at(sound_name: String, world_position: Vector2, pitch_variation: float = 0.0, volume_offset_db: float = 0.0) -> Node:
 	return _spawn_player(sound_name, pitch_variation, world_position, volume_offset_db)
+
+func play_voice(category: String, world_position: Vector2, pitch_variation_max: float = 0.15, volume_offset_db: float = 0.0) -> Node:
+	var sound_key = "voice_" + category
+	if not sounds.has(sound_key):
+		if category == "select" and sounds.has("voice_interrogation"):
+			sound_key = "voice_interrogation"
+		elif category == "interrogation" and sounds.has("voice_select"):
+			sound_key = "voice_select"
+		elif category == "attacked" and sounds.has("voice_hurt"):
+			sound_key = "voice_hurt"
+		elif category == "hurt" and sounds.has("voice_attacked"):
+			sound_key = "voice_attacked"
+	var player = play_at(sound_key, world_position, 0.0, volume_offset_db)
+	if player:
+		# Pitch variation strictly upwards from natural pitch (1.0 to 1.0 + pitch_variation_max)
+		player.pitch_scale = 1.0 + randf_range(0.0, pitch_variation_max)
+	return player
 
 func _spawn_player(sound_name: String, pitch_variation: float, world_position, volume_offset_db: float = 0.0) -> Node:
 	if not sounds.has(sound_name) or sounds[sound_name] == null:

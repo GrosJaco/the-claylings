@@ -20,6 +20,8 @@ var line_start: Vector2 = Vector2.ZERO
 var line_end: Vector2 = Vector2.ZERO
 var is_line_valid: bool = true
 var line_points: Array[Vector2] = []
+var _last_voice_order_time: int = 0
+var _last_voice_select_time: int = 0
 
 # ========== SIGNALS ==========
 
@@ -72,6 +74,7 @@ func select_soldier(soldier: Node2D, add_to_selection: bool = false) -> void:
 	if is_instance_valid(soldier) and not selected_soldiers.has(soldier):
 		selected_soldiers.append(soldier)
 		soldier.set_selected(true)
+		_play_squad_voice([soldier], "interrogation")
 
 func deselect_all_soldiers() -> void:
 	for s in selected_soldiers:
@@ -83,12 +86,16 @@ func select_soldiers_in_rect(rect: Rect2, add_to_selection: bool = false) -> voi
 	if not add_to_selection:
 		deselect_all_soldiers()
 	var all_soldiers = get_tree().get_nodes_in_group("soldiers")
+	var newly_selected: Array = []
 	for s in all_soldiers:
 		if is_instance_valid(s) and not s.is_dead:
 			if rect.has_point(s.global_position):
 				if not selected_soldiers.has(s):
 					selected_soldiers.append(s)
 					s.set_selected(true)
+					newly_selected.append(s)
+	if newly_selected.size() > 0:
+		_play_squad_voice(selected_soldiers, "interrogation")
 
 func get_selected_soldiers() -> Array:
 	return selected_soldiers
@@ -207,10 +214,45 @@ func _execute_line_formation(start_pos: Vector2, end_pos: Vector2, points: Array
 		var target_pt = points[i]
 		sorted_soldiers[i].command_move(target_pt, forward_facing)
 
+	_play_squad_voice(sorted_soldiers, "affirmation")
+
 	# Spawn visual feedback marker
 	_spawn_move_marker((start_pos + end_pos) * 0.5)
 
 # ---------- COMMANDS & DEFAULT FORMATIONS ----------
+
+func _play_squad_voice(agents: Array, category: String) -> void:
+	if agents.is_empty():
+		return
+	var current_time = Time.get_ticks_msec()
+	if category == "affirmation":
+		if current_time - _last_voice_order_time < 350:
+			return
+		_last_voice_order_time = current_time
+	else:
+		if current_time - _last_voice_select_time < 350:
+			return
+		_last_voice_select_time = current_time
+
+	var count = agents.size()
+	# Exact squad count: 1 soldier -> 1 voice, 2 soldiers -> 2 voices, 3 or more -> 3 voices
+	var num_speakers = min(count, 3)
+
+	var candidates = agents.duplicate()
+	candidates.shuffle()
+
+	for i in range(num_speakers):
+		var speaker = candidates[i]
+		if is_instance_valid(speaker) and speaker.has_method("play_voice"):
+			if i == 0:
+				speaker.play_voice(category)
+			else:
+				var delay = randf_range(0.06, 0.11) * i
+				get_tree().create_timer(delay, false).timeout.connect(
+					func():
+						if is_instance_valid(speaker):
+							speaker.play_voice(category)
+				)
 
 func command_move_selected(target_pos: Vector2) -> void:
 	var soldiers = _get_valid_selected_soldiers()
@@ -232,6 +274,7 @@ func command_move_selected(target_pos: Vector2) -> void:
 				dest = valid_dest
 		soldiers[i].command_move(dest)
 
+	_play_squad_voice(soldiers, "affirmation")
 	_spawn_move_marker(target_pos)
 
 func command_attack_selected(target_enemy: Node2D) -> void:
@@ -241,6 +284,8 @@ func command_attack_selected(target_enemy: Node2D) -> void:
 
 	for s in soldiers:
 		s.command_attack(target_enemy)
+
+	_play_squad_voice(soldiers, "affirmation")
 
 # ---------- VISUAL FEEDBACK ----------
 

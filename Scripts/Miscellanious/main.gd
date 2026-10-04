@@ -357,7 +357,7 @@ func _dispatch_construction(free_claylings: Array) -> void:
 	for b in crafting_buildings:
 		if free_claylings.is_empty():
 			break
-		if b.get("is_preview") or b is Blueprint:
+		if b.get("is_preview") or b.get("is_disabled") or b is Blueprint:
 			continue
 		_try_assign_delivery(b, "Deliver", free_claylings)
 
@@ -450,7 +450,7 @@ func _dispatch_crafting(free_claylings: Array) -> void:
 	for b in crafting_buildings:
 		if free_claylings.is_empty():
 			break
-		if b.get("is_preview"):
+		if b.get("is_preview") or b.get("is_disabled"):
 			continue
 
 		if b.get("is_crafting") and b.get("active_recipe") and b.active_recipe.get("need_clayling"):

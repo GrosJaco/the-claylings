@@ -62,7 +62,7 @@ func update(delta: float) -> void:
 			target_building.craft_timer -= delta * 0.35
 
 		var should_stop = false
-		if not target_building.get("is_crafting"):
+		if not target_building.get("is_crafting") or target_building.get("is_disabled"):
 			should_stop = true
 		elif target_building.get("active_recipe") == null:
 			should_stop = true

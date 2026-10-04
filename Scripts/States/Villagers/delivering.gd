@@ -39,7 +39,7 @@ func exit() -> void:
 		clayling.drop_item(-1, true)
 
 func update(_delta: float) -> void:
-	if !is_instance_valid(target_storage) or !is_instance_valid(target_building):
+	if !is_instance_valid(target_storage) or !is_instance_valid(target_building) or target_building.get("is_disabled"):
 		if !clayling.is_inventory_empty():
 			clayling.drop_item(-1, true)
 		clayling.change_state("Idle")

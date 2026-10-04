@@ -9,6 +9,9 @@ var hovered_slice: int = -1
 
 var _world_tooltip: WorldTooltip = null
 
+var _cancel_texture: AtlasTexture = null
+var _trash_texture: AtlasTexture = null
+
 @onready var queue_container: HBoxContainer = $QueueContainer
 @onready var repeat_checkbox: CheckBox = $RepeatCheckbox
 
@@ -24,12 +27,45 @@ func _ready():
 	queue_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	queue_container.mouse_filter = Control.MOUSE_FILTER_PASS
 
+	_init_action_textures()
+
+func _init_action_textures() -> void:
+	var ui_icons = preload("res://Art/UI/UIIcons.png")
+
+	_cancel_texture = AtlasTexture.new()
+	_cancel_texture.atlas = ui_icons
+	_cancel_texture.region = Rect2(48, 16, 16, 16)
+
+	_trash_texture = AtlasTexture.new()
+	_trash_texture.atlas = ui_icons
+	_trash_texture.region = Rect2(32, 16, 16, 16)
+
+func _get_recipe_count() -> int:
+	if building == null:
+		return 0
+	return building.available_recipes.size()
+
+func _get_total_slices() -> int:
+	if building == null:
+		return 0
+	return _get_recipe_count() + 2
+
+func _get_cancel_slice_index() -> int:
+	return _get_recipe_count()
+
+func _get_trash_slice_index() -> int:
+	return _get_recipe_count() + 1
+
 func _get_world_tooltip() -> WorldTooltip:
 	if _world_tooltip == null or not is_instance_valid(_world_tooltip):
 		_world_tooltip = get_tree().get_first_node_in_group("world_tooltip") as WorldTooltip
 	return _world_tooltip
 
 func open(target_building: CraftingBuilding):
+	if building and is_instance_valid(building) and building != target_building:
+		if building.has_signal("disabled_changed") and building.disabled_changed.is_connected(_on_building_disabled_changed):
+			building.disabled_changed.disconnect(_on_building_disabled_changed)
+
 	building = target_building
 	global_position = building.global_position + building.menu_offset 
 	_clear_tooltip()
@@ -38,15 +74,28 @@ func open(target_building: CraftingBuilding):
 	
 	if not building.queue_changed.is_connected(update_queue_ui):
 		building.queue_changed.connect(update_queue_ui)
+	if building.has_signal("disabled_changed") and not building.disabled_changed.is_connected(_on_building_disabled_changed):
+		building.disabled_changed.connect(_on_building_disabled_changed)
 		
 	show()
 	update_queue_ui()
+	queue_redraw()
+
+func _on_building_disabled_changed(_is_disabled: bool) -> void:
+	if visible:
+		if hovered_slice != -1:
+			_show_slice_tooltip(hovered_slice)
+		queue_redraw()
 
 func _exit_tree():
 	_clear_tooltip()
 
 func _process(_delta):
-	if not visible or building == null or building.available_recipes.is_empty():
+	if not visible or building == null:
+		return
+
+	var total_slices = _get_total_slices()
+	if total_slices == 0:
 		return
 
 	var local_mouse = get_local_mouse_position()
@@ -55,8 +104,8 @@ func _process(_delta):
 	if dist > menu_inner_radius and dist <= menu_outer_radius:
 		var angle = local_mouse.angle()
 		if angle < 0: angle += TAU
-		var slice_angle = TAU / building.available_recipes.size()
-		hovered_slice = int(angle / slice_angle) % building.available_recipes.size()
+		var slice_angle = TAU / total_slices
+		hovered_slice = int(angle / slice_angle) % total_slices
 		_show_slice_tooltip(hovered_slice)
 	else:
 		if hovered_slice != -1:
@@ -82,18 +131,22 @@ func is_mouse_over_menu() -> bool:
 # ---------- DRAWING ----------
 
 func _draw():
-	if building == null or building.available_recipes.is_empty():
+	if building == null:
 		return
 		
+	var total_slices = _get_total_slices()
+	if total_slices == 0:
+		return
+
 	var recipes = building.available_recipes
-	var slice_count = recipes.size()
-	var slice_angle = TAU / slice_count
+	var recipe_count = _get_recipe_count()
+	var slice_angle = TAU / total_slices
 	
 	var half_gap: float = 1.0
 	var gap_out: float = half_gap / menu_outer_radius
 	var gap_in: float = half_gap / menu_inner_radius
 
-	for i in range(slice_count):
+	for i in range(total_slices):
 		var start_a = i * slice_angle
 		var end_a = (i + 1) * slice_angle
 		var a1_out = start_a + gap_out
@@ -101,9 +154,18 @@ func _draw():
 		var a1_in = start_a + gap_in
 		var a2_in = end_a - gap_in
 		
+		var is_hovered = (i == hovered_slice)
 		var poly_color = Color(0.1, 0.1, 0.1, 0.85)
-		if i == hovered_slice: 
-			poly_color = Color(0.2, 0.2, 0.2, 0.95)
+		if i < recipe_count:
+			if is_hovered: 
+				poly_color = Color(0.2, 0.2, 0.2, 0.95)
+		elif i == _get_cancel_slice_index():
+			if building.is_disabled:
+				poly_color = Color(0.35, 0.12, 0.12, 0.9) if not is_hovered else Color(0.5, 0.18, 0.18, 0.95)
+			else:
+				poly_color = Color(0.1, 0.1, 0.1, 0.85) if not is_hovered else Color(0.2, 0.2, 0.2, 0.95)
+		elif i == _get_trash_slice_index():
+			poly_color = Color(0.15, 0.08, 0.08, 0.85) if not is_hovered else Color(0.45, 0.12, 0.12, 0.95)
 		
 		var points = PackedVector2Array()
 		var res = 16
@@ -118,19 +180,34 @@ func _draw():
 			
 		draw_polygon(points, PackedColorArray([poly_color]))
 
-		var recipe = recipes[i]
-		if recipe.output_item and "icon" in recipe.output_item and recipe.output_item.icon:
-			var texture = recipe.output_item.icon
-			var mid_a = (start_a + end_a) / 2.0
-			var mid_r = (menu_inner_radius + menu_outer_radius) / 2.0
-			var icon_center = Vector2(cos(mid_a), sin(mid_a)) * mid_r
-			
-			var icon_color = Color(0.5, 0.5, 0.5, 0.6)
-			if i == hovered_slice: icon_color = Color(1.0, 1.0, 1.0, 1.0)
-			
-			# Same drawing logic as the Zone script
-			var offset = texture.get_size() / 2.0
-			draw_texture(texture, icon_center - offset, icon_color)
+		var mid_a = (start_a + end_a) / 2.0
+		var mid_r = (menu_inner_radius + menu_outer_radius) / 2.0
+		var icon_center = Vector2(cos(mid_a), sin(mid_a)) * mid_r
+
+		if i < recipe_count:
+			var recipe = recipes[i]
+			if recipe.output_item and "icon" in recipe.output_item and recipe.output_item.icon:
+				var texture = recipe.output_item.icon
+				var icon_color = Color(0.5, 0.5, 0.5, 0.6)
+				if is_hovered: icon_color = Color(1.0, 1.0, 1.0, 1.0)
+				var offset = texture.get_size() / 2.0
+				draw_texture(texture, icon_center - offset, icon_color)
+		elif i == _get_cancel_slice_index():
+			if _cancel_texture:
+				var icon_color = Color(0.6, 0.6, 0.6, 0.7)
+				if building.is_disabled:
+					icon_color = Color(1.0, 0.35, 0.35, 1.0)
+				elif is_hovered:
+					icon_color = Color(1.0, 1.0, 1.0, 1.0)
+				var offset = _cancel_texture.get_size() / 2.0
+				draw_texture(_cancel_texture, icon_center - offset, icon_color)
+		elif i == _get_trash_slice_index():
+			if _trash_texture:
+				var icon_color = Color(0.6, 0.6, 0.6, 0.7)
+				if is_hovered:
+					icon_color = Color(1.0, 0.45, 0.45, 1.0)
+				var offset = _trash_texture.get_size() / 2.0
+				draw_texture(_trash_texture, icon_center - offset, icon_color)
 
 # ---------- INPUT ----------
 
@@ -141,16 +218,32 @@ func _unhandled_input(event: InputEvent):
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if hovered_slice != -1:
-				var clicked_recipe = building.available_recipes[hovered_slice]
-				if building.recipe_queue.size() < building.max_queue_size:
-					building.recipe_queue.append(clicked_recipe)
-					update_queue_ui()
+				var recipe_count = _get_recipe_count()
+				if hovered_slice < recipe_count:
+					var clicked_recipe = building.available_recipes[hovered_slice]
+					if building.recipe_queue.size() < building.max_queue_size:
+						building.recipe_queue.append(clicked_recipe)
+						update_queue_ui()
+				elif hovered_slice == _get_cancel_slice_index():
+					building.toggle_disabled()
+					_show_slice_tooltip(hovered_slice)
+					queue_redraw()
+				elif hovered_slice == _get_trash_slice_index():
+					_destroy_current_building()
 				get_viewport().set_input_as_handled()
 				
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			_clear_tooltip()
 			hide()
 			get_viewport().set_input_as_handled()
+
+func _destroy_current_building() -> void:
+	if building and is_instance_valid(building):
+		var target = building
+		building = null
+		_clear_tooltip()
+		hide()
+		target.destroyed()
 
 # ---------- UI LOGIC ----------
 
@@ -213,12 +306,20 @@ func _format_recipe_tooltip(recipe: RecipeData) -> String:
 	return item_name
 
 func _show_slice_tooltip(slice_idx: int) -> void:
-	if slice_idx < 0 or building == null or slice_idx >= building.available_recipes.size():
+	if slice_idx < 0 or building == null or slice_idx >= _get_total_slices():
 		_clear_tooltip()
 		return
 
-	var recipe = building.available_recipes[slice_idx]
-	var text = _format_recipe_tooltip(recipe)
+	var text = ""
+	var recipe_count = _get_recipe_count()
+	if slice_idx < recipe_count:
+		var recipe = building.available_recipes[slice_idx]
+		text = _format_recipe_tooltip(recipe)
+	elif slice_idx == _get_cancel_slice_index():
+		text = "Enable Building" if building.is_disabled else "Disable Building"
+	elif slice_idx == _get_trash_slice_index():
+		text = "Destroy Building"
+
 	if text.is_empty():
 		_clear_tooltip()
 		return

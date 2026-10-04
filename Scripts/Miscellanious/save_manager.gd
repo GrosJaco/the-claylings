@@ -224,6 +224,7 @@ func save_game(slot_name: String = "quicksave") -> bool:
 				b_dict["craft_timer"] = b.craft_timer
 				b_dict["current_burn_time"] = b.current_burn_time
 				b_dict["repeat_infinite"] = b.repeat_infinite
+				b_dict["is_disabled"] = b.is_disabled
 
 				var inp_inv = {}
 				for k in b.input_inventory.keys():
@@ -641,6 +642,7 @@ func apply_pending_load(main: Node2D) -> void:
 			b_node.craft_timer = float(b_dict.get("craft_timer", 0.0))
 			b_node.current_burn_time = float(b_dict.get("current_burn_time", 0.0))
 			b_node.repeat_infinite = b_dict.get("repeat_infinite", false)
+			b_node.set_disabled(b_dict.get("is_disabled", false))
 
 			b_node.input_inventory.clear()
 			for p in b_dict.get("input_inventory", {}).keys():

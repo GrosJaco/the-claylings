@@ -35,6 +35,8 @@ var craft_timer: float = 0.0
 var worker_present: bool = false
 var current_burn_time: float = 0.0
 
+var is_disabled: bool = false
+signal disabled_changed(is_disabled: bool)
 signal queue_changed
 
 # ========== FUNCTIONS ==========
@@ -50,8 +52,19 @@ func _ready():
 	incoming_deliveries = {}
 	active_recipe = null
 
+func set_disabled(value: bool) -> void:
+	if is_disabled == value:
+		return
+	is_disabled = value
+	if sprite_root:
+		sprite_root.modulate = Color(0.6, 0.6, 0.6, 1.0) if is_disabled else Color.WHITE
+	emit_signal("disabled_changed", is_disabled)
+
+func toggle_disabled() -> void:
+	set_disabled(!is_disabled)
+
 func _process(delta: float):
-	if is_preview: return
+	if is_preview or is_disabled: return
 	
 	if is_crafting:
 		if active_recipe and active_recipe.need_clayling and not worker_present:
@@ -199,6 +212,9 @@ func cancel_delivery(item: ItemData, amount: int):
 			incoming_deliveries.erase(incoming_key)
 
 func get_needed_items() -> Dictionary:
+	if is_disabled:
+		return {}
+
 	var needed = {}
 	var desired_inputs = {}
 
@@ -291,3 +307,29 @@ func take_output() -> Dictionary:
 	output_inventory.erase(item)
 	
 	return {"item": item, "count": amount}
+
+# ---------- DESTRUCTION ----------
+
+func destroyed():
+	_drop_inventories()
+	super.destroyed()
+
+func _drop_inventories() -> void:
+	var all_inventories = [input_inventory, output_inventory, fuel_inventory]
+	var parent_node = get_parent()
+	if not parent_node:
+		return
+
+	var item_scene_res = load("res://Scenes/item.tscn")
+	for inv in all_inventories:
+		for item in inv.keys():
+			var count = int(inv[item])
+			if count > 0 and item is ItemData:
+				var item_instance = item_scene_res.instantiate()
+				item_instance.data = item
+				item_instance.quantity = count
+				item_instance.global_position = global_position + Vector2(randf_range(-10, 10), randf_range(-10, 10))
+				parent_node.add_child(item_instance)
+	input_inventory.clear()
+	output_inventory.clear()
+	fuel_inventory.clear()

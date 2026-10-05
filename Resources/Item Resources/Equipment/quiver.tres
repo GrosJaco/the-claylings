@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cxudotdk7nt7w"]
+
+[ext_resource type="Texture2D" uid="uid://ccfwd1v1rv3ns" path="res://Art/Buildings/Weapon Rack.png" id="1_4r6eq"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="1_b8ith"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nptg5"]
+atlas = ExtResource("1_4r6eq")
+region = Rect2(0, 64, 32, 32)
+
+[resource]
+script = ExtResource("1_b8ith")
+name = "quiver"
+display_name = "Quiver"
+icon = SubResource("AtlasTexture_nptg5")
+metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

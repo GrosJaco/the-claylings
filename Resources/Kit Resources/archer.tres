@@ -4,12 +4,11 @@
 [ext_resource type="Resource" uid="uid://bxyda6j4akps" path="res://Resources/Item Resources/Equipment/bow.tres" id="2"]
 [ext_resource type="Script" uid="uid://dyiwldg7e00tw" path="res://Scripts/Data/KitData.gd" id="2_hj85f"]
 [ext_resource type="Resource" uid="uid://btgon23tlja3d" path="res://Resources/Item Resources/Equipment/archer_cap.tres" id="3"]
+[ext_resource type="Resource" uid="uid://cxudotdk7nt7w" path="res://Resources/Item Resources/Equipment/quiver.tres" id="4_fact2"]
 
 [resource]
 script = ExtResource("2_hj85f")
 kit_id = "archer"
 display_name = "Archer"
-required_items = Array[ExtResource("1")]([ExtResource("3"), ExtResource("2")])
-knockback_force = 0.0
-knockback_resistance = 0.0
+required_items = Array[ExtResource("1")]([ExtResource("3"), ExtResource("2"), ExtResource("4_fact2")])
 metadata/_custom_type_script = "uid://dyiwldg7e00tw"

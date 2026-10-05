@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://cu2wr1xya8kuf" path="res://Scripts/Data/RecipeData.gd" id="2_cx0k1"]
 [ext_resource type="Texture2D" uid="uid://m2h8mnfuaf6j" path="res://Art/Buildings/Workbench.png" id="2_wdomo"]
 [ext_resource type="Resource" uid="uid://b00axbp2kg2hb" path="res://Resources/Recipe Resources/bow_recipe.tres" id="3_cx0k1"]
+[ext_resource type="Resource" uid="uid://cqh6ort23wmpl" path="res://Resources/Recipe Resources/quiver_recipe.tres" id="4_3y86v"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cx0k1"]
 atlas = ExtResource("2_wdomo")
@@ -11,7 +12,7 @@ region = Rect2(0, 0, 32, 32)
 
 [node name="Workbench" type="Node2D" unique_id=499793526]
 script = ExtResource("1_y11e3")
-available_recipes = Array[ExtResource("2_cx0k1")]([ExtResource("3_cx0k1")])
+available_recipes = Array[ExtResource("2_cx0k1")]([ExtResource("3_cx0k1"), ExtResource("4_3y86v")])
 building_type = "workbench"
 size_in_tiles = Vector2i(2, 2)
 

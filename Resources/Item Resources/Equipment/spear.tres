@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://dfiafvfrqarhw"]
 
-[ext_resource type="Texture2D" uid="uid://haas0lsl470k" path="res://Art/Buildings/Weapon Rack.png" id="1_edieb"]
+[ext_resource type="Texture2D" uid="uid://ccfwd1v1rv3ns" path="res://Art/Buildings/Weapon Rack.png" id="1_edieb"]
 [ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_y6w2x"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yaojd"]

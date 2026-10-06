@@ -166,7 +166,7 @@ func _update_sprite_offset_for_animation(anim_name: String) -> void:
 		offset_sprite(8, 8)
 	elif anim_name.begins_with("spearman_attacking") or anim_name.begins_with("spearman_dying"):
 		offset_sprite(24, 8)
-	elif anim_name.begins_with("archer_idle"):
+	elif anim_name.begins_with("archer_idle") or anim_name.begins_with("archer_dying") or anim_name.begins_with("archer_attacking"):
 		offset_sprite(8, 0)
 	elif anim_name.begins_with("archer_running"):
 		offset_sprite(0, 0)
@@ -667,11 +667,23 @@ func die() -> void:
 		current_state.exit()
 		current_state = null
 
-	# Play directional dying animation (uses spearman_dying_* for spearmen and dying_* for villagers)
+	# Play directional dying animation (uses spearman_dying_* for spearmen, archer_dying_* for archers, and dying_* for villagers)
 	var dir = last_direction if last_direction != "" else "down"
-	var death_anim = "spearman_dying_" + dir if role == "spearman" else "dying_" + dir
+	var death_anim = ""
+	if role == "spearman":
+		death_anim = "spearman_dying_" + dir
+	elif role == "archer":
+		death_anim = "archer_dying_" + dir
+	else:
+		death_anim = "dying_" + dir
+
 	if not sprite.sprite_frames.has_animation(death_anim):
-		death_anim = "dying_down"
+		if role == "archer" and sprite.sprite_frames.has_animation("archer_dying_down"):
+			death_anim = "archer_dying_down"
+		elif role == "spearman" and sprite.sprite_frames.has_animation("spearman_dying_down"):
+			death_anim = "spearman_dying_down"
+		else:
+			death_anim = "dying_down"
 
 	sprite.sprite_frames.set_animation_loop(death_anim, false)
 	play_forced_animation(death_anim)

@@ -56,8 +56,9 @@ func update(_delta: float) -> void:
 				clayling.change_state("SoldierIdle", { "target_facing": target_facing })
 			return
 
+		var current_attack_range = 120.0 if clayling.role == "archer" else attack_range
 		var dist_to_enemy_sq = clayling.global_position.distance_squared_to(target_enemy.global_position)
-		if dist_to_enemy_sq <= attack_range * attack_range:
+		if dist_to_enemy_sq <= current_attack_range * current_attack_range:
 			clayling.stop_moving()
 			_face_target(target_enemy.global_position)
 			clayling.change_state("SoldierAttack", { 

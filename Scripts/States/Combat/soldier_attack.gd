@@ -22,14 +22,16 @@ func enter(msg := {}) -> void:
 		_face_target(target_enemy.global_position)
 
 	var dir = clayling.last_direction if clayling.last_direction != "" else "down"
-	var anim_name = "spearman_attacking_" + dir
+	var prefix = "archer_" if clayling.role == "archer" else "spearman_"
+	var anim_name = prefix + "attacking_" + dir
 	clayling.play_forced_animation(anim_name)
 
 func update(delta: float) -> void:
 	elapsed += delta
 
-	# Apply damage at strike peak (frame 3/6 ~ 0.25s)
-	if not damage_applied and elapsed >= 0.25:
+	# Apply damage at strike peak (frame 3/6 ~ 0.25s for spearman, frame 3/5 ~ 0.3s for archer)
+	var hit_time = 0.3 if clayling.role == "archer" else 0.25
+	if not damage_applied and elapsed >= hit_time:
 		damage_applied = true
 		if target_enemy and is_instance_valid(target_enemy):
 			if target_enemy.has_method("take_damage"):

@@ -1101,7 +1101,8 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 			var is_h = event.keycode == KEY_H or event.physical_keycode == KEY_H or event.key_label == KEY_H
-			if is_h:
+			var is_ctrl_a = (event.keycode == KEY_A or event.physical_keycode == KEY_A or event.key_label == KEY_A) and event.ctrl_pressed
+			if is_h or is_ctrl_a:
 				debug_all_claylings_to_archers()
 				get_viewport().set_input_as_handled()
 				return
@@ -1111,6 +1112,9 @@ func _input(event: InputEvent) -> void:
 					wm.cycle_next_weather()
 				get_viewport().set_input_as_handled()
 				return
+
+		if event.keycode == KEY_U or event.physical_keycode == KEY_U or event.key_label == KEY_U:
+			debug_all_claylings_to_archers()
 
 		if event.keycode == KEY_C:
 			spawn_clayling(get_global_mouse_position(), "clayling")

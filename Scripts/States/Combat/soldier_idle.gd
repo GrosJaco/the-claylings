@@ -34,6 +34,12 @@ func update(delta: float) -> void:
 				clayling.change_state("SoldierToStance", { "target_enemy": alert_enemy, "target_facing": clayling.formation_facing })
 				return
 		elif clayling.role == "archer":
+			var ranged_enemy = clayling.find_nearest_enemy(120.0)
+			if ranged_enemy and is_instance_valid(ranged_enemy):
+				_face_direction(ranged_enemy.global_position - clayling.global_position)
+				clayling.change_state("SoldierAttack", { "target_enemy": ranged_enemy, "target_facing": clayling.formation_facing })
+				return
+
 			var alert_enemy = clayling.find_nearest_enemy(alert_range)
 			if alert_enemy and is_instance_valid(alert_enemy):
 				_face_direction(alert_enemy.global_position - clayling.global_position)

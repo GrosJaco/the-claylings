@@ -114,6 +114,10 @@ func _input(event):
 # ---------- PREVIEW ----------
 
 func start_preview(scene: PackedScene, cost: Dictionary = {}):
+	var rts = get_tree().get_first_node_in_group("rts_controller")
+	if rts and "is_demolish_mode" in rts and rts.is_demolish_mode:
+		rts.set_demolish_mode(false)
+
 	cancel_preview()
 	is_dragging_placement = false
 	current_preview_scene = scene

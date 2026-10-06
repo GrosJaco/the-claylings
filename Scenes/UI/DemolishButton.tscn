@@ -1,9 +1,9 @@
-[gd_scene format=3 uid="uid://krbqy122jcx8"]
+[gd_scene format=3 uid="uid://b7i5i1w7flwuh"]
 
 [ext_resource type="Texture2D" uid="uid://c0ifnqvm28c01" path="res://Art/UI/InventoryUI.png" id="1_frame"]
 [ext_resource type="Texture2D" uid="uid://7lryyktm2wj5" path="res://Art/UI/UIIcons.png" id="2_icons"]
 [ext_resource type="Theme" uid="uid://c3dd5c3bgthql" path="res://Art/Fonts/ClaylingInfoFont.tres" id="3_theme"]
-[ext_resource type="Script" uid="uid://bayn1sbt6wqb3" path="res://Scripts/UI/soldier_select_button.gd" id="4_script"]
+[ext_resource type="Script" uid="uid://rt7gdt5aww4e" path="res://Scripts/UI/demolish_button.gd" id="4_script"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_btn_normal"]
 atlas = ExtResource("1_frame")
@@ -13,41 +13,36 @@ region = Rect2(0, 0, 32, 32)
 atlas = ExtResource("1_frame")
 region = Rect2(32, 0, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_melee"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_trash"]
 atlas = ExtResource("2_icons")
-region = Rect2(0, 32, 16, 16)
+region = Rect2(32, 32, 16, 16)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_ranged"]
-atlas = ExtResource("2_icons")
-region = Rect2(16, 32, 16, 16)
-
-[node name="SoldierSelectButton" type="TextureButton" unique_id=1905544413]
+[node name="DemolishButton" type="TextureButton" unique_id=1838379369]
 custom_minimum_size = Vector2(32, 32)
 offset_right = 32.0
 offset_bottom = 32.0
-tooltip_text = "Select Soldiers"
+tooltip_text = "Demolish Buildings"
 focus_mode = 0
 theme = ExtResource("3_theme")
 texture_normal = SubResource("AtlasTexture_btn_normal")
 texture_pressed = SubResource("AtlasTexture_btn_pressed")
 script = ExtResource("4_script")
-melee_icon_texture = SubResource("AtlasTexture_melee")
-ranged_icon_texture = SubResource("AtlasTexture_ranged")
+trash_icon_texture = SubResource("AtlasTexture_trash")
 
-[node name="Icon" type="TextureRect" parent="." unique_id=1454605739]
+[node name="Icon" type="TextureRect" parent="." unique_id=1458515859]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -13.0
-offset_top = -13.0
-offset_right = 13.0
-offset_bottom = 13.0
+offset_left = -12.0
+offset_top = -14.0
+offset_right = 14.0
+offset_bottom = 12.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = SubResource("AtlasTexture_melee")
+texture = SubResource("AtlasTexture_trash")
 expand_mode = 1
 stretch_mode = 5

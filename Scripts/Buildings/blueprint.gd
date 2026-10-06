@@ -9,6 +9,7 @@ var current_materials: Dictionary = {}
 var incoming_deliveries: Dictionary = {}
 var is_preview: bool = false 
 var interaction_point: Node2D = null
+var size_in_tiles: Vector2i = Vector2i(1, 1)
 @onready var visual_root: Node2D = $VisualRoot
 
 # ========== FUNCTIONS ==========
@@ -26,6 +27,8 @@ func _setup_visual(scene: PackedScene) -> void:
 		return
 	
 	var temp: Node = scene.instantiate()
+	if "size_in_tiles" in temp:
+		size_in_tiles = temp.size_in_tiles
 	var source_sprite_root: Node = temp.get_node_or_null("SpriteRoot")
 	
 	if source_sprite_root:
@@ -156,3 +159,33 @@ func _push_overlapping_entities(building_pos: Vector2) -> void:
 				if push_dir.length_squared() < 0.1:
 					push_dir = Vector2.DOWN
 				e.global_position = center + push_dir * 15.0
+
+func destroyed() -> void:
+	var parent_node = get_parent()
+	if parent_node:
+		var item_scene_res = load("res://Scenes/item.tscn")
+		for item in current_materials.keys():
+			var count = int(current_materials[item])
+			if count > 0 and item is ItemData:
+				var item_instance = item_scene_res.instantiate()
+				item_instance.data = item
+				item_instance.quantity = count
+				item_instance.global_position = global_position + Vector2(randf_range(-10, 10), randf_range(-10, 10))
+				parent_node.add_child(item_instance)
+	current_materials.clear()
+
+	var manager = get_tree().get_first_node_in_group("building_manager")
+	if manager:
+		var occupied_tiles: Array[Vector2i] = []
+		var offset = Vector2((size_in_tiles.x * 16) / 2.0, size_in_tiles.y * 16)
+		var top_left_world_pos = global_position - offset
+		var top_left_tile = Vector2i(
+			round(top_left_world_pos.x / 16.0),
+			round(top_left_world_pos.y / 16.0)
+		)
+		for x in range(size_in_tiles.x):
+			for y in range(size_in_tiles.y):
+				occupied_tiles.append(top_left_tile + Vector2i(x, y))
+		manager.free_tiles(occupied_tiles)
+
+	queue_free()

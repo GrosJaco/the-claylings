@@ -6,6 +6,10 @@ func toggle_panel(panel: Control) -> void:
 	if not is_instance_valid(panel):
 		return
 
+	var rts = get_tree().get_first_node_in_group("rts_controller")
+	if rts and "is_demolish_mode" in rts and rts.is_demolish_mode:
+		rts.set_demolish_mode(false)
+
 	if is_instance_valid(_open_panel) and _open_panel == panel:
 		panel.visible = false
 		_open_panel = null

@@ -62,7 +62,8 @@
 [ext_resource type="PackedScene" uid="uid://cue8yypwv6qcc" path="res://Scenes/Buildings/ClayRock.tscn" id="58_clayrock"]
 [ext_resource type="Script" uid="uid://bfkemdy4lkmwm" path="res://Scripts/UI/offscreen_threat_indicators.gd" id="59_offscreen"]
 [ext_resource type="Resource" uid="uid://cidn8u1p4c6mo" path="res://Resources/Building Resources/wood_wall.tres" id="60_woodwall"]
-[ext_resource type="PackedScene" uid="uid://dfssolselectbtn" path="res://Scenes/UI/SoldierSelectButton.tscn" id="61_soldierselect"]
+[ext_resource type="PackedScene" uid="uid://krbqy122jcx8" path="res://Scenes/UI/SoldierSelectButton.tscn" id="61_soldierselect"]
+[ext_resource type="PackedScene" uid="uid://b7i5i1w7flwuh" path="res://Scenes/UI/DemolishButton.tscn" id="62_demolish"]
 
 [sub_resource type="Gradient" id="Gradient_r33sp"]
 offsets = PackedFloat32Array(0.15, 0.25, 0.35, 0.65, 0.75, 0.85)
@@ -1331,10 +1332,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -13.0
-offset_top = -13.0
-offset_right = 13.0
-offset_bottom = 13.0
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 14.0
+offset_bottom = 14.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -1343,7 +1344,6 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="PlantMenu" type="Control" parent="CanvasLayer" unique_id=1092319780]
-visible = false
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -1413,7 +1413,6 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="HarvestZoneButton" type="TextureButton" parent="CanvasLayer" unique_id=1497393964]
-visible = false
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -1447,7 +1446,6 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="TaskPriorityMenu" type="Control" parent="CanvasLayer" unique_id=612896421]
-visible = false
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -1495,16 +1493,26 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -13.0
-offset_top = -13.0
-offset_right = 13.0
-offset_bottom = 13.0
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 14.0
+offset_bottom = 14.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = SubResource("AtlasTexture_icon_claylings")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="DemolishButton" parent="CanvasLayer" unique_id=749201844 instance=ExtResource("62_demolish")]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 173.0
+offset_top = -40.0
+offset_right = 205.0
+offset_bottom = -8.0
+grow_vertical = 0
 
 [node name="DefeatUI" parent="CanvasLayer" unique_id=987252036 instance=ExtResource("48_defeat")]
 visible = false
@@ -1622,15 +1630,15 @@ texture_progress_offset = Vector2(1, 1)
 [node name="WorldTooltip" parent="CanvasLayer" unique_id=610226823 instance=ExtResource("55_tooltip")]
 
 [node name="SelectMeleeButton" parent="CanvasLayer" unique_id=749201842 instance=ExtResource("61_soldierselect")]
-offset_left = 1041.0
+offset_left = 1031.0
 offset_top = 607.0
-offset_right = 1073.0
+offset_right = 1063.0
 offset_bottom = 639.0
 
 [node name="SelectRangedButton" parent="CanvasLayer" unique_id=749201843 instance=ExtResource("61_soldierselect")]
-offset_left = 1077.0
+offset_left = 1072.0
 offset_top = 607.0
-offset_right = 1109.0
+offset_right = 1104.0
 offset_bottom = 639.0
 soldier_type = "ranged"
 

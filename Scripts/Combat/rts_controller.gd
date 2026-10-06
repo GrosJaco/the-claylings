@@ -23,6 +23,10 @@ var line_points: Array[Vector2] = []
 var _last_voice_order_time: int = 0
 var _last_voice_select_time: int = 0
 
+# Demolition mode
+var is_demolish_mode: bool = false
+signal demolish_mode_changed(active: bool)
+
 # ========== SIGNALS ==========
 
 signal call_to_arms_triggered
@@ -34,6 +38,17 @@ func _ready() -> void:
 	add_to_group("rts_controller")
 	z_index = 100
 
+func set_demolish_mode(active: bool) -> void:
+	if is_demolish_mode == active:
+		return
+	is_demolish_mode = active
+	if is_demolish_mode:
+		deselect_all_soldiers()
+	if is_box_selecting:
+		is_box_selecting = false
+	queue_redraw()
+	demolish_mode_changed.emit(is_demolish_mode)
+
 func _draw() -> void:
 	# 1. Draw Box Selection (Left-click)
 	if is_box_selecting:
@@ -41,8 +56,12 @@ func _draw() -> void:
 		var end = to_local(selection_end)
 		var rect = Rect2(start, end - start).abs()
 		if rect.size.length() > 4.0:
-			draw_rect(rect, Color(1.0, 1.0, 1.0, 0.12), true)
-			draw_rect(rect, Color(1.0, 1.0, 1.0, 0.95), false, 2.5)
+			if is_demolish_mode:
+				draw_rect(rect, Color(1.0, 0.2, 0.2, 0.15), true)
+				draw_rect(rect, Color(1.0, 0.2, 0.2, 0.95), false, 2.5)
+			else:
+				draw_rect(rect, Color(1.0, 1.0, 1.0, 0.12), true)
+				draw_rect(rect, Color(1.0, 1.0, 1.0, 0.95), false, 2.5)
 
 	# 2. Draw Line Formation (Right-click)
 	if is_line_drawing and selected_soldiers.size() > 0:
@@ -480,13 +499,23 @@ func _get_nearest_node(pos: Vector2, nodes: Array) -> Node2D:
 # ---------- INPUT HANDLING ----------
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ESCAPE and is_demolish_mode:
+			set_demolish_mode(false)
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_X:
 			trigger_call_to_arms()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_Z:
 			trigger_call_to_work()
 			get_viewport().set_input_as_handled()
+
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		if is_demolish_mode:
+			set_demolish_mode(false)
+			get_viewport().set_input_as_handled()
+			return
 
 	# Global drag tracking for RTS box selection (Left-click)
 	if is_box_selecting:
@@ -501,7 +530,10 @@ func _input(event: InputEvent) -> void:
 			var drag_dist = selection_start.distance_to(selection_end)
 			if drag_dist >= 8.0:
 				var rect = Rect2(selection_start, selection_end - selection_start).abs()
-				select_soldiers_in_rect(rect)
+				if is_demolish_mode:
+					_demolish_buildings_in_rect(rect)
+				else:
+					select_soldiers_in_rect(rect)
 				get_viewport().set_input_as_handled()
 
 	# Global drag tracking for RTS line formation (Right-click)
@@ -562,24 +594,33 @@ func _unhandled_input(event: InputEvent) -> void:
 				selection_end = mouse_pos
 				is_box_selecting = true
 			else:
-				# Single click selection
-				var clicked_soldier = null
-				for s in get_tree().get_nodes_in_group("soldiers"):
-					if is_instance_valid(s) and not s.is_dead and s.global_position.distance_to(mouse_pos) < 18.0:
-						clicked_soldier = s
-						break
-
-				if clicked_soldier:
-					select_soldier(clicked_soldier)
-					var clayling_ui = get_tree().get_first_node_in_group("clayling_info_panel")
-					if clayling_ui and clayling_ui.has_method("show_clayling"):
-						clayling_ui.show_clayling(clicked_soldier)
+				# Single click selection or single click demolition
+				if is_demolish_mode:
+					_demolish_buildings_at_point(mouse_pos)
 					get_viewport().set_input_as_handled()
 				else:
-					if not is_box_selecting and selected_soldiers.size() > 0:
-						deselect_all_soldiers()
+					var clicked_soldier = null
+					for s in get_tree().get_nodes_in_group("soldiers"):
+						if is_instance_valid(s) and not s.is_dead and s.global_position.distance_to(mouse_pos) < 18.0:
+							clicked_soldier = s
+							break
+
+					if clicked_soldier:
+						select_soldier(clicked_soldier)
+						var clayling_ui = get_tree().get_first_node_in_group("clayling_info_panel")
+						if clayling_ui and clayling_ui.has_method("show_clayling"):
+							clayling_ui.show_clayling(clicked_soldier)
+						get_viewport().set_input_as_handled()
+					else:
+						if not is_box_selecting and selected_soldiers.size() > 0:
+							deselect_all_soldiers()
 
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			if is_demolish_mode:
+				set_demolish_mode(false)
+				get_viewport().set_input_as_handled()
+				return
+
 			var soldiers = _get_valid_selected_soldiers()
 			if soldiers.size() > 0:
 				is_line_drawing = true
@@ -589,3 +630,86 @@ func _unhandled_input(event: InputEvent) -> void:
 				is_line_valid = _check_line_validity(line_start, line_end, line_points)
 				queue_redraw()
 				get_viewport().set_input_as_handled()
+
+# ---------- DEMOLITION LOGIC ----------
+
+func _is_demolishable_building(node: Node) -> bool:
+	if not is_instance_valid(node) or node.is_queued_for_deletion():
+		return false
+	if node.get("is_preview"):
+		return false
+	if node.is_in_group("crystal") or node.is_in_group("central_crystal"):
+		return false
+	if node.is_in_group("trees") or node.is_in_group("rocks") or node.is_in_group("ores") or node.is_in_group("plants") or node.is_in_group("saplings"):
+		return false
+	if node is Blueprint or node is Building:
+		return true
+	if node.is_in_group("crafting_buildings") or node.is_in_group("storage") or node.is_in_group("walls") or node.is_in_group("gates") or node.is_in_group("weapon_racks"):
+		return true
+	return false
+
+func _get_all_demolishable_candidates() -> Array:
+	var list: Array = []
+	var groups_to_check = ["crafting_buildings", "storage", "walls", "gates", "weapon_racks"]
+	for g in groups_to_check:
+		for n in get_tree().get_nodes_in_group(g):
+			if not list.has(n) and _is_demolishable_building(n):
+				list.append(n)
+
+	var main_node = get_tree().get_first_node_in_group("main")
+	if main_node:
+		for child in main_node.get_children():
+			if not list.has(child) and _is_demolishable_building(child):
+				list.append(child)
+
+	return list
+
+func _demolish_buildings_in_rect(rect: Rect2) -> void:
+	var candidates = _get_all_demolishable_candidates()
+	var destroyed_count = 0
+	for b in candidates:
+		if not is_instance_valid(b) or b.is_queued_for_deletion():
+			continue
+
+		var size_tiles = b.size_in_tiles if "size_in_tiles" in b else Vector2i(1, 1)
+		var offset = Vector2((size_tiles.x * 16.0) / 2.0, size_tiles.y * 16.0)
+		var b_rect = Rect2(b.global_position - offset, Vector2(size_tiles.x * 16.0, size_tiles.y * 16.0))
+
+		if rect.intersects(b_rect) or rect.has_point(b.global_position):
+			if b.has_method("destroyed"):
+				b.destroyed()
+			else:
+				b.queue_free()
+			destroyed_count += 1
+
+	if destroyed_count > 0:
+		SoundManager.play("rock break", 0.1)
+
+func _demolish_buildings_at_point(pos: Vector2) -> void:
+	var candidates = _get_all_demolishable_candidates()
+	var closest_b: Node2D = null
+	var closest_dist: float = 24.0
+
+	for b in candidates:
+		if not is_instance_valid(b) or b.is_queued_for_deletion():
+			continue
+
+		var size_tiles = b.size_in_tiles if "size_in_tiles" in b else Vector2i(1, 1)
+		var offset = Vector2((size_tiles.x * 16.0) / 2.0, size_tiles.y * 16.0)
+		var b_rect = Rect2(b.global_position - offset, Vector2(size_tiles.x * 16.0, size_tiles.y * 16.0))
+
+		if b_rect.has_point(pos):
+			closest_b = b
+			break
+
+		var d = b.global_position.distance_to(pos)
+		if d < closest_dist:
+			closest_dist = d
+			closest_b = b
+
+	if closest_b:
+		if closest_b.has_method("destroyed"):
+			closest_b.destroyed()
+		else:
+			closest_b.queue_free()
+		SoundManager.play("rock break", 0.1)

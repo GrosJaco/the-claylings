@@ -1080,6 +1080,9 @@ func debug_trigger_next_wave() -> void:
 		wm.trigger_next_wave()
 
 func create_harvest_zone() -> void:
+	if rts_controller and "is_demolish_mode" in rts_controller and rts_controller.is_demolish_mode:
+		rts_controller.set_demolish_mode(false)
+
 	for z in get_tree().get_nodes_in_group("harvest_zones"):
 		if is_instance_valid(z) and z.get("is_placing"):
 			z.queue_free()

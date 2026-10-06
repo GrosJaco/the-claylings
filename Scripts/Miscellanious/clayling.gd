@@ -136,16 +136,22 @@ func handle_animation() -> void:
 	if current_state == states.get("SoldierStance") or current_state == states.get("SoldierToStance") or current_state == states.get("SoldierAttack"):
 		return       
 
+	var prefix = ""
+	if role == "spearman":
+		prefix = "spearman_"
+	elif role == "archer":
+		prefix = "archer_"
+
 	if velocity.length() > 5.0:
 		var dir = get_direction()
 		last_direction = dir
-		var anim = "spearman_running_" + dir if role == "spearman" else "running_" + dir
+		var anim = prefix + "running_" + dir if prefix != "" else "running_" + dir
 
 		_update_sprite_offset_for_animation(anim)
 		if sprite.animation != anim or not sprite.is_playing():
 			sprite.play(anim)
 	else:
-		var anim = "spearman_idle_" + last_direction if role == "spearman" else "idle_" + last_direction
+		var anim = prefix + "idle_" + last_direction if prefix != "" else "idle_" + last_direction
 
 		_update_sprite_offset_for_animation(anim)
 		if sprite.animation != anim or not sprite.is_playing():
@@ -153,17 +159,17 @@ func handle_animation() -> void:
 
 func _update_sprite_offset_for_animation(anim_name: String) -> void:
 	if anim_name.begins_with("spearman_running"):
-		offset_sprite(0, -16)                                                                                       
-	elif anim_name.begins_with("spearman_idle"):
-		offset_sprite(0, -8)       
-	elif anim_name.begins_with("spearman_to_combat_stance") or anim_name.begins_with("spearman_combat_stance"):
-		offset_sprite(8, 8)            
-	elif anim_name.begins_with("spearman_attacking") or anim_name.begins_with("spearman_dying"):
-		offset_sprite(24, 8)              
-	elif anim_name.begins_with("spearman_running"):
 		offset_sprite(0, -16)
 	elif anim_name.begins_with("spearman_idle"):
 		offset_sprite(0, -8)
+	elif anim_name.begins_with("spearman_to_combat_stance") or anim_name.begins_with("spearman_combat_stance"):
+		offset_sprite(8, 8)
+	elif anim_name.begins_with("spearman_attacking") or anim_name.begins_with("spearman_dying"):
+		offset_sprite(24, 8)
+	elif anim_name.begins_with("archer_idle"):
+		offset_sprite(8, 0)
+	elif anim_name.begins_with("archer_running"):
+		offset_sprite(0, 0)
 	elif anim_name in ["woodcutting_side", "mining_side", "harvesting_side", "watering_side"]:
 		offset_sprite(8, 0)
 	elif anim_name == "interacting_up":
@@ -378,6 +384,19 @@ func debug_become_spearman() -> void:
 		"kit_type": "spearman",
 		"display_name": "Spearman",
 		"items": spearman_kit.required_items if spearman_kit else []
+	})
+
+func debug_become_archer() -> void:
+	if is_dead:
+		return
+	if inventory.get("count", 0) > 0:
+		drop_item(-1, true)
+	var archer_kit: KitData = load("res://Resources/Kit Resources/archer.tres")
+	_apply_kit({
+		"kit_resource": archer_kit,
+		"kit_type": "archer",
+		"display_name": "Archer",
+		"items": archer_kit.required_items if archer_kit else []
 	})
 
 func unequip_at_rack(rack_node: Node2D = null) -> bool:

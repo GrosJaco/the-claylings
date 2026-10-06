@@ -33,7 +33,8 @@ func enter(msg := {}) -> void:
 	# Instantly face destination and start running animation to avoid 1-frame lag
 	_face_target(target_position)
 	var dir = clayling.last_direction if clayling.last_direction != "" else "down"
-	var anim = "spearman_running_" + dir
+	var prefix = "archer_" if clayling.role == "archer" else "spearman_"
+	var anim = prefix + "running_" + dir
 	clayling._update_sprite_offset_for_animation(anim)
 	clayling.sprite.play(anim)
 
@@ -49,7 +50,10 @@ func update(_delta: float) -> void:
 			clayling.stop_moving()
 			if is_player_order:
 				clayling.guard_position = clayling.global_position
-			clayling.change_state("SoldierStance", { "target_facing": target_facing })
+			if clayling.role == "spearman":
+				clayling.change_state("SoldierStance", { "target_facing": target_facing })
+			else:
+				clayling.change_state("SoldierIdle", { "target_facing": target_facing })
 			return
 
 		var dist_to_enemy_sq = clayling.global_position.distance_squared_to(target_enemy.global_position)
@@ -108,11 +112,18 @@ func update(_delta: float) -> void:
 			_face_direction(target_facing)
 		elif "formation_facing" in clayling and clayling.formation_facing != Vector2.ZERO:
 			_face_direction(clayling.formation_facing)
-		clayling.change_state("SoldierToStance", { 
-			"target_enemy": target_enemy, 
-			"target_facing": target_facing,
-			"is_player_order": is_player_order
-		})
+		if clayling.role == "spearman":
+			clayling.change_state("SoldierToStance", { 
+				"target_enemy": target_enemy, 
+				"target_facing": target_facing,
+				"is_player_order": is_player_order
+			})
+		else:
+			clayling.change_state("SoldierIdle", { 
+				"target_enemy": target_enemy, 
+				"target_facing": target_facing,
+				"is_player_order": is_player_order
+			})
 
 func _face_target(pos: Vector2) -> void:
 	var diff = pos - clayling.global_position

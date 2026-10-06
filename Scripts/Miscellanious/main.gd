@@ -1047,6 +1047,15 @@ func debug_all_claylings_to_spearmen() -> void:
 			count += 1
 	print("[DevMode] Equipped %d clayling(s) as spearmen." % count)
 
+func debug_all_claylings_to_archers() -> void:
+	var claylings = get_tree().get_nodes_in_group("claylings")
+	var count = 0
+	for c in claylings:
+		if is_instance_valid(c) and not c.is_dead and c.has_method("debug_become_archer"):
+			c.debug_become_archer()
+			count += 1
+	print("[DevMode] Equipped %d clayling(s) as archers." % count)
+
 func debug_kill_all_claylings() -> void:
 	var claylings = get_tree().get_nodes_in_group("claylings")
 	for c in claylings:
@@ -1089,6 +1098,11 @@ func _input(event: InputEvent) -> void:
 			var is_ctrl_s = (event.keycode == KEY_S or event.physical_keycode == KEY_S or event.key_label == KEY_S) and event.ctrl_pressed
 			if is_j or is_ctrl_s:
 				debug_all_claylings_to_spearmen()
+				get_viewport().set_input_as_handled()
+				return
+			var is_h = event.keycode == KEY_H or event.physical_keycode == KEY_H or event.key_label == KEY_H
+			if is_h:
+				debug_all_claylings_to_archers()
 				get_viewport().set_input_as_handled()
 				return
 			if event.keycode == KEY_F6:

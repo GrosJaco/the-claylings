@@ -39,6 +39,8 @@ var is_disabled: bool = false
 signal disabled_changed(is_disabled: bool)
 signal queue_changed
 
+var _disabled_icon: Sprite2D = null
+
 # ========== FUNCTIONS ==========
 
 func _ready():
@@ -51,6 +53,7 @@ func _ready():
 	fuel_inventory = {}
 	incoming_deliveries = {}
 	active_recipe = null
+	_update_disabled_indicator()
 
 func set_disabled(value: bool) -> void:
 	if is_disabled == value:
@@ -58,10 +61,37 @@ func set_disabled(value: bool) -> void:
 	is_disabled = value
 	if sprite_root:
 		sprite_root.modulate = Color(0.6, 0.6, 0.6, 1.0) if is_disabled else Color.WHITE
+	_update_disabled_indicator()
 	emit_signal("disabled_changed", is_disabled)
 
 func toggle_disabled() -> void:
 	set_disabled(!is_disabled)
+
+func _update_disabled_indicator() -> void:
+	if is_preview:
+		if _disabled_icon:
+			_disabled_icon.visible = false
+		return
+
+	if is_disabled:
+		if _disabled_icon == null:
+			var tex = AtlasTexture.new()
+			tex.atlas = preload("res://Art/UI/UIIcons.png")
+			tex.region = Rect2(48, 16, 16, 16)
+
+			_disabled_icon = Sprite2D.new()
+			_disabled_icon.name = "DisabledIndicator"
+			_disabled_icon.texture = tex
+			_disabled_icon.z_index = 1
+			add_child(_disabled_icon)
+
+		if sprite_root:
+			_disabled_icon.position = sprite_root.position
+		else:
+			_disabled_icon.position = Vector2.ZERO
+		_disabled_icon.visible = true
+	elif _disabled_icon:
+		_disabled_icon.visible = false
 
 func _process(delta: float):
 	if is_preview or is_disabled: return

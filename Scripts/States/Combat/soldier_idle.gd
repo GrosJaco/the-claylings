@@ -13,7 +13,8 @@ func enter(msg := {}) -> void:
 	if target_facing != Vector2.ZERO:
 		_face_direction(target_facing)
 	var dir = clayling.last_direction if clayling.last_direction != "" else "down"
-	var anim = "spearman_idle_" + dir
+	var prefix = "archer_" if clayling.role == "archer" else "spearman_"
+	var anim = prefix + "idle_" + dir
 	clayling._update_sprite_offset_for_animation(anim)
 	clayling.sprite.play(anim)
 
@@ -22,20 +23,26 @@ func update(delta: float) -> void:
 	if _scan_timer <= 0.0:
 		_scan_timer = randf_range(0.18, 0.25)
 
-		# Priority 1: Check for any enemy in immediate spear strike range
-		var melee_enemy = clayling.find_nearest_enemy(attack_range + 4.0)
-		if melee_enemy:
-			clayling.change_state("SoldierAttack", { "target_enemy": melee_enemy, "target_facing": clayling.formation_facing })
-			return
+		if clayling.role == "spearman":
+			var melee_enemy = clayling.find_nearest_enemy(attack_range + 4.0)
+			if melee_enemy:
+				clayling.change_state("SoldierAttack", { "target_enemy": melee_enemy, "target_facing": clayling.formation_facing })
+				return
 
-		# Priority 2: Scan for enemies in alert range (150px) -> enter combat stance holding formation
-		var alert_enemy = clayling.find_nearest_enemy(alert_range)
-		if alert_enemy:
-			clayling.change_state("SoldierToStance", { "target_enemy": alert_enemy, "target_facing": clayling.formation_facing })
-			return
+			var alert_enemy = clayling.find_nearest_enemy(alert_range)
+			if alert_enemy:
+				clayling.change_state("SoldierToStance", { "target_enemy": alert_enemy, "target_facing": clayling.formation_facing })
+				return
+		elif clayling.role == "archer":
+			var alert_enemy = clayling.find_nearest_enemy(alert_range)
+			if alert_enemy and is_instance_valid(alert_enemy):
+				_face_direction(alert_enemy.global_position - clayling.global_position)
+			elif clayling.formation_facing != Vector2.ZERO:
+				_face_direction(clayling.formation_facing)
 
 	var dir = clayling.last_direction if clayling.last_direction != "" else "down"
-	var anim = "spearman_idle_" + dir
+	var prefix = "archer_" if clayling.role == "archer" else "spearman_"
+	var anim = prefix + "idle_" + dir
 	clayling._update_sprite_offset_for_animation(anim)
 	if clayling.sprite.animation != anim:
 		clayling.sprite.play(anim)

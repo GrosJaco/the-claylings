@@ -13,6 +13,8 @@ class_name HUDController
 @onready var plant_menu: Control = get_node_or_null("PlantMenu")
 @onready var harvest_zone_button: TextureButton = get_node_or_null("HarvestZoneButton")
 @onready var call_to_arms_button: Control = get_node_or_null("CallToArmsButton")
+@onready var select_melee_button: Control = get_node_or_null("SelectMeleeButton")
+@onready var select_ranged_button: Control = get_node_or_null("SelectRangedButton")
 
 var _gameplay_hud_elements: Array[Control] = []
 var _is_hud_visible: bool = true
@@ -37,6 +39,12 @@ func _ready() -> void:
 		_gameplay_hud_elements.append(harvest_zone_button)
 		harvest_zone_button.pressed.connect(_on_harvest_zone_button_pressed)
 		harvest_zone_button.focus_mode = Control.FOCUS_NONE
+
+	if select_melee_button:
+		_gameplay_hud_elements.append(select_melee_button)
+
+	if select_ranged_button:
+		_gameplay_hud_elements.append(select_ranged_button)
 
 	if call_to_arms_button:
 		_gameplay_hud_elements.append(call_to_arms_button)

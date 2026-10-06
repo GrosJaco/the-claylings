@@ -97,6 +97,56 @@ func select_soldiers_in_rect(rect: Rect2, add_to_selection: bool = false) -> voi
 	if newly_selected.size() > 0:
 		_play_squad_voice(selected_soldiers, "interrogation")
 
+func select_all_melee_soldiers(add_to_selection: bool = false) -> void:
+	if not add_to_selection:
+		deselect_all_soldiers()
+	var all_soldiers = get_tree().get_nodes_in_group("soldiers")
+	var newly_selected: Array = []
+	for s in all_soldiers:
+		if is_instance_valid(s) and not s.get("is_dead") and s.get("is_combat_ready"):
+			var r = s.get("role")
+			if r != "archer" and r != "villager":
+				if not selected_soldiers.has(s):
+					selected_soldiers.append(s)
+					s.set_selected(true)
+					newly_selected.append(s)
+	if newly_selected.size() > 0 or selected_soldiers.size() > 0:
+		_play_squad_voice(selected_soldiers, "interrogation")
+
+func select_all_ranged_soldiers(add_to_selection: bool = false) -> void:
+	if not add_to_selection:
+		deselect_all_soldiers()
+	var all_soldiers = get_tree().get_nodes_in_group("soldiers")
+	var newly_selected: Array = []
+	for s in all_soldiers:
+		if is_instance_valid(s) and not s.get("is_dead") and s.get("is_combat_ready"):
+			if s.get("role") == "archer":
+				if not selected_soldiers.has(s):
+					selected_soldiers.append(s)
+					s.set_selected(true)
+					newly_selected.append(s)
+	if newly_selected.size() > 0 or selected_soldiers.size() > 0:
+		_play_squad_voice(selected_soldiers, "interrogation")
+
+func get_ready_melee_soldiers() -> Array:
+	var valid: Array = []
+	var all_soldiers = get_tree().get_nodes_in_group("soldiers")
+	for s in all_soldiers:
+		if is_instance_valid(s) and not s.get("is_dead") and s.get("is_combat_ready"):
+			var r = s.get("role")
+			if r != "archer" and r != "villager":
+				valid.append(s)
+	return valid
+
+func get_ready_ranged_soldiers() -> Array:
+	var valid: Array = []
+	var all_soldiers = get_tree().get_nodes_in_group("soldiers")
+	for s in all_soldiers:
+		if is_instance_valid(s) and not s.get("is_dead") and s.get("is_combat_ready"):
+			if s.get("role") == "archer":
+				valid.append(s)
+	return valid
+
 func get_selected_soldiers() -> Array:
 	return selected_soldiers
 

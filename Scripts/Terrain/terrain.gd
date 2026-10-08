@@ -24,9 +24,11 @@ extends Node
 @export_subgroup("Animals")
 @export var animal_scenes: Array[PackedScene] = [
 	preload("res://Scenes/Animals/chicken.tscn"),
-	preload("res://Scenes/Animals/bunny.tscn")
+	preload("res://Scenes/Animals/bunny.tscn"),
+	preload("res://Scenes/Animals/fox.tscn")
 ]
 @export var animal_pack_count: int = 6
+
 
 @export var min_pack_size: int = 1
 @export var max_pack_size: int = 3

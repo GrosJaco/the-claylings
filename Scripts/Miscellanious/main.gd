@@ -15,6 +15,8 @@ extends Node2D
 @onready var chicken_scene: PackedScene = preload("res://Scenes/Animals/chicken.tscn")
 @onready var chick_scene: PackedScene = preload("res://Scenes/Animals/chick.tscn")
 @onready var bunny_scene: PackedScene = preload("res://Scenes/Animals/bunny.tscn")
+@onready var fox_scene: PackedScene = preload("res://Scenes/Animals/fox.tscn")
+
 
 @onready var blue_spider_scene: PackedScene = preload("res://Scenes/Enemies/BlueSpider.tscn")
 @onready var purple_spider_scene: PackedScene = preload("res://Scenes/Enemies/PurpleSpider.tscn")
@@ -135,7 +137,14 @@ func spawn_clayling(pos, mob):
 			bunny.global_position = pos
 			add_child(bunny)
 			return bunny
+	if mob == "fox":
+		if fox_scene:
+			var fox = fox_scene.instantiate()
+			fox.global_position = pos
+			add_child(fox)
+			return fox
 	return null
+
 
 
 func spawn_star_claylings(center: Vector2, radius: float = 52.0) -> void:
@@ -1137,6 +1146,8 @@ func _input(event: InputEvent) -> void:
 				spawn_clayling(get_global_mouse_position(), "chicken")
 		if event.keycode == KEY_B:
 			spawn_clayling(get_global_mouse_position(), "bunny")
+		if event.keycode == KEY_F:
+			spawn_clayling(get_global_mouse_position(), "fox")
 
 		if event.keycode == KEY_O:
 			debug_kill_all_chickens()
@@ -1149,8 +1160,7 @@ func _input(event: InputEvent) -> void:
 				debug_kill_all_enemies()
 			else:
 				debug_kill_all_claylings()
-		if event.keycode == KEY_B:
-			debug_kill_all_enemies()
+
 		if event.keycode == KEY_N:
 			spawn_enemy(get_global_mouse_position(), "blue_spider")
 		if event.keycode == KEY_V:

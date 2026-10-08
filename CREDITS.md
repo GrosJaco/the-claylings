@@ -20,6 +20,12 @@
   - **Source Asset Pack**: [2D Pixel Art Spider Sprites](https://elthen.itch.io/2d-pixel-art-spider-sprites)
   - **Notes**: Modified and used with explicit permission from the original author. All rights to the original sprite designs belong to Elthen.
 
+- **Forest Animals (Bunny, Fox)** (`Art/Animals/Bunny.png`, `Art/Animals/Fox.png`):
+  - **Original Artist**: [LYASeeK](https://lyaseek.itch.io/)
+  - **Source Asset Pack**: [MiniFolks - Forest animals](https://lyaseek.itch.io/minifolks-forest-animals)
+  - **Notes**: Modified sprites based on the original MiniFolks - Forest animals asset pack by LYASeeK.
+
+
 ---
 
 ## Audio & Sound Effects

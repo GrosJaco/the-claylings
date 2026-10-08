@@ -1,0 +1,83 @@
+[gd_scene format=3 uid="uid://d37fox000001"]
+
+[ext_resource type="Script" uid="uid://xvsl5yukxw4b" path="res://Scripts/Animal States/animal.gd" id="1_animal"]
+[ext_resource type="Texture2D" uid="uid://devjofh6xpv26" path="res://Art/Animals/Fox.png" id="2_fox_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_placeholder"]
+atlas = ExtResource("2_fox_tex")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fox"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_placeholder")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_placeholder")
+}],
+"loop": false,
+"name": &"death",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_placeholder")
+}],
+"loop": false,
+"name": &"hit",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_placeholder")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_placeholder")
+}],
+"loop": false,
+"name": &"jump",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_placeholder")
+}],
+"loop": true,
+"name": &"run",
+"speed": 8.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_fox"]
+radius = 6.0
+
+[node name="Fox" type="CharacterBody2D"]
+y_sort_enabled = true
+collision_mask = 2
+script = ExtResource("1_animal")
+animal_name = "Fox"
+max_health = 25.0
+speed = 55.0
+egg_item = null
+
+[node name="Pivot" type="Node2D" parent="."]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Pivot"]
+sprite_frames = SubResource("SpriteFrames_fox")
+animation = &"idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 1)
+shape = SubResource("CircleShape2D_fox")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]

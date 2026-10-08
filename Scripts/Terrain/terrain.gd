@@ -21,6 +21,13 @@ extends Node
 @export var gold_scenes: Array[PackedScene] = []   
 @export var clay_scenes: Array[PackedScene] = []
 
+@export_subgroup("Animals")
+@export var animal_scenes: Array[PackedScene] = [preload("res://Scenes/Animals/chicken.tscn")]
+@export var animal_pack_count: int = 6
+@export var min_pack_size: int = 1
+@export var max_pack_size: int = 3
+
+
 # ========== SETTINGS ==========
 
 @export_group("Generation Settings")
@@ -133,6 +140,8 @@ func apply_world_settings(cfg: Dictionary) -> void:
 	iron_patches = maxi(1, int(round(6.0 * total_scale)))
 	gold_patches = maxi(1, int(round(3.0 * total_scale)))
 	clay_patches = maxi(1, int(round(10.0 * total_scale)))
+	animal_pack_count = maxi(1, int(round(6.0 * area_scale)))
+
 
 func setup_noise():
 	rng.seed = terrain_seed
@@ -214,6 +223,9 @@ func generate_terrain(generate_objects: bool = true):
 			try_spawn_vegetation(pos)
 	
 	update_terrain_texture()
+	if generate_objects:
+		spawn_initial_animals()
+
 
 func is_water_at(pos: Vector2i) -> bool:
 	return water_cells_set.has(pos) if not water_cells_set.is_empty() else pos in water_cells
@@ -289,3 +301,51 @@ func spawn_object(scene_list: Array[PackedScene], grid_pos: Vector2i, is_grass: 
 	
 	if not is_grass and building_manager:
 		building_manager.used_tiles.append(grid_pos)
+
+func spawn_initial_animals() -> void:
+	var valid_scenes: Array[PackedScene] = []
+	for s in animal_scenes:
+		if s != null:
+			valid_scenes.append(s)
+
+	if valid_scenes.is_empty():
+		return
+
+	var spawned_packs := 0
+	var max_attempts := animal_pack_count * 20
+	var attempts := 0
+
+	while spawned_packs < animal_pack_count and attempts < max_attempts:
+		attempts += 1
+		var gx = rng.randi_range(6, map_size.x - 7)
+		var gy = rng.randi_range(6, map_size.y - 7)
+		var center_tile = Vector2i(gx, gy)
+
+		if is_water_at(center_tile) or is_wall_at(center_tile):
+			continue
+		if building_manager and center_tile in building_manager.used_tiles:
+			continue
+
+		var scene = valid_scenes[rng.randi() % valid_scenes.size()]
+		var pack_size = rng.randi_range(min_pack_size, max_pack_size)
+
+		for i in range(pack_size):
+			var spawn_tile = center_tile
+			if i > 0:
+				var offset = Vector2i(rng.randi_range(-2, 2), rng.randi_range(-2, 2))
+				var candidate = center_tile + offset
+				if not is_water_at(candidate) and not is_wall_at(candidate):
+					if not (building_manager and candidate in building_manager.used_tiles):
+						spawn_tile = candidate
+
+			var pixel_pos = Vector2(spawn_tile.x * TILE_SIZE + rng.randf_range(4.0, 12.0), spawn_tile.y * TILE_SIZE + rng.randf_range(4.0, 12.0))
+			var instance = scene.instantiate()
+			instance.global_position = pixel_pos
+			instance.add_to_group("generated")
+
+			if world.is_node_ready():
+				world.add_child(instance)
+			else:
+				world.call_deferred("add_child", instance)
+
+		spawned_packs += 1

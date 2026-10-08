@@ -310,20 +310,26 @@ func save_game(slot_name: String = "quicksave") -> bool:
 			"item_count": int(c.inventory.get("count", 0))
 		})
 
-	# 5. Animals (Chickens)
-	for ch in get_tree().get_nodes_in_group("chicken"):
-		if is_instance_valid(ch) and not ch.is_queued_for_deletion():
+	# 5. Animals
+	var saved_animals: Dictionary = {}
+	for ch in get_tree().get_nodes_in_group("animals"):
+		if is_instance_valid(ch) and not ch.is_queued_for_deletion() and ch is Animal:
+			saved_animals[ch] = true
 			save_data["animals"].append({
 				"x": ch.global_position.x,
-				"y": ch.global_position.y
+				"y": ch.global_position.y,
+				"scene_path": ch.scene_file_path,
+				"health": ch.health if "health" in ch else 20.0
 			})
-	if save_data["animals"].is_empty():
-		for ch in main.get_children():
-			if ch is Animal and not ch.is_queued_for_deletion():
-				save_data["animals"].append({
-					"x": ch.global_position.x,
-					"y": ch.global_position.y
-				})
+	for ch in main.get_children():
+		if ch is Animal and not ch.is_queued_for_deletion() and not saved_animals.has(ch):
+			save_data["animals"].append({
+				"x": ch.global_position.x,
+				"y": ch.global_position.y,
+				"scene_path": ch.scene_file_path,
+				"health": ch.health if "health" in ch else 20.0
+			})
+
 
 	# 6. Ground items
 	for it in get_tree().get_nodes_in_group("ground_items"):
@@ -442,10 +448,13 @@ func apply_pending_load(main: Node2D) -> void:
 	if not camera:
 		camera = main.get_node_or_null("Camera2D")
 
-	# 1. Remove default scene chicken
+	# 1. Remove existing animals
+	for a in get_tree().get_nodes_in_group("animals"):
+		_safe_remove_and_free(a)
 	for ch in main.get_children():
 		if ch is Animal:
 			_safe_remove_and_free(ch)
+
 
 	# 2. Reset engine pause & time scale
 	Engine.time_scale = 1.0
@@ -727,12 +736,24 @@ func apply_pending_load(main: Node2D) -> void:
 			if c.states.has("Idle"):
 				c.states["Idle"].timer = randf_range(0.1, 3.5)
 
-	# 10. Restore Animals (Chickens)
+	# 10. Restore Animals
 	for a_data in data.get("animals", []):
-		if main.has_method("spawn_clayling"):
-			var ch = main.spawn_clayling(Vector2(a_data.get("x", 0), a_data.get("y", 0)), "chicken")
-			if ch and "states" in ch and ch.states.has("Idle"):
-				ch.states["Idle"].timer = randf_range(0.1, 3.0)
+		var scene_path: String = a_data.get("scene_path", "")
+		var animal_scene: PackedScene = null
+		if not scene_path.is_empty() and ResourceLoader.exists(scene_path):
+			animal_scene = load(scene_path)
+		elif main.chicken_scene:
+			animal_scene = main.chicken_scene
+
+		if animal_scene:
+			var an = animal_scene.instantiate()
+			an.global_position = Vector2(a_data.get("x", 0), a_data.get("y", 0))
+			if "health" in an and a_data.has("health"):
+				an.health = float(a_data["health"])
+			main.add_child(an)
+			if "states" in an and an.states.has("Idle"):
+				an.states["Idle"].timer = randf_range(0.1, 3.0)
+
 
 	# 11. Restore Ground items
 	for it_data in data.get("ground_items", []):

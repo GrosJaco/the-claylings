@@ -14,6 +14,8 @@ extends Node2D
 @onready var clayling_scene: PackedScene = preload("res://Scenes/clayling.tscn")
 @onready var chicken_scene: PackedScene = preload("res://Scenes/Animals/chicken.tscn")
 @onready var chick_scene: PackedScene = preload("res://Scenes/Animals/chick.tscn")
+@onready var bunny_scene: PackedScene = preload("res://Scenes/Animals/bunny.tscn")
+
 @onready var blue_spider_scene: PackedScene = preload("res://Scenes/Enemies/BlueSpider.tscn")
 @onready var purple_spider_scene: PackedScene = preload("res://Scenes/Enemies/PurpleSpider.tscn")
 
@@ -127,7 +129,14 @@ func spawn_clayling(pos, mob):
 			chick.global_position = pos
 			add_child(chick)
 			return chick
+	if mob == "bunny":
+		if bunny_scene:
+			var bunny = bunny_scene.instantiate()
+			bunny.global_position = pos
+			add_child(bunny)
+			return bunny
 	return null
+
 
 func spawn_star_claylings(center: Vector2, radius: float = 52.0) -> void:
 	var terrain = get_node_or_null("Terrain")
@@ -1126,6 +1135,9 @@ func _input(event: InputEvent) -> void:
 				spawn_clayling(get_global_mouse_position(), "chick")
 			else:
 				spawn_clayling(get_global_mouse_position(), "chicken")
+		if event.keycode == KEY_B:
+			spawn_clayling(get_global_mouse_position(), "bunny")
+
 		if event.keycode == KEY_O:
 			debug_kill_all_chickens()
 		if event.keycode == KEY_M:

@@ -229,9 +229,12 @@ func take_damage(amount: float, attacker: Node2D = null) -> void:
 	if health <= 0.0:
 		die()
 	else:
+		if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("hit"):
+			sprite.play("hit")
 		if attacker and is_instance_valid(attacker) and current_state != states.get("Flee"):
 			threat = attacker
 			change_state("Flee", {"threat": threat})
+
 
 func die() -> void:
 	if is_dead:

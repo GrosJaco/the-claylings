@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AnimalSpawnData" format=3 uid="uid://bchickenspawn01"]
+
+[ext_resource type="Script" path="res://Scripts/Data/AnimalSpawnData.gd" id="1_data"]
+[ext_resource type="PackedScene" uid="uid://f0mcix7sss7c" path="res://Scenes/Animals/chicken.tscn" id="2_chicken"]
+[ext_resource type="PackedScene" uid="uid://c6h81ick0001" path="res://Scenes/Animals/chick.tscn" id="3_chick"]
+
+[resource]
+script = ExtResource("1_data")
+animal_name = "Chicken"
+scene = ExtResource("2_chicken")
+selection_weight = 1.5
+min_group_size = 1
+max_group_size = 3
+baby_scene = ExtResource("3_chick")
+baby_chance = 0.5
+min_babies = 1
+max_babies = 3
+preferred_habitat = "Plains"

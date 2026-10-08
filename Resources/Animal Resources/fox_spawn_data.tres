@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AnimalSpawnData" format=3 uid="uid://bfoxspawn00001"]
+
+[ext_resource type="Script" path="res://Scripts/Data/AnimalSpawnData.gd" id="1_data"]
+[ext_resource type="PackedScene" uid="uid://d37fox000001" path="res://Scenes/Animals/fox.tscn" id="2_fox"]
+
+[resource]
+script = ExtResource("1_data")
+animal_name = "Fox"
+scene = ExtResource("2_fox")
+selection_weight = 0.7
+min_group_size = 1
+max_group_size = 1
+baby_chance = 0.0
+preferred_habitat = "Forest"

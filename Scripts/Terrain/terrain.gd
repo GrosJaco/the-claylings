@@ -22,16 +22,13 @@ extends Node
 @export var clay_scenes: Array[PackedScene] = []
 
 @export_subgroup("Animals")
-@export var animal_scenes: Array[PackedScene] = [
-	preload("res://Scenes/Animals/chicken.tscn"),
-	preload("res://Scenes/Animals/bunny.tscn"),
-	preload("res://Scenes/Animals/fox.tscn")
+@export var animal_spawns: Array[AnimalSpawnData] = [
+	preload("res://Resources/Animal Resources/chicken_spawn_data.tres"),
+	preload("res://Resources/Animal Resources/bunny_spawn_data.tres"),
+	preload("res://Resources/Animal Resources/fox_spawn_data.tres")
 ]
 @export var animal_pack_count: int = 6
 
-
-@export var min_pack_size: int = 1
-@export var max_pack_size: int = 3
 
 
 # ========== SETTINGS ==========
@@ -308,21 +305,43 @@ func spawn_object(scene_list: Array[PackedScene], grid_pos: Vector2i, is_grass: 
 	if not is_grass and building_manager:
 		building_manager.used_tiles.append(grid_pos)
 
-func spawn_initial_animals() -> void:
-	var valid_scenes: Array[PackedScene] = []
-	for s in animal_scenes:
-		if s != null:
-			valid_scenes.append(s)
+func _pick_random_animal_spawn_data(spawns: Array[AnimalSpawnData]) -> AnimalSpawnData:
+	var total_weight := 0.0
+	for data in spawns:
+		total_weight += maxf(0.001, data.selection_weight)
 
-	if valid_scenes.is_empty():
+	var roll = rng.randf_range(0.0, total_weight)
+	var current := 0.0
+	for data in spawns:
+		current += maxf(0.001, data.selection_weight)
+		if roll <= current:
+			return data
+	return spawns[spawns.size() - 1]
+
+func _matches_habitat(grid_pos: Vector2i, habitat: String) -> bool:
+	if habitat == "Forest":
+		return noise_forest.get_noise_2d(grid_pos.x, grid_pos.y) >= forest_threshold - 0.05
+	elif habitat == "Plains":
+		return noise_forest.get_noise_2d(grid_pos.x, grid_pos.y) < forest_threshold
+	return true
+
+func spawn_initial_animals() -> void:
+	var valid_spawns: Array[AnimalSpawnData] = []
+	for s in animal_spawns:
+		if s != null and s.scene != null:
+			valid_spawns.append(s)
+
+	if valid_spawns.is_empty():
 		return
 
 	var spawned_packs := 0
-	var max_attempts := animal_pack_count * 20
+	var max_attempts := animal_pack_count * 25
 	var attempts := 0
 
 	while spawned_packs < animal_pack_count and attempts < max_attempts:
 		attempts += 1
+		var spawn_data = _pick_random_animal_spawn_data(valid_spawns)
+
 		var gx = rng.randi_range(6, map_size.x - 7)
 		var gy = rng.randi_range(6, map_size.y - 7)
 		var center_tile = Vector2i(gx, gy)
@@ -332,9 +351,11 @@ func spawn_initial_animals() -> void:
 		if building_manager and center_tile in building_manager.used_tiles:
 			continue
 
-		var scene = valid_scenes[rng.randi() % valid_scenes.size()]
-		var pack_size = rng.randi_range(min_pack_size, max_pack_size)
+		# Honor habitat preference, allowing fallback after many attempts
+		if attempts < max_attempts * 0.75 and not _matches_habitat(center_tile, spawn_data.preferred_habitat):
+			continue
 
+		var pack_size = rng.randi_range(spawn_data.min_group_size, spawn_data.max_group_size)
 		for i in range(pack_size):
 			var spawn_tile = center_tile
 			if i > 0:
@@ -345,7 +366,7 @@ func spawn_initial_animals() -> void:
 						spawn_tile = candidate
 
 			var pixel_pos = Vector2(spawn_tile.x * TILE_SIZE + rng.randf_range(4.0, 12.0), spawn_tile.y * TILE_SIZE + rng.randf_range(4.0, 12.0))
-			var instance = scene.instantiate()
+			var instance = spawn_data.scene.instantiate()
 			instance.global_position = pixel_pos
 			instance.add_to_group("generated")
 
@@ -354,4 +375,22 @@ func spawn_initial_animals() -> void:
 			else:
 				world.call_deferred("add_child", instance)
 
+		# Spawn companions/babies if configured
+		if spawn_data.baby_scene != null and rng.randf() <= spawn_data.baby_chance:
+			var baby_count = rng.randi_range(spawn_data.min_babies, spawn_data.max_babies)
+			for b in range(baby_count):
+				var offset = Vector2i(rng.randi_range(-2, 2), rng.randi_range(-2, 2))
+				var b_tile = center_tile + offset
+				if not is_water_at(b_tile) and not is_wall_at(b_tile):
+					var b_pos = Vector2(b_tile.x * TILE_SIZE + rng.randf_range(4.0, 12.0), b_tile.y * TILE_SIZE + rng.randf_range(4.0, 12.0))
+					var baby_inst = spawn_data.baby_scene.instantiate()
+					baby_inst.global_position = b_pos
+					baby_inst.add_to_group("generated")
+
+					if world.is_node_ready():
+						world.add_child(baby_inst)
+					else:
+						world.call_deferred("add_child", baby_inst)
+
 		spawned_packs += 1
+

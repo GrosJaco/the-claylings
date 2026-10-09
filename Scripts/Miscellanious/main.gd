@@ -1087,7 +1087,7 @@ func debug_kill_all_enemies() -> void:
 			e.die()
 
 func debug_kill_all_chickens() -> void:
-	var chickens = get_tree().get_nodes_in_group("animals")
+	var chickens = get_tree().get_nodes_in_group("chicken")
 	for ch in chickens:
 		if is_instance_valid(ch) and ch.has_method("die"):
 			ch.die()

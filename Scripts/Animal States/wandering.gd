@@ -1,8 +1,12 @@
 extends AnimalState
 
-@export var wander_radius := 64
+@export var wander_radius := 64.0
+@export var wander_timeout := 6.5
+
+var wander_timer := 0.0
 
 func enter(msg := {}) -> void:
+	wander_timer = 0.0
 	var target_pos = animal.global_position
 	var center_pos = animal.global_position
 	var radius = wander_radius
@@ -12,9 +16,16 @@ func enter(msg := {}) -> void:
 		center_pos = animal.leader_animal.global_position
 		radius = animal.follow_distance_stop + 10.0
 
+	var nav_map = animal.get_world_2d().navigation_map
 	var found = false
 	for attempt in range(20):
 		var candidate = center_pos + Vector2(randf_range(-radius, radius), randf_range(-radius, radius))
+		# Snap candidate to valid walkable navigation mesh point
+		if nav_map.is_valid():
+			var valid_pt = NavigationServer2D.map_get_closest_point(nav_map, candidate)
+			if valid_pt != Vector2.ZERO and valid_pt.distance_to(candidate) < 24.0:
+				candidate = valid_pt
+
 		if animal.world and animal.world.building_manager:
 			var grid_pos = animal.world.get_grid_position(candidate)
 			if not animal.world.building_manager.used_tiles.has(grid_pos):
@@ -30,12 +41,20 @@ func enter(msg := {}) -> void:
 		animal.move_to(target_pos)
 		animal.sprite.play("run")
 	else:
+		animal.stop_moving()
 		animal.change_state("Idle")
 
 func update(delta: float) -> void:
 	# If there is a threat, flee immediately
 	if animal.threat:
 		animal.change_state("Flee", {"threat": animal.threat})
+		return
+
+	# Wander timeout / stuck protection
+	wander_timer += delta
+	if wander_timer >= wander_timeout:
+		animal.stop_moving()
+		animal.change_state("Idle")
 		return
 
 	# If following leader and leader walked too far away, repath toward leader
@@ -46,6 +65,10 @@ func update(delta: float) -> void:
 			animal.move_to(repath_target)
 	
 	# Check if the animal reached the target
-	if animal.global_position.distance_to(animal.agent.target_position) < 10.0:
-		animal.velocity = Vector2.ZERO
+	if animal.agent.is_navigation_finished() or animal.global_position.distance_to(animal.agent.target_position) < 10.0:
+		animal.stop_moving()
 		animal.change_state("Idle")
+
+func exit() -> void:
+	wander_timer = 0.0
+	animal.stop_moving()

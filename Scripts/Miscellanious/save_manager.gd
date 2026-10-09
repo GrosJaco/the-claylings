@@ -314,21 +314,31 @@ func save_game(slot_name: String = "quicksave") -> bool:
 	var saved_animals: Dictionary = {}
 	for ch in get_tree().get_nodes_in_group("animals"):
 		if is_instance_valid(ch) and not ch.is_queued_for_deletion() and ch is Animal:
+			if ch.get("is_dead") or ("health" in ch and ch.health <= 0.0):
+				continue
 			saved_animals[ch] = true
-			save_data["animals"].append({
+			var animal_entry: Dictionary = {
 				"x": ch.global_position.x,
 				"y": ch.global_position.y,
 				"scene_path": ch.scene_file_path,
 				"health": ch.health if "health" in ch else 20.0
-			})
+			}
+			if "_growth_timer" in ch and ch.grows_into != null:
+				animal_entry["growth_timer"] = ch._growth_timer
+			save_data["animals"].append(animal_entry)
 	for ch in main.get_children():
 		if ch is Animal and not ch.is_queued_for_deletion() and not saved_animals.has(ch):
-			save_data["animals"].append({
+			if ch.get("is_dead") or ("health" in ch and ch.health <= 0.0):
+				continue
+			var animal_entry: Dictionary = {
 				"x": ch.global_position.x,
 				"y": ch.global_position.y,
 				"scene_path": ch.scene_file_path,
 				"health": ch.health if "health" in ch else 20.0
-			})
+			}
+			if "_growth_timer" in ch and ch.grows_into != null:
+				animal_entry["growth_timer"] = ch._growth_timer
+			save_data["animals"].append(animal_entry)
 
 
 	# 6. Ground items
@@ -748,9 +758,11 @@ func apply_pending_load(main: Node2D) -> void:
 		if animal_scene:
 			var an = animal_scene.instantiate()
 			an.global_position = Vector2(a_data.get("x", 0), a_data.get("y", 0))
+			main.add_child(an)
 			if "health" in an and a_data.has("health"):
 				an.health = float(a_data["health"])
-			main.add_child(an)
+			if "_growth_timer" in an and a_data.has("growth_timer"):
+				an._growth_timer = float(a_data["growth_timer"])
 			if "states" in an and an.states.has("Idle"):
 				an.states["Idle"].timer = randf_range(0.1, 3.0)
 

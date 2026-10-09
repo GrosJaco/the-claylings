@@ -124,8 +124,8 @@ func _physics_process(delta: float) -> void:
 	if current_state:
 		current_state.update(delta)
 	
-	# Update velocity toward next path point
-	if not agent.is_navigation_finished():
+	# Update velocity toward next path point only when actively navigating and not in Idle
+	if current_state != states.get("Idle") and not agent.is_navigation_finished():
 		var next_pos = agent.get_next_path_position()
 		var dir = global_position.direction_to(next_pos)
 		velocity = dir * speed
@@ -156,6 +156,12 @@ func change_state(state_name: String, msg := {}) -> void:
 	current_state = states.get(state_name)
 	if current_state:
 		current_state.enter(msg)
+
+func stop_moving() -> void:
+	if is_dead:
+		return
+	agent.target_position = global_position
+	velocity = Vector2.ZERO
 
 func move_to(target_position: Vector2) -> void:
 	if is_dead:
@@ -199,6 +205,9 @@ func _find_nearest_leader(max_dist: float) -> Animal:
 		if not is_instance_valid(a) or a == self or not (a is Animal):
 			continue
 		if a.is_dead or not a.is_inside_tree() or a.follows_leader:
+			continue
+		# Only follow an adult of matching species
+		if grows_into != null and a.scene_file_path != grows_into.resource_path and a.animal_name != "Chicken":
 			continue
 		var d_sq = global_position.distance_squared_to(a.global_position)
 		if d_sq <= nearest_sq:
@@ -298,8 +307,17 @@ func grow_up() -> void:
 		current_state.exit()
 		current_state = null
 
+	remove_from_group("animals")
+	if animal_name and not animal_name.is_empty():
+		remove_from_group(animal_name.to_lower())
+
+	var was_generated = is_in_group("generated")
+
 	var adult = grows_into.instantiate()
 	adult.global_position = global_position
+	if was_generated:
+		adult.add_to_group("generated")
+
 	var target_parent = world if world else get_parent()
 	target_parent.call_deferred("add_child", adult)
 	queue_free()

@@ -47,8 +47,7 @@ func update(delta: float) -> void:
 
 	# Within attack range
 	if dist <= animal.attack_range:
-		animal.velocity = Vector2.ZERO
-		animal.agent.target_position = animal.global_position
+		animal.stop_moving()
 
 		if cooldown_timer <= 0.0 and not _is_attacking:
 			_execute_attack()
@@ -71,7 +70,7 @@ func update(delta: float) -> void:
 func exit() -> void:
 	# Restore normal stats and animations
 	animal.speed = _original_speed
-	animal.velocity = Vector2.ZERO
+	animal.stop_moving()
 	_is_attacking = false
 	target = null
 

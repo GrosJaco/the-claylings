@@ -17,7 +17,7 @@ func enter(msg := {}):
 		animal.sprite.play("idle")
 
 	# Stop moving
-	animal.velocity = Vector2.ZERO
+	animal.stop_moving()
 
 func update(delta: float):
 	# If a threat is present, immediately flee

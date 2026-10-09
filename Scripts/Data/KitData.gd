@@ -10,5 +10,6 @@ class_name KitData
 @export var sprite_frames: SpriteFrames
 
 @export_group("Combat Stats")
+@export var attack_damage: float = 20.0
 @export var knockback_force: float = 0.0
 @export_range(0.0, 1.0) var knockback_resistance: float = 0.0

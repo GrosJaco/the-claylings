@@ -393,4 +393,3 @@ func spawn_initial_animals() -> void:
 						world.call_deferred("add_child", baby_inst)
 
 		spawned_packs += 1
-

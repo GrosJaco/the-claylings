@@ -36,6 +36,8 @@ func update(delta: float) -> void:
 		if target_enemy and is_instance_valid(target_enemy):
 			if target_enemy.has_method("take_damage"):
 				var dmg = attack_damage
+				if clayling.equipped_kit and clayling.equipped_kit is KitData:
+					dmg = clayling.equipped_kit.attack_damage
 				if clayling.personality_trait == "Brave":
 					dmg *= 1.2
 				target_enemy.take_damage(dmg, clayling)

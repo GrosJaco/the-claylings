@@ -11,4 +11,5 @@ kit_id = "spearman"
 display_name = "Spearman"
 required_items = Array[ExtResource("1")]([ExtResource("3"), ExtResource("2")])
 knockback_force = 220.0
+attack_damage = 22.0
 metadata/_custom_type_script = "uid://dyiwldg7e00tw"

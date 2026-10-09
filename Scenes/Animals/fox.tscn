@@ -205,8 +205,16 @@ y_sort_enabled = true
 collision_mask = 2
 script = ExtResource("1_animal")
 animal_name = "Fox"
-max_health = 25.0
+max_health = 75.0
 speed = 55.0
+can_retaliate = true
+retaliation_chance = 0.5
+attack_damage = 8.0
+attack_range = 22.0
+attack_cooldown = 1.0
+attack_speed_boost = 75.0
+attack_chase_timeout = 8.0
+attack_knockback = 30.0
 egg_item = null
 
 [node name="Pivot" type="Node2D" parent="." unique_id=548539495]

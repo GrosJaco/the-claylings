@@ -26,6 +26,16 @@ class_name Animal
 @export var follow_distance_max: float = 65.0
 @export var follow_distance_stop: float = 28.0
 
+@export_group("Combat / Defense")
+@export var can_retaliate: bool = false
+@export var retaliation_chance: float = 0.5
+@export var attack_damage: float = 8.0
+@export var attack_range: float = 22.0
+@export var attack_cooldown: float = 1.0
+@export var attack_speed_boost: float = 75.0
+@export var attack_chase_timeout: float = 8.0
+@export var attack_knockback: float = 30.0
+
 @export_group("Loot")
 @export var loot_table: Array[LootDrop] = []
 
@@ -69,6 +79,7 @@ func _ready() -> void:
 	states["Idle"] = preload("res://Scripts/Animal States/idle.gd").new()
 	states["Wander"] = preload("res://Scripts/Animal States/wandering.gd").new()
 	states["Flee"] = preload("res://Scripts/Animal States/fleeing.gd").new()
+	states["Attack"] = preload("res://Scripts/Animal States/attack.gd").new()
 	
 	# Link this Animal to all state instances
 	for s in states.values():
@@ -104,7 +115,7 @@ func _physics_process(delta: float) -> void:
 	_threat_scan_timer -= delta
 	if _threat_scan_timer <= 0.0:
 		_threat_scan_timer = randf_range(0.2, 0.28)
-		if current_state != states.get("Flee"):
+		if current_state != states.get("Flee") and current_state != states.get("Attack"):
 			var nearby_threat = _find_nearby_threat(95.0)
 			if nearby_threat:
 				threat = nearby_threat
@@ -231,9 +242,21 @@ func take_damage(amount: float, attacker: Node2D = null) -> void:
 	else:
 		if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("hit"):
 			sprite.play("hit")
-		if attacker and is_instance_valid(attacker) and current_state != states.get("Flee"):
-			threat = attacker
-			change_state("Flee", {"threat": threat})
+		if attacker and is_instance_valid(attacker):
+			if can_retaliate:
+				if current_state == states.get("Attack"):
+					current_state.set_target(attacker)
+				elif current_state == states.get("Flee"):
+					threat = attacker
+				else:
+					if randf() < retaliation_chance:
+						change_state("Attack", {"target": attacker})
+					else:
+						threat = attacker
+						change_state("Flee", {"threat": threat})
+			elif current_state != states.get("Flee"):
+				threat = attacker
+				change_state("Flee", {"threat": threat})
 
 
 func die() -> void:

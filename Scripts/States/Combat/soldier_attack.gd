@@ -29,18 +29,42 @@ func enter(msg := {}) -> void:
 func update(delta: float) -> void:
 	elapsed += delta
 
-	# Apply damage at strike peak (frame 3/6 ~ 0.25s for spearman, frame 3/5 ~ 0.3s for archer)
+	# Apply damage or launch projectile at strike peak (frame 3/6 ~ 0.25s for spearman, frame 3/5 ~ 0.3s for archer)
 	var hit_time = 0.3 if clayling.role == "archer" else 0.25
 	if not damage_applied and elapsed >= hit_time:
 		damage_applied = true
-		if target_enemy and is_instance_valid(target_enemy):
-			if target_enemy.has_method("take_damage"):
-				var dmg = attack_damage
-				if clayling.equipped_kit and clayling.equipped_kit is KitData:
-					dmg = clayling.equipped_kit.attack_damage
-				if clayling.personality_trait == "Brave":
-					dmg *= 1.2
-				target_enemy.take_damage(dmg, clayling)
+		var dmg = attack_damage
+		if clayling.equipped_kit and clayling.equipped_kit is KitData:
+			dmg = clayling.equipped_kit.attack_damage
+		if clayling.personality_trait == "Brave":
+			dmg *= 1.2
+
+		# Check if equipped kit fires a projectile (e.g. archer arrow)
+		var proj_scene: PackedScene = null
+		if clayling.equipped_kit and clayling.equipped_kit is KitData:
+			proj_scene = clayling.equipped_kit.projectile_scene
+
+		if proj_scene != null:
+			var facing_dir = Vector2.DOWN
+			if clayling.last_direction == "up":
+				facing_dir = Vector2.UP
+			elif clayling.last_direction == "side":
+				facing_dir = Vector2.LEFT if clayling.get_flip_h() else Vector2.RIGHT
+
+			var target_pos = target_enemy.global_position if (target_enemy and is_instance_valid(target_enemy)) else (clayling.global_position + facing_dir * 80.0)
+			var proj = proj_scene.instantiate()
+			proj.shooter = clayling
+			var parent_node = clayling.get_parent() if clayling.get_parent() else clayling.world
+			if parent_node:
+				parent_node.add_child(proj)
+			if proj.has_method("launch"):
+				proj.launch(clayling.global_position, target_pos, target_enemy, dmg)
+			SoundManager.play_at("shoot", clayling.global_position, 0.15)
+		else:
+			# Direct melee strike (e.g. spearman)
+			if target_enemy and is_instance_valid(target_enemy):
+				if target_enemy.has_method("take_damage"):
+					target_enemy.take_damage(dmg, clayling)
 
 	# Return to combat stance once the thrust attack animation completes
 	if elapsed >= attack_duration or clayling.force_animation == "":
@@ -71,4 +95,3 @@ func _face_target(pos: Vector2) -> void:
 		clayling.set_flip_h(diff.x < 0)
 	else:
 		clayling.last_direction = "up" if diff.y < 0 else "down"
-

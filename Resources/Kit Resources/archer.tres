@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://dyiwldg7e00tw" path="res://Scripts/Data/KitData.gd" id="2_hj85f"]
 [ext_resource type="Resource" uid="uid://btgon23tlja3d" path="res://Resources/Item Resources/Equipment/archer_cap.tres" id="3"]
 [ext_resource type="Resource" uid="uid://cxudotdk7nt7w" path="res://Resources/Item Resources/Equipment/quiver.tres" id="4_fact2"]
+[ext_resource type="PackedScene" uid="uid://carr0wproj001" path="res://Scenes/Projectiles/Arrow.tscn" id="5_arrow"]
 
 [resource]
 script = ExtResource("2_hj85f")
@@ -12,4 +13,5 @@ kit_id = "archer"
 display_name = "Archer"
 required_items = Array[ExtResource("1")]([ExtResource("3"), ExtResource("2"), ExtResource("4_fact2")])
 attack_damage = 16.0
+projectile_scene = ExtResource("5_arrow")
 metadata/_custom_type_script = "uid://dyiwldg7e00tw"

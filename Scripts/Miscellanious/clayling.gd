@@ -181,6 +181,9 @@ func set_flip_h(flipped: bool) -> void:
 	sprite.flip_h = flipped
 	_apply_pivot_offset()
 
+func get_flip_h() -> bool:
+	return sprite.flip_h if sprite else false
+
 # Decide what animation to use between up, side or down
 func get_direction() -> String:
 	if velocity.length() < 5.0:

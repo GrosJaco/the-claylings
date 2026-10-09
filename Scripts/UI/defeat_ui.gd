@@ -9,6 +9,7 @@ signal defeat_shown
 @onready var title_label: Label = $VBoxContainer/TitleLabel
 @onready var subtitle_label: Label = $VBoxContainer/SubtitleLabel
 @onready var restart_button: Button = $VBoxContainer/RestartButton
+@onready var main_menu_button: Button = $VBoxContainer/MainMenuButton
 
 var _is_active: bool = false
 var _is_restarting: bool = false
@@ -26,6 +27,8 @@ func _ready() -> void:
 
 	if restart_button:
 		restart_button.pressed.connect(_restart_game)
+	if main_menu_button:
+		main_menu_button.pressed.connect(_on_main_menu_pressed)
 
 	call_deferred("_connect_signals")
 
@@ -76,12 +79,19 @@ func reset_defeat() -> void:
 func _input(event: InputEvent) -> void:
 	if not _is_active or _is_restarting:
 		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_R:
-		if is_inside_tree():
-			var vp = get_viewport()
-			if vp:
-				vp.set_input_as_handled()
-		_restart_game()
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_R:
+			if is_inside_tree():
+				var vp = get_viewport()
+				if vp:
+					vp.set_input_as_handled()
+			_restart_game()
+		elif event.keycode == KEY_ESCAPE:
+			if is_inside_tree():
+				var vp = get_viewport()
+				if vp:
+					vp.set_input_as_handled()
+			_on_main_menu_pressed()
 
 func _restart_game() -> void:
 	if _is_restarting:
@@ -90,3 +100,11 @@ func _restart_game() -> void:
 	get_tree().paused = false
 	Engine.time_scale = 1.0
 	get_tree().reload_current_scene()
+
+func _on_main_menu_pressed() -> void:
+	if _is_restarting:
+		return
+	_is_restarting = true
+	get_tree().paused = false
+	Engine.time_scale = 1.0
+	get_tree().change_scene_to_file("res://Scenes/UI/MainMenu.tscn")

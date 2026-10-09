@@ -101,6 +101,7 @@ var _hovered_sprite: CanvasItem = null
 var _previous_material: Material = null
 var _last_mouse_pos: Vector2 = Vector2(-99999, -99999)
 var _hover_refresh_timer: float = 0.0
+var _current_outline_region: Vector4 = Vector4.ZERO
 const HOVER_MIN_INTERVAL: float = 0.07
 const HOVER_FORCE_INTERVAL: float = 0.25
 const HOVER_MOVE_THRESHOLD_SQ: float = 16.0
@@ -1002,6 +1003,7 @@ func _ready():
 		_outline_material.shader = _outline_shader
 		_outline_material.set_shader_parameter("line_color", Color(1.0, 1.0, 1.0, 1.0))
 		_outline_material.set_shader_parameter("line_thickness", 1.0)
+		_outline_material.set_shader_parameter("texture_region", Vector4.ZERO)
 
 	var build_menu = get_node_or_null("CanvasLayer/BuildMenu")
 	if build_menu:
@@ -1313,6 +1315,12 @@ func _simulate_agriculture(sim_delta: float) -> void:
 				set_tile(crop_name, pos, crops, index)
 
 func _process(delta: float) -> void:
+	if _hovered_sprite != null:
+		if is_instance_valid(_hovered_sprite) and is_instance_valid(_hovered_entity) and _hovered_entity.is_inside_tree() and not _hovered_entity.get("is_dead"):
+			_update_outline_region(_hovered_sprite)
+		else:
+			_clear_hover()
+
 	_hover_refresh_timer += delta
 	if _hover_refresh_timer < HOVER_MIN_INTERVAL:
 		return
@@ -1432,12 +1440,20 @@ func _is_point_in_entity(node: Node2D, mouse_world_pos: Vector2) -> bool:
 
 func _clear_hover() -> void:
 	if _hovered_sprite != null and is_instance_valid(_hovered_sprite):
+		if _hovered_sprite is AnimatedSprite2D:
+			if _hovered_sprite.frame_changed.is_connected(_on_hovered_sprite_frame_changed):
+				_hovered_sprite.frame_changed.disconnect(_on_hovered_sprite_frame_changed)
+			if _hovered_sprite.animation_changed.is_connected(_on_hovered_sprite_frame_changed):
+				_hovered_sprite.animation_changed.disconnect(_on_hovered_sprite_frame_changed)
 		if _hovered_sprite.material == _outline_material:
 			_hovered_sprite.material = _previous_material
 	var had_hover = _hovered_entity != null
 	_hovered_entity = null
 	_hovered_sprite = null
 	_previous_material = null
+	_current_outline_region = Vector4.ZERO
+	if _outline_material != null:
+		_outline_material.set_shader_parameter("texture_region", Vector4.ZERO)
 	if had_hover:
 		hovered_entity_changed.emit(null)
 
@@ -1457,8 +1473,79 @@ func _set_hovered_entity(entity: Node2D) -> void:
 	_hovered_entity = entity
 	_hovered_sprite = sprite
 	_previous_material = sprite.material if sprite.material != _outline_material else null
+	_update_outline_region(sprite)
 	sprite.material = _outline_material
+	if sprite is AnimatedSprite2D:
+		if not sprite.frame_changed.is_connected(_on_hovered_sprite_frame_changed):
+			sprite.frame_changed.connect(_on_hovered_sprite_frame_changed)
+		if not sprite.animation_changed.is_connected(_on_hovered_sprite_frame_changed):
+			sprite.animation_changed.connect(_on_hovered_sprite_frame_changed)
 	hovered_entity_changed.emit(_hovered_entity)
+
+func _on_hovered_sprite_frame_changed() -> void:
+	if _hovered_sprite != null and is_instance_valid(_hovered_sprite):
+		_update_outline_region(_hovered_sprite)
+
+func _update_outline_region(sprite: CanvasItem) -> void:
+	if not is_instance_valid(sprite) or _outline_material == null:
+		return
+	var reg = _get_sprite_texture_region(sprite)
+	if reg != _current_outline_region:
+		_current_outline_region = reg
+		_outline_material.set_shader_parameter("texture_region", reg)
+
+func _get_sprite_texture_region(sprite: CanvasItem) -> Vector4:
+	if not is_instance_valid(sprite):
+		return Vector4.ZERO
+
+	if sprite is AnimatedSprite2D:
+		var anim_sprite = sprite as AnimatedSprite2D
+		if anim_sprite.sprite_frames == null:
+			return Vector4.ZERO
+		var anim = anim_sprite.animation
+		if not anim_sprite.sprite_frames.has_animation(anim):
+			return Vector4.ZERO
+		var frame_count = anim_sprite.sprite_frames.get_frame_count(anim)
+		if frame_count <= 0:
+			return Vector4.ZERO
+		var frame_idx = clampi(anim_sprite.frame, 0, frame_count - 1)
+		var tex = anim_sprite.sprite_frames.get_frame_texture(anim, frame_idx)
+		if tex == null:
+			return Vector4.ZERO
+		if tex is AtlasTexture:
+			var r = tex.region
+			return Vector4(r.position.x, r.position.y, r.size.x, r.size.y)
+		return Vector4(0.0, 0.0, float(tex.get_width()), float(tex.get_height()))
+
+	elif sprite is Sprite2D:
+		var s2d = sprite as Sprite2D
+		if s2d.texture == null:
+			return Vector4.ZERO
+
+		var base_pos = Vector2.ZERO
+		var base_size = Vector2(s2d.texture.get_width(), s2d.texture.get_height())
+
+		if s2d.texture is AtlasTexture:
+			var atlas_tex = s2d.texture as AtlasTexture
+			base_pos = atlas_tex.region.position
+			base_size = atlas_tex.region.size
+		elif s2d.region_enabled:
+			base_pos = s2d.region_rect.position
+			base_size = s2d.region_rect.size
+
+		var hf = maxi(s2d.hframes, 1)
+		var vf = maxi(s2d.vframes, 1)
+		var frame_w = base_size.x / float(hf)
+		var frame_h = base_size.y / float(vf)
+
+		var col = s2d.frame % hf
+		var row = s2d.frame / hf
+
+		var fx = base_pos.x + float(col) * frame_w
+		var fy = base_pos.y + float(row) * frame_h
+		return Vector4(fx, fy, frame_w, frame_h)
+
+	return Vector4.ZERO
 
 func _query_entities_at(pos: Vector2) -> Array[Dictionary]:
 	var space_state = get_world_2d().direct_space_state

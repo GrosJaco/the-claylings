@@ -72,17 +72,20 @@ A Godot 4.6 2D colony simulation and real-time strategy (RTS) defense game where
 | --- | --- | --- |
 | `²` / `~` | Always | Toggle Dev Mode overlay |
 | `J` or `Ctrl + S` | Dev Mode only | Equip all Claylings as Spearmen |
+| `H`, `Ctrl + A`, or `U` | Dev Mode only | Equip all Claylings as Archers |
 | `F6` | Dev Mode only | Cycle Weather (Clear -> Rain -> Thunderstorm) |
-| `C` | Always | Spawn Clayling at mouse position |
-| `P` | Always | Spawn Chicken at mouse position |
-| `Shift + P` | Always | Spawn Chick at mouse position |
-| `O` | Always | Kill all chickens |
-| `N` | Always | Spawn Blue Spider at mouse position |
-| `V` | Always | Spawn Purple Spider at mouse position |
-| `L` | Always | Trigger next nocturnal enemy wave |
-| `Y` | Always | Fill Weapon Racks with random equipment kits |
-| `K` | Always | Kill all Claylings |
-| `Shift + K` or `B` | Always | Kill all enemies |
+| `C` | Dev Mode only | Spawn Clayling at mouse position |
+| `P` | Dev Mode only | Spawn Chicken at mouse position |
+| `Shift + P` | Dev Mode only | Spawn Chick at mouse position |
+| `B` | Dev Mode only | Spawn Bunny at mouse position |
+| `F` | Dev Mode only | Spawn Fox at mouse position |
+| `O` | Dev Mode only | Kill all chickens |
+| `N` | Dev Mode only | Spawn Blue Spider at mouse position |
+| `V` | Dev Mode only | Spawn Purple Spider at mouse position |
+| `L` | Dev Mode only | Trigger next nocturnal enemy wave |
+| `Y` | Dev Mode only | Fill Weapon Racks with random equipment kits |
+| `K` | Dev Mode only | Kill all Claylings |
+| `Shift + K` | Dev Mode only | Kill all enemies |
 | `R` | Defeat screen | Restart Game |
 
 ## Getting Started

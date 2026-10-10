@@ -1125,7 +1125,8 @@ func _input(event: InputEvent) -> void:
 				return
 			var is_h = event.keycode == KEY_H or event.physical_keycode == KEY_H or event.key_label == KEY_H
 			var is_ctrl_a = (event.keycode == KEY_A or event.physical_keycode == KEY_A or event.key_label == KEY_A) and event.ctrl_pressed
-			if is_h or is_ctrl_a:
+			var is_u = event.keycode == KEY_U or event.physical_keycode == KEY_U or event.key_label == KEY_U
+			if is_h or is_ctrl_a or is_u:
 				debug_all_claylings_to_archers()
 				get_viewport().set_input_as_handled()
 				return
@@ -1136,39 +1137,59 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 
-		if event.keycode == KEY_U or event.physical_keycode == KEY_U or event.key_label == KEY_U:
-			debug_all_claylings_to_archers()
+			if event.keycode == KEY_C:
+				spawn_clayling(get_global_mouse_position(), "clayling")
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_P:
+				if event.shift_pressed:
+					spawn_clayling(get_global_mouse_position(), "chick")
+				else:
+					spawn_clayling(get_global_mouse_position(), "chicken")
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_B:
+				spawn_clayling(get_global_mouse_position(), "bunny")
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_F:
+				spawn_clayling(get_global_mouse_position(), "fox")
+				get_viewport().set_input_as_handled()
+				return
 
-		if event.keycode == KEY_C:
-			spawn_clayling(get_global_mouse_position(), "clayling")
-		if event.keycode == KEY_P:
-			if event.shift_pressed:
-				spawn_clayling(get_global_mouse_position(), "chick")
-			else:
-				spawn_clayling(get_global_mouse_position(), "chicken")
-		if event.keycode == KEY_B:
-			spawn_clayling(get_global_mouse_position(), "bunny")
-		if event.keycode == KEY_F:
-			spawn_clayling(get_global_mouse_position(), "fox")
+			if event.keycode == KEY_O:
+				debug_kill_all_chickens()
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_Y:
+				get_tree().call_group("weapon_racks", "debug_fill_random_kit")
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_K:
+				if event.shift_pressed:
+					debug_kill_all_enemies()
+				else:
+					debug_kill_all_claylings()
+				get_viewport().set_input_as_handled()
+				return
 
-		if event.keycode == KEY_O:
-			debug_kill_all_chickens()
+			if event.keycode == KEY_N:
+				spawn_enemy(get_global_mouse_position(), "blue_spider")
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_V:
+				spawn_enemy(get_global_mouse_position(), "purple_spider")
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_L:
+				debug_trigger_next_wave()
+				get_viewport().set_input_as_handled()
+				return
+
 		if event.keycode == KEY_M:
 			create_harvest_zone()
-		if event.keycode == KEY_Y:
-			get_tree().call_group("weapon_racks", "debug_fill_random_kit")
-		if event.keycode == KEY_K:
-			if event.shift_pressed:
-				debug_kill_all_enemies()
-			else:
-				debug_kill_all_claylings()
-
-		if event.keycode == KEY_N:
-			spawn_enemy(get_global_mouse_position(), "blue_spider")
-		if event.keycode == KEY_V:
-			spawn_enemy(get_global_mouse_position(), "purple_spider")
-		if event.keycode == KEY_L:
-			debug_trigger_next_wave()
+			get_viewport().set_input_as_handled()
+			return
 
 var _tab_clayling_index: int = -1
 

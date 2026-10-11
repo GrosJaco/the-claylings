@@ -24,6 +24,7 @@ Global="*res://Scripts/Miscellanious/Global.gd"
 UIPanelManager="*uid://bufhccnetm4ei"
 SoundManager="*uid://bfnpf4yr4b01y"
 SaveManager="*uid://c2fiifsq2ewbw"
+InputManager="*res://Scripts/Miscellanious/input_manager.gd"
 
 [gui]
 

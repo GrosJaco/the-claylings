@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://lvw65ovfl7os" path="res://Art/UI/Menu.png" id="3_bg"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/SaveLoadDialog.tscn" id="4_saveload"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/WorldCreationDialog.tscn" id="5_worldcreation"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/SettingsDialog.tscn" id="6_settings"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
 content_margin_left = 14.0
@@ -238,88 +239,6 @@ theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
 text = "Quit"
 
-[node name="SettingsPanel" type="PanelContainer" parent="." unique_id=639289957]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -170.0
-offset_top = -120.0
-offset_right = 170.0
-offset_bottom = 120.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
-
-[node name="MarginContainer" type="MarginContainer" parent="SettingsPanel" unique_id=1029791786]
-layout_mode = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel/MarginContainer" unique_id=1368139107]
-layout_mode = 2
-theme_override_constants/separation = 14
-alignment = 1
-
-[node name="SettingsTitle" type="Label" parent="SettingsPanel/MarginContainer/VBoxContainer" unique_id=591378516]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
-theme_override_font_sizes/font_size = 22
-text = "SETTINGS"
-horizontal_alignment = 1
-
-[node name="HSeparator" type="HSeparator" parent="SettingsPanel/MarginContainer/VBoxContainer" unique_id=1021686271]
-layout_mode = 2
-
-[node name="VolumeRow" type="HBoxContainer" parent="SettingsPanel/MarginContainer/VBoxContainer" unique_id=305699417]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="VolumeLabel" type="Label" parent="SettingsPanel/MarginContainer/VBoxContainer/VolumeRow" unique_id=822319763]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 15
-text = "Master Volume"
-
-[node name="VolumeSlider" type="HSlider" parent="SettingsPanel/MarginContainer/VBoxContainer/VolumeRow" unique_id=915976528]
-custom_minimum_size = Vector2(120, 20)
-layout_mode = 2
-size_flags_vertical = 4
-max_value = 1.0
-step = 0.05
-value = 1.0
-
-[node name="FullscreenRow" type="HBoxContainer" parent="SettingsPanel/MarginContainer/VBoxContainer" unique_id=466862100]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="FullscreenLabel" type="Label" parent="SettingsPanel/MarginContainer/VBoxContainer/FullscreenRow" unique_id=1833265160]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 15
-text = "Fullscreen"
-
-[node name="FullscreenCheckBox" type="CheckBox" parent="SettingsPanel/MarginContainer/VBoxContainer/FullscreenRow" unique_id=330492177]
-layout_mode = 2
-focus_mode = 0
-
-[node name="Spacer" type="Control" parent="SettingsPanel/MarginContainer/VBoxContainer" unique_id=1844326508]
-custom_minimum_size = Vector2(0, 6)
-layout_mode = 2
-
-[node name="CloseSettingsButton" type="Button" parent="SettingsPanel/MarginContainer/VBoxContainer" unique_id=1224935046]
-custom_minimum_size = Vector2(120, 32)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.92, 0.92, 0.94, 1)
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "Close"
-
 [node name="CreditsPanel" type="PanelContainer" parent="." unique_id=1874379275]
 visible = false
 layout_mode = 1
@@ -382,3 +301,4 @@ text = "Close"
 
 [node name="SaveLoadDialog" parent="." instance=ExtResource("4_saveload")]
 [node name="WorldCreationDialog" parent="." instance=ExtResource("5_worldcreation")]
+[node name="SettingsDialog" parent="." instance=ExtResource("6_settings")]

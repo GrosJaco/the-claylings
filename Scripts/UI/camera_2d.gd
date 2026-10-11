@@ -38,19 +38,9 @@ func _process(delta: float):
 			global_position = target_position
 			is_centering = false
 	
-	var direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	var direction = Input.get_vector("cam_left", "cam_right", "cam_up", "cam_down")
 	if direction == Vector2.ZERO:
-		var dx = 0.0
-		var dy = 0.0
-		if Input.is_physical_key_pressed(KEY_RIGHT) or Input.is_physical_key_pressed(KEY_D):
-			dx += 1.0
-		if Input.is_physical_key_pressed(KEY_LEFT) or Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_Q):
-			dx -= 1.0
-		if Input.is_physical_key_pressed(KEY_DOWN) or Input.is_physical_key_pressed(KEY_S):
-			dy += 1.0
-		if Input.is_physical_key_pressed(KEY_UP) or Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_Z):
-			dy -= 1.0
-		direction = Vector2(dx, dy).normalized()
+		direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	
 	if direction != Vector2.ZERO:
 		is_centering = false
@@ -75,10 +65,9 @@ func _unhandled_input(event: InputEvent):
 			
 		target_zoom = clamp(target_zoom, zoom_min, zoom_max)
 
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_H or event.keycode == KEY_HOME:
-			center_on_crystal(true)
-			get_viewport().set_input_as_handled()
+	if event.is_action_pressed("cam_center"):
+		center_on_crystal(true)
+		get_viewport().set_input_as_handled()
 
 func focus_on_position(target: Vector2) -> void:
 	target_position = target

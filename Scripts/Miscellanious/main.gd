@@ -1186,7 +1186,7 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 
-		if event.keycode == KEY_M:
+		if event.is_action_pressed("toggle_harvest_zone"):
 			create_harvest_zone()
 			get_viewport().set_input_as_handled()
 			return
@@ -1224,7 +1224,7 @@ func cycle_next_clayling(reverse: bool = false) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_TAB:
+		if event.is_action_pressed("cycle_clayling"):
 			cycle_next_clayling(event.shift_pressed)
 			get_viewport().set_input_as_handled()
 			return

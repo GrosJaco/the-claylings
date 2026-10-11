@@ -504,10 +504,10 @@ func _input(event: InputEvent) -> void:
 			set_demolish_mode(false)
 			get_viewport().set_input_as_handled()
 			return
-		if event.keycode == KEY_X:
+		if event.is_action_pressed("call_to_arms"):
 			trigger_call_to_arms()
 			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_Z:
+		elif event.is_action_pressed("call_to_work"):
 			trigger_call_to_work()
 			get_viewport().set_input_as_handled()
 

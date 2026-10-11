@@ -13,11 +13,7 @@ class_name PauseMenu
 @onready var main_menu_button: Button = $VBoxContainer/MainMenuButton
 @onready var quit_button: Button = $VBoxContainer/QuitButton
 
-@onready var settings_panel: Control = $SettingsPanel
-@onready var close_settings_button: Button = $SettingsPanel/MarginContainer/VBoxContainer/CloseSettingsButton
-@onready var volume_slider: HSlider = $SettingsPanel/MarginContainer/VBoxContainer/VolumeRow/VolumeSlider
-@onready var fullscreen_check: CheckBox = $SettingsPanel/MarginContainer/VBoxContainer/FullscreenRow/FullscreenCheckBox
-
+@onready var settings_dialog: SettingsDialog = $SettingsDialog
 @onready var save_load_dialog: SaveLoadDialog = $SaveLoadDialog
 
 # ========== STATE ==========
@@ -35,9 +31,6 @@ func _ready() -> void:
 	if dark_overlay:
 		dark_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	if settings_panel:
-		settings_panel.visible = false
-
 	# Connect navigation buttons
 	if resume_button:
 		resume_button.pressed.connect(resume)
@@ -52,15 +45,10 @@ func _ready() -> void:
 	if quit_button:
 		quit_button.pressed.connect(_on_quit_pressed)
 
-	if close_settings_button:
-		close_settings_button.pressed.connect(_close_settings)
-
 	if save_load_dialog:
 		save_load_dialog.save_confirmed.connect(_on_save_confirmed)
 		save_load_dialog.load_confirmed.connect(_on_load_confirmed)
 		save_load_dialog.cancelled.connect(_update_load_button_state)
-
-	_init_settings_values()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -69,9 +57,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				if save_load_dialog and save_load_dialog.visible:
 					# SaveLoadDialog handles Escape internally
 					return
-				elif settings_panel and settings_panel.visible:
-					_close_settings()
-					get_viewport().set_input_as_handled()
+				elif settings_dialog and settings_dialog.visible:
+					# SettingsDialog handles Escape internally
+					return
 				else:
 					resume()
 					get_viewport().set_input_as_handled()
@@ -120,8 +108,8 @@ func pause() -> void:
 	if dark_overlay:
 		dark_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 
-	if settings_panel:
-		settings_panel.visible = false
+	if settings_dialog:
+		settings_dialog.close()
 
 	_update_load_button_state()
 
@@ -139,8 +127,8 @@ func resume() -> void:
 	if dark_overlay:
 		dark_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	if settings_panel:
-		settings_panel.visible = false
+	if settings_dialog:
+		settings_dialog.close()
 	if save_load_dialog:
 		save_load_dialog.close()
 
@@ -166,16 +154,8 @@ func _on_load_confirmed(slot_name: String) -> void:
 		save_mgr.load_game(slot_name)
 
 func _on_settings_pressed() -> void:
-	if settings_panel:
-		settings_panel.visible = true
-		if close_settings_button:
-			close_settings_button.grab_focus()
-
-func _close_settings() -> void:
-	if settings_panel:
-		settings_panel.visible = false
-		if settings_button:
-			settings_button.grab_focus()
+	if settings_dialog:
+		settings_dialog.open()
 
 func _on_main_menu_pressed() -> void:
 	get_tree().paused = false
@@ -185,7 +165,7 @@ func _on_main_menu_pressed() -> void:
 func _on_quit_pressed() -> void:
 	get_tree().quit()
 
-# ========== SETTINGS & SAVE HELPERS ==========
+# ========== SAVE HELPERS ==========
 
 func _update_load_button_state() -> void:
 	if not load_button:
@@ -199,30 +179,3 @@ func _update_load_button_state() -> void:
 			has_save = save_mgr.has_save("quicksave")
 
 	load_button.disabled = not has_save
-
-func _init_settings_values() -> void:
-	var master_idx = AudioServer.get_bus_index("Master")
-	if master_idx >= 0 and volume_slider:
-		var current_vol = db_to_linear(AudioServer.get_bus_volume_db(master_idx))
-		volume_slider.value = current_vol
-		volume_slider.value_changed.connect(_on_volume_changed)
-
-	if fullscreen_check:
-		var mode = DisplayServer.window_get_mode()
-		fullscreen_check.button_pressed = (mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
-		fullscreen_check.toggled.connect(_on_fullscreen_toggled)
-
-func _on_volume_changed(value: float) -> void:
-	var master_idx = AudioServer.get_bus_index("Master")
-	if master_idx >= 0:
-		if value <= 0.001:
-			AudioServer.set_bus_mute(master_idx, true)
-		else:
-			AudioServer.set_bus_mute(master_idx, false)
-			AudioServer.set_bus_volume_db(master_idx, linear_to_db(value))
-
-func _on_fullscreen_toggled(toggled_on: bool) -> void:
-	if toggled_on:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	else:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)

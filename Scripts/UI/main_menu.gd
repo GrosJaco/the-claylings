@@ -10,13 +10,9 @@ class_name MainMenu
 @onready var credits_button: Button = $VBoxContainer/CreditsButton
 @onready var quit_button: Button = $VBoxContainer/QuitButton
 
-@onready var settings_panel: Control = $SettingsPanel
+@onready var settings_dialog: SettingsDialog = $SettingsDialog
 @onready var credits_panel: Control = $CreditsPanel
-@onready var settings_close_button: Button = $SettingsPanel/MarginContainer/VBoxContainer/CloseSettingsButton
 @onready var credits_close_button: Button = $CreditsPanel/MarginContainer/VBoxContainer/CloseCreditsButton
-
-@onready var volume_slider: HSlider = $SettingsPanel/MarginContainer/VBoxContainer/VolumeRow/VolumeSlider
-@onready var fullscreen_check: CheckBox = $SettingsPanel/MarginContainer/VBoxContainer/FullscreenRow/FullscreenCheckBox
 
 @onready var save_load_dialog: SaveLoadDialog = $SaveLoadDialog
 @onready var world_creation_dialog: WorldCreationDialog = $WorldCreationDialog
@@ -24,9 +20,6 @@ class_name MainMenu
 # ========== INITIALIZATION ==========
 
 func _ready() -> void:
-	# Hide overlay panels on startup
-	if settings_panel:
-		settings_panel.visible = false
 	if credits_panel:
 		credits_panel.visible = false
 
@@ -45,9 +38,6 @@ func _ready() -> void:
 	if quit_button:
 		quit_button.pressed.connect(_on_quit_pressed)
 
-	# Connect modal close buttons
-	if settings_close_button:
-		settings_close_button.pressed.connect(_close_modals)
 	if credits_close_button:
 		credits_close_button.pressed.connect(_close_modals)
 
@@ -58,19 +48,16 @@ func _ready() -> void:
 	if world_creation_dialog:
 		world_creation_dialog.world_creation_confirmed.connect(_on_world_creation_confirmed)
 
-	# Initialize settings controls
-	_init_settings_values()
-
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
 			if save_load_dialog and save_load_dialog.visible:
-				# SaveLoadDialog handles Escape internally
 				return
 			if world_creation_dialog and world_creation_dialog.visible:
-				# WorldCreationDialog handles Escape internally
 				return
-			if (settings_panel and settings_panel.visible) or (credits_panel and credits_panel.visible):
+			if settings_dialog and settings_dialog.visible:
+				return
+			if credits_panel and credits_panel.visible:
 				_close_modals()
 				get_viewport().set_input_as_handled()
 
@@ -121,18 +108,18 @@ func _on_save_load_confirmed(slot_name: String) -> void:
 func _on_settings_pressed() -> void:
 	if credits_panel:
 		credits_panel.visible = false
-	if settings_panel:
-		settings_panel.visible = true
+	if settings_dialog:
+		settings_dialog.open()
 
 func _on_credits_pressed() -> void:
-	if settings_panel:
-		settings_panel.visible = false
+	if settings_dialog:
+		settings_dialog.close()
 	if credits_panel:
 		credits_panel.visible = true
 
 func _close_modals() -> void:
-	if settings_panel:
-		settings_panel.visible = false
+	if settings_dialog:
+		settings_dialog.close()
 	if credits_panel:
 		credits_panel.visible = false
 	if save_load_dialog:
@@ -143,7 +130,7 @@ func _close_modals() -> void:
 func _on_quit_pressed() -> void:
 	get_tree().quit()
 
-# ========== SETTINGS & SAVE HELPERS ==========
+# ========== SAVE HELPERS ==========
 
 func _check_save_availability() -> void:
 	var save_mgr = get_node_or_null("/root/SaveManager")
@@ -158,32 +145,3 @@ func _check_save_availability() -> void:
 		continue_button.disabled = not has_save
 	if load_game_button:
 		load_game_button.disabled = not has_save
-
-func _init_settings_values() -> void:
-	# Audio volume setup
-	var master_idx = AudioServer.get_bus_index("Master")
-	if master_idx >= 0 and volume_slider:
-		var current_vol = db_to_linear(AudioServer.get_bus_volume_db(master_idx))
-		volume_slider.value = current_vol
-		volume_slider.value_changed.connect(_on_volume_changed)
-
-	# Fullscreen toggle setup
-	if fullscreen_check:
-		var mode = DisplayServer.window_get_mode()
-		fullscreen_check.button_pressed = (mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
-		fullscreen_check.toggled.connect(_on_fullscreen_toggled)
-
-func _on_volume_changed(value: float) -> void:
-	var master_idx = AudioServer.get_bus_index("Master")
-	if master_idx >= 0:
-		if value <= 0.001:
-			AudioServer.set_bus_mute(master_idx, true)
-		else:
-			AudioServer.set_bus_mute(master_idx, false)
-			AudioServer.set_bus_volume_db(master_idx, linear_to_db(value))
-
-func _on_fullscreen_toggled(toggled_on: bool) -> void:
-	if toggled_on:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	else:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)

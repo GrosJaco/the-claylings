@@ -69,7 +69,7 @@ func _input(event):
 			if is_previewing and not is_mandatory_placement:
 				cancel_preview()
 				get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_R:
+		elif event.is_action_pressed("rotate_building"):
 			if is_previewing and preview_instance and preview_instance.has_method("toggle_orientation"):
 				preview_instance.toggle_orientation()
 				get_viewport().set_input_as_handled()

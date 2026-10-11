@@ -44,16 +44,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if not is_visible_in_tree() or not event.is_pressed() or event.is_echo():
 		return
 
-	if event.keycode == KEY_SPACE:
+	if event.is_action_pressed("speed_pause"):
 		toggle_pause()
 		get_viewport().set_input_as_handled()
-	elif event.keycode == KEY_1 or event.keycode == KEY_KP_1:
+	elif event.is_action_pressed("speed_1x"):
 		set_speed_mode(SpeedMode.SPEED_1X)
 		get_viewport().set_input_as_handled()
-	elif event.keycode == KEY_2 or event.keycode == KEY_KP_2:
+	elif event.is_action_pressed("speed_2x"):
 		set_speed_mode(SpeedMode.SPEED_2X)
 		get_viewport().set_input_as_handled()
-	elif event.keycode == KEY_3 or event.keycode == KEY_KP_3:
+	elif event.is_action_pressed("speed_3x"):
 		set_speed_mode(SpeedMode.SPEED_3X)
 		get_viewport().set_input_as_handled()
 

@@ -1,0 +1,229 @@
+[gd_scene format=3 uid="uid://bluebeetle001"]
+
+[ext_resource type="PackedScene" uid="uid://benemybase001" path="res://Scenes/Enemies/Enemy.tscn" id="1_base"]
+[ext_resource type="Texture2D" uid="uid://bhh6tq1e3a3iv" path="res://Art/Enemies/BlueBeetle.png" id="2_beetle_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atk_0"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(0, 32, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atk_1"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(64, 32, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atk_2"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(128, 32, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_0"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(0, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_1"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(64, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_2"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(128, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_3"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(192, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w1hmg"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(0, 32, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_weqg2"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(64, 32, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6vqjq"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(128, 32, 64, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_blue_beetle"]
+animations = [{
+"frames": [],
+"loop": 0,
+"name": &"attack",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"attack_down",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atk_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atk_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atk_2")
+}],
+"loop": 0,
+"name": &"attack_side",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"attack_up",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"death",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"death_down",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"death_side",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"death_up",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"hurt",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"hurt_down",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"hurt_side",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 0,
+"name": &"hurt_up",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_3")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 4.0
+}, {
+"frames": [],
+"loop": 1,
+"name": &"idle_down",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_3")
+}],
+"loop": 1,
+"name": &"idle_side",
+"speed": 6.0
+}, {
+"frames": [],
+"loop": 1,
+"name": &"idle_up",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w1hmg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_weqg2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6vqjq")
+}],
+"loop": 1,
+"name": &"run",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 1,
+"name": &"run_down",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_3")
+}],
+"loop": 1,
+"name": &"run_side",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": 1,
+"name": &"run_up",
+"speed": 8.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_iawy0"]
+radius = 8.0
+height = 32.0
+
+[node name="BlueBeetle" unique_id=238947120 instance=ExtResource("1_base")]
+enemy_name = "Blue Beetle"
+max_health = 200.0
+speed = 28.0
+attack_damage = 25.0
+attack_range = 28.0
+attack_cooldown = 1.8
+attack_windup_time = 0.35
+attack_knockback = 75.0
+knockback_resistance = 0.75
+
+[node name="AnimatedSprite2D" parent="Pivot" parent_id_path=PackedInt32Array(1115730094) index="0" unique_id=29146748]
+position = Vector2(2, -8)
+scale = Vector2(-1, 1)
+sprite_frames = SubResource("SpriteFrames_blue_beetle")
+animation = &"idle"
+autoplay = "idle"
+frame_progress = 0.805611
+
+[node name="CollisionShape2D" parent="." index="1" unique_id=447004811]
+position = Vector2(-2, -12)
+rotation = 1.5707964
+shape = SubResource("CapsuleShape2D_iawy0")

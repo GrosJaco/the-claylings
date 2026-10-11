@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemySpawnData" format=3 uid="uid://eqfwuxokriaq"]
+
+[ext_resource type="PackedScene" uid="uid://bluebeetle001" path="res://Scenes/Enemies/BlueBeetle.tscn" id="1_beetle_scene"]
+[ext_resource type="Script" uid="uid://civhgkjhpq0pu" path="res://Scripts/Data/EnemySpawnData.gd" id="2_spawn_data_script"]
+
+[resource]
+script = ExtResource("2_spawn_data_script")
+enemy_name = "Blue Beetle"
+scene = ExtResource("1_beetle_scene")
+point_cost = 9
+min_wave = 2
+selection_weight = 0.6
+metadata/_custom_type_script = "uid://civhgkjhpq0pu"

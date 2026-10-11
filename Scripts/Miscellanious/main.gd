@@ -20,6 +20,7 @@ extends Node2D
 
 @onready var blue_spider_scene: PackedScene = preload("res://Scenes/Enemies/BlueSpider.tscn")
 @onready var purple_spider_scene: PackedScene = preload("res://Scenes/Enemies/PurpleSpider.tscn")
+@onready var blue_beetle_scene: PackedScene = preload("res://Scenes/Enemies/BlueBeetle.tscn")
 
 @onready var zone_scene: PackedScene = preload("res://Scenes/zone.tscn")
 
@@ -239,6 +240,8 @@ func spawn_enemy(pos: Vector2, enemy_type: String = "blue_spider") -> void:
 		enemy_scene = blue_spider_scene
 	elif enemy_type == "purple_spider":
 		enemy_scene = purple_spider_scene
+	elif enemy_type == "blue_beetle":
+		enemy_scene = blue_beetle_scene
 
 	if enemy_scene:
 		var enemy = enemy_scene.instantiate()
@@ -1179,6 +1182,10 @@ func _input(event: InputEvent) -> void:
 				return
 			if event.keycode == KEY_V:
 				spawn_enemy(get_global_mouse_position(), "purple_spider")
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_G:
+				spawn_enemy(get_global_mouse_position(), "blue_beetle")
 				get_viewport().set_input_as_handled()
 				return
 			if event.keycode == KEY_L:

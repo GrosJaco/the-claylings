@@ -19,6 +19,7 @@ signal enemy_died(enemy: Enemy)
 @export var wander_radius: float = 64.0
 @export var attack_windup_time: float = 0.25
 @export var attack_knockback: float = 45.0
+@export_range(0.0, 1.0) var knockback_resistance: float = 0.0
 
 @export_group("Loot")
 @export var loot_table: Array[LootDrop] = []
@@ -473,16 +474,23 @@ func _play_animation(anim_name: String) -> void:
 		return
 
 	_current_base_anim = anim_name
-	var full_anim = anim_name
-	# Check directional variants first if available
-	if sprite.sprite_frames.has_animation(anim_name + "_" + _last_direction):
-		full_anim = anim_name + "_" + _last_direction
-	elif sprite.sprite_frames.has_animation(anim_name + "_side"):
-		full_anim = anim_name + "_side"
+	var full_anim = ""
+	var dir_variant = anim_name + "_" + _last_direction
+	var side_variant = anim_name + "_side"
+
+	# Prioritize non-empty directional animation variants, falling back if empty
+	if sprite.sprite_frames.has_animation(dir_variant) and sprite.sprite_frames.get_frame_count(dir_variant) > 0:
+		full_anim = dir_variant
+	elif sprite.sprite_frames.has_animation(side_variant) and sprite.sprite_frames.get_frame_count(side_variant) > 0:
+		full_anim = side_variant
+	elif sprite.sprite_frames.has_animation(anim_name) and sprite.sprite_frames.get_frame_count(anim_name) > 0:
+		full_anim = anim_name
+	elif sprite.sprite_frames.has_animation(dir_variant):
+		full_anim = dir_variant
 	elif sprite.sprite_frames.has_animation(anim_name):
 		full_anim = anim_name
 
-	if sprite.animation != full_anim or not sprite.is_playing():
+	if full_anim != "" and (sprite.animation != full_anim or not sprite.is_playing()):
 		sprite.play(full_anim)
 
 func _update_direction(dir_vec: Vector2) -> void:
@@ -521,10 +529,13 @@ func _face_position(target_pos: Vector2) -> void:
 func apply_knockback(source_pos: Vector2, force: float) -> void:
 	if is_dead or force <= 0.0:
 		return
+	var effective_force = force * (1.0 - clampf(knockback_resistance, 0.0, 1.0))
+	if effective_force <= 0.0:
+		return
 	var dir = (global_position - source_pos).normalized()
 	if dir == Vector2.ZERO:
 		dir = Vector2.RIGHT.rotated(randf() * TAU)
-	var impulse = dir * force
+	var impulse = dir * effective_force
 	if impulse.length_squared() > knockback_velocity.length_squared():
 		knockback_velocity = impulse
 

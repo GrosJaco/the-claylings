@@ -49,6 +49,7 @@
 [ext_resource type="PackedScene" uid="uid://datliv70vvbos" path="res://Scenes/UI/CallToArmsButton.tscn" id="42_y86h7"]
 [ext_resource type="Resource" uid="uid://d2dt6bb3mjlad" path="res://Resources/Enemies Resources/blue_spider_spawn_data.tres" id="43_jut3y"]
 [ext_resource type="Resource" uid="uid://c2625pr7h5arp" path="res://Resources/Enemies Resources/purple_spider_spawn_data.tres" id="44_v2nl5"]
+[ext_resource type="Resource" uid="uid://bluebeetlespawn001" path="res://Resources/Enemies Resources/blue_beetle_spawn_data.tres" id="45_beetle"]
 [ext_resource type="PackedScene" uid="uid://dft2ui8m4k01" path="res://Scenes/UI/DefeatUI.tscn" id="48_defeat"]
 [ext_resource type="PackedScene" uid="uid://cq7pjnseuikr5" path="res://Scenes/UI/CrystalPlacementBanner.tscn" id="49_banner"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/TimeSpeedUI.tscn" id="50_timespeed"]
@@ -1707,7 +1708,7 @@ blueprint_scene = ExtResource("2_e08e2")
 
 [node name="WaveManager" type="Node2D" parent="." unique_id=2078706818]
 script = ExtResource("41_aa8k8")
-enemy_catalog = Array[ExtResource("42_s8vy0")]([ExtResource("43_jut3y"), ExtResource("44_v2nl5")])
+enemy_catalog = Array[ExtResource("42_s8vy0")]([ExtResource("43_jut3y"), ExtResource("44_v2nl5"), ExtResource("45_beetle")])
 
 [node name="BuildingRadialMenu" parent="." unique_id=1933261544 instance=ExtResource("19_fevyy")]
 

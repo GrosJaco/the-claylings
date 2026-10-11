@@ -39,7 +39,7 @@ var _attack_cooldown_timer: float = 0.0
 var _spawn_pos: Vector2 = Vector2.ZERO
 var _stuck_timer: float = 0.0
 var _scan_timer: float = 0.0
-var _last_direction: String = "down"
+var _last_direction: String = ""
 var _current_base_anim: String = ""
 var knockback_velocity: Vector2 = Vector2.ZERO
 var _scurry_player: AudioStreamPlayer2D = null
@@ -273,6 +273,7 @@ func _process_wander(delta: float) -> void:
 	var next_pos = agent.get_next_path_position()
 	var dir = global_position.direction_to(next_pos)
 	velocity = dir * (speed * 0.6)
+	_play_animation("run")
 	_update_direction(dir)
 
 	if get_real_velocity().length_squared() < 9.0:
@@ -307,6 +308,7 @@ func _process_assault(delta: float) -> void:
 		var next_pos = agent.get_next_path_position()
 		var dir = global_position.direction_to(next_pos)
 		velocity = dir * speed
+		_play_animation("run")
 		_update_direction(dir)
 
 		# Anti-stuck watchdog during assault: attack blocking wall if colliding
@@ -365,6 +367,7 @@ func _process_chase(delta: float) -> void:
 		var next_pos = agent.get_next_path_position()
 		var dir = global_position.direction_to(next_pos)
 		velocity = dir * speed
+		_play_animation("run")
 		_update_direction(dir)
 
 		# Anti-stuck watchdog: attack wall if blocked, or drop pursuit if stuck
@@ -388,8 +391,14 @@ func _process_chase(delta: float) -> void:
 		else:
 			_stuck_timer = max(0.0, _stuck_timer - delta * 0.5)
 	else:
-		velocity = Vector2.ZERO
-		_play_animation("idle")
+		if dist_sq > atk_range_sq:
+			var dir = global_position.direction_to(current_target.global_position)
+			velocity = dir * speed
+			_play_animation("run")
+			_update_direction(dir)
+		else:
+			velocity = Vector2.ZERO
+			_play_animation("idle")
 
 var _attack_executed: bool = false
 
@@ -475,20 +484,19 @@ func _play_animation(anim_name: String) -> void:
 
 	_current_base_anim = anim_name
 	var full_anim = ""
-	var dir_variant = anim_name + "_" + _last_direction
-	var side_variant = anim_name + "_side"
 
-	# Prioritize non-empty directional animation variants, falling back if empty
-	if sprite.sprite_frames.has_animation(dir_variant) and sprite.sprite_frames.get_frame_count(dir_variant) > 0:
-		full_anim = dir_variant
-	elif sprite.sprite_frames.has_animation(side_variant) and sprite.sprite_frames.get_frame_count(side_variant) > 0:
-		full_anim = side_variant
-	elif sprite.sprite_frames.has_animation(anim_name) and sprite.sprite_frames.get_frame_count(anim_name) > 0:
-		full_anim = anim_name
-	elif sprite.sprite_frames.has_animation(dir_variant):
-		full_anim = dir_variant
-	elif sprite.sprite_frames.has_animation(anim_name):
-		full_anim = anim_name
+	# Check directional variants if direction is up or down
+	if _last_direction != "":
+		var dir_variant = anim_name + "_" + _last_direction
+		if sprite.sprite_frames.has_animation(dir_variant) and sprite.sprite_frames.get_frame_count(dir_variant) > 0:
+			full_anim = dir_variant
+
+	# Fallback to base animation (e.g. "run", "idle", "attack")
+	if full_anim == "":
+		if sprite.sprite_frames.has_animation(anim_name) and sprite.sprite_frames.get_frame_count(anim_name) > 0:
+			full_anim = anim_name
+		elif sprite.sprite_frames.has_animation(anim_name):
+			full_anim = anim_name
 
 	if full_anim != "" and (sprite.animation != full_anim or not sprite.is_playing()):
 		sprite.play(full_anim)
@@ -497,10 +505,8 @@ func _update_direction(dir_vec: Vector2) -> void:
 	if abs(dir_vec.x) > 0.05:
 		sprite.flip_h = dir_vec.x < 0
 
-	var new_dir = "down"
-	if abs(dir_vec.x) > abs(dir_vec.y):
-		new_dir = "side"
-	else:
+	var new_dir = ""
+	if abs(dir_vec.y) > abs(dir_vec.x):
 		new_dir = "up" if dir_vec.y < 0 else "down"
 
 	if _last_direction != new_dir:
@@ -513,10 +519,8 @@ func _face_position(target_pos: Vector2) -> void:
 	if abs(diff.x) > 1.0:
 		sprite.flip_h = diff.x < 0
 
-	var new_dir = "down"
-	if abs(diff.x) > abs(diff.y):
-		new_dir = "side"
-	else:
+	var new_dir = ""
+	if abs(diff.y) > abs(diff.x):
 		new_dir = "up" if diff.y < 0 else "down"
 
 	if _last_direction != new_dir:

@@ -14,26 +14,35 @@ var is_centering: bool = false
 var _shake_timer: float = 0.0
 var _shake_intensity: float = 0.0
 
+var _last_tick: int = 0
+
 func _ready():
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("camera")
 	target_zoom = zoom.x
 	target_position = global_position
+	_last_tick = Time.get_ticks_usec()
 
 func shake(intensity: float = 6.0, duration: float = 0.35) -> void:
 	_shake_intensity = intensity
 	_shake_timer = duration
 
 func _process(delta: float):
+	var now = Time.get_ticks_usec()
+	var dt = (now - _last_tick) / 1000000.0 if _last_tick > 0 else (1.0 / 60.0)
+	_last_tick = now
+	dt = clampf(dt, 0.0, 0.1)
+
 	if _shake_timer > 0.0:
-		_shake_timer -= delta
+		_shake_timer -= dt
 		offset = Vector2(randf_range(-_shake_intensity, _shake_intensity), randf_range(-_shake_intensity, _shake_intensity))
 		if _shake_timer <= 0.0:
 			offset = Vector2.ZERO
 
-	zoom = zoom.lerp(Vector2(target_zoom, target_zoom), smooth_factor * delta)
+	zoom = zoom.lerp(Vector2(target_zoom, target_zoom), smooth_factor * dt)
 
 	if is_centering:
-		global_position = global_position.lerp(target_position, smooth_factor * delta)
+		global_position = global_position.lerp(target_position, smooth_factor * dt)
 		if global_position.distance_to(target_position) < 1.5:
 			global_position = target_position
 			is_centering = false
@@ -44,7 +53,7 @@ func _process(delta: float):
 	
 	if direction != Vector2.ZERO:
 		is_centering = false
-		position += direction * keyboard_pan_speed * delta / zoom.x
+		position += direction * keyboard_pan_speed * dt / zoom.x
 
 func _unhandled_input(event: InputEvent):
 	if event is InputEventMouseButton:

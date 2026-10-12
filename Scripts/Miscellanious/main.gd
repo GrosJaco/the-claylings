@@ -939,7 +939,7 @@ func drying_tile(pos):
 		tile_name = data.get_custom_data("tile_name")
 		set_tile(tile_name, pos, ground)
 
-func harvesting(pos):
+func harvesting(pos: Vector2i) -> void:
 	if crops.get_cell_source_id(pos) != -1 and crops_dic.has(pos) and crops_dic[pos]["duration"] < 0:
 		crops.erase_cell(pos)
 
@@ -955,9 +955,6 @@ func harvesting(pos):
 
 		crops_dic.erase(pos)
 		reserved_harvest.erase(pos)
-		return {"item": harvested_item, "count": quantity}
-
-	return null
 
 func planting(pos):
 	set_tile("carrot", pos, crops)

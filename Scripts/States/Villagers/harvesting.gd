@@ -23,10 +23,5 @@ func update(delta: float) -> void:
 
 func clayling_animation_finished():
 	clayling.animation_over = false
-	var harvested = clayling.harvesting(target_pos) # Get harvested item
-	if harvested and harvested.has("item"):
-		clayling.pick_item(harvested["item"], harvested.get("count", 1))
-	if clayling.is_inventory_full():
-		clayling.change_state("Haul")
-	else:
-		clayling.change_state("Idle")
+	clayling.harvesting(target_pos)
+	clayling.change_state("Idle")

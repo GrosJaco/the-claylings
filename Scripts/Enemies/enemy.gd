@@ -495,8 +495,6 @@ func _play_animation(anim_name: String) -> void:
 	if full_anim == "":
 		if sprite.sprite_frames.has_animation(anim_name) and sprite.sprite_frames.get_frame_count(anim_name) > 0:
 			full_anim = anim_name
-		elif sprite.sprite_frames.has_animation(anim_name):
-			full_anim = anim_name
 
 	if full_anim != "" and (sprite.animation != full_anim or not sprite.is_playing()):
 		sprite.play(full_anim)

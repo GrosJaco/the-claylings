@@ -16,11 +16,19 @@ var _close_timer: float = 0.0
 
 func _ready() -> void:
 	super._ready()
-	add_to_group("gates")
-	
-	if detection_area:
-		detection_area.body_entered.connect(_on_detection_area_body_entered)
-		detection_area.body_exited.connect(_on_detection_area_body_exited)
+	if not is_preview:
+		add_to_group("gates")
+		if detection_area:
+			detection_area.body_entered.connect(_on_detection_area_body_entered)
+			detection_area.body_exited.connect(_on_detection_area_body_exited)
+	else:
+		if detection_area is CollisionObject2D:
+			detection_area.collision_layer = 0
+			detection_area.collision_mask = 0
+			detection_area.process_mode = Node.PROCESS_MODE_DISABLED
+			for child in detection_area.get_children():
+				if child is CollisionShape2D or child is CollisionPolygon2D:
+					child.set_deferred("disabled", true)
 	
 	_apply_orientation()
 

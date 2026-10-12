@@ -41,12 +41,23 @@ var _previous_ground_alt: int = -1
 
 func _ready() -> void:
 	super._ready()
-	add_to_group("walls")
-	
 	if not is_preview:
+		add_to_group("walls")
 		_register_wall()
 		update_connections()
 		_notify_neighbors()
+	else:
+		_disable_collisions()
+
+func _disable_collisions() -> void:
+	var sb = get_node_or_null("StaticBody2D")
+	if sb is CollisionObject2D:
+		sb.collision_layer = 0
+		sb.collision_mask = 0
+		sb.process_mode = Node.PROCESS_MODE_DISABLED
+		for child in sb.get_children():
+			if child is CollisionShape2D or child is CollisionPolygon2D:
+				child.set_deferred("disabled", true)
 
 func _exit_tree() -> void:
 	_unregister_wall()

@@ -113,6 +113,16 @@ func _input(event):
 
 # ---------- PREVIEW ----------
 
+func _disable_preview_collisions(node: Node) -> void:
+	if node is CollisionObject2D:
+		node.collision_layer = 0
+		node.collision_mask = 0
+		node.process_mode = Node.PROCESS_MODE_DISABLED
+	if node is CollisionShape2D or node is CollisionPolygon2D:
+		node.disabled = true
+	for child in node.get_children():
+		_disable_preview_collisions(child)
+
 func start_preview(scene: PackedScene, cost: Dictionary = {}):
 	var rts = get_tree().get_first_node_in_group("rts_controller")
 	if rts and "is_demolish_mode" in rts and rts.is_demolish_mode:
@@ -125,6 +135,7 @@ func start_preview(scene: PackedScene, cost: Dictionary = {}):
 	preview_instance = scene.instantiate()
 	if "is_preview" in preview_instance:
 		preview_instance.is_preview = true
+	_disable_preview_collisions(preview_instance)
 	add_child(preview_instance)
 	preview_instance.modulate = Color(1, 1, 1, 0.5)
 	is_previewing = true

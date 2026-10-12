@@ -134,14 +134,15 @@ var sound_base_volumes: Dictionary = {
 	"spider spit": -6.0,
 
 	# Clayling voices
-	"voice_spawn": -12.5,
-	"voice_joy": -12.5,
-	"voice_select": -12.5,
-	"voice_interrogation": -12.5,
-	"voice_affirmation": -12.5,
-	"voice_work": -12.5,
-	"voice_attacked": -12.5,
-	"voice_hurt": -12.5,
+	"voice_spawn": -14.5,
+	"voice_joy": -14.5,
+	"voice_select": -14.5,
+	"voice_interrogation": -14.5,
+	"voice_affirmation": -14.5,
+	"voice_work": -14.5,
+	"voice_grumpy": -14.5,
+	"voice_attacked": -14.5,
+	"voice_hurt": -14.5,
 }
 
 @export_group("Spatial Audio")

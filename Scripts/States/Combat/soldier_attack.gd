@@ -58,7 +58,7 @@ func update(delta: float) -> void:
 			if parent_node:
 				parent_node.add_child(proj)
 			if proj.has_method("launch"):
-				proj.launch(clayling.global_position, target_pos, target_enemy, dmg)
+				proj.launch(clayling.global_position, target_pos, target_enemy, dmg, clayling)
 			SoundManager.play_at("shoot", clayling.global_position, 0.15)
 		else:
 			# Direct melee strike (e.g. spearman)

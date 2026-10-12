@@ -31,8 +31,9 @@ func _ready() -> void:
 	if shadow:
 		shadow.top_level = true
 
-func launch(from_pos: Vector2, to_pos: Vector2, target: Node2D = null, arrow_damage: float = 16.0) -> void:
-	shooter = null
+func launch(from_pos: Vector2, to_pos: Vector2, target: Node2D = null, arrow_damage: float = 16.0, p_shooter: Node2D = null) -> void:
+	if p_shooter != null:
+		shooter = p_shooter
 	start_pos = from_pos
 	target_pos = to_pos
 	target_node = target

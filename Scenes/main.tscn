@@ -68,7 +68,7 @@
 
 [sub_resource type="Gradient" id="Gradient_r33sp"]
 offsets = PackedFloat32Array(0.15, 0.25, 0.35, 0.65, 0.75, 0.85)
-colors = PackedColorArray(0.12941177, 0.16078432, 0.34509805, 1, 0.9905711, 0.8030712, 0.7331201, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.9829301, 0.8266818, 0.796477, 1, 0.12941177, 0.16078432, 0.34509805, 0.49803922)
+colors = PackedColorArray(0.26, 0.3, 0.5, 1, 0.9905711, 0.8030712, 0.7331201, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.9829301, 0.8266818, 0.796477, 1, 0.26, 0.3, 0.5, 1)
 
 [sub_resource type="Theme" id="Theme_gt3je"]
 default_font = ExtResource("5_ee4r6")

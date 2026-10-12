@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RecipeData" format=3 uid="uid://dhn6uh3n6dw0m"]
+
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="1_e6oa8"]
+[ext_resource type="Script" uid="uid://cu2wr1xya8kuf" path="res://Scripts/Data/RecipeData.gd" id="2_20iha"]
+[ext_resource type="Resource" uid="uid://bmmvgxb4kg6uh" path="res://Resources/Item Resources/Raw/raw_meat.tres" id="2_dqpqh"]
+[ext_resource type="Resource" uid="uid://c3e6jfqq12l30" path="res://Resources/Item Resources/Crops & Foods/cooked_meat.tres" id="3_xlaqf"]
+
+[resource]
+script = ExtResource("2_20iha")
+inputs = Dictionary[ExtResource("1_e6oa8"), int]({
+ExtResource("2_dqpqh"): 1
+})
+output_item = ExtResource("3_xlaqf")
+craft_time = 6.0
+metadata/_custom_type_script = "uid://cu2wr1xya8kuf"

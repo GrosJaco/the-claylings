@@ -1145,7 +1145,7 @@ custom_tile = Dictionary[String, ExtResource("2_21xkr")]({
 
 [node name="DayNightCycle" type="CanvasModulate" parent="." unique_id=284142236]
 script = ExtResource("6_r33sp")
-day_duration = 36.0
+day_duration = 1000.0
 color_over_time = SubResource("Gradient_r33sp")
 time_of_day = 0.33
 

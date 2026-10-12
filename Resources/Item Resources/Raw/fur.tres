@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://bwrnv08p5uln5"]
+
+[ext_resource type="Texture2D" uid="uid://deddaqcmm5hut" path="res://Art/Items.png" id="1_3neu3"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="1_75b71"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_apova"]
+atlas = ExtResource("1_3neu3")
+region = Rect2(32, 144, 16, 16)
+
+[resource]
+script = ExtResource("1_75b71")
+name = "fur"
+display_name = "Fur"
+icon = SubResource("AtlasTexture_apova")
+stack_size = 99
+metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

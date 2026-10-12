@@ -2,6 +2,17 @@
 
 [ext_resource type="Script" uid="uid://xvsl5yukxw4b" path="res://Scripts/Animal States/animal.gd" id="1_animal"]
 [ext_resource type="Texture2D" uid="uid://ddemgs5avf3wd" path="res://Art/Animals/Bunny.png" id="2_bunny_tex"]
+[ext_resource type="Script" uid="uid://bmm5c4tpi3xqu" path="res://Scripts/Data/LootDrop.gd" id="3_lootdrop"]
+[ext_resource type="Resource" uid="uid://bmmvgxb4kg6uh" path="res://Resources/Item Resources/Raw/raw_meat.tres" id="4_raw_meat"]
+[ext_resource type="Resource" uid="uid://bwrnv08p5uln5" path="res://Resources/Item Resources/Raw/fur.tres" id="5_fur"]
+
+[sub_resource type="Resource" id="Resource_loot_meat"]
+script = ExtResource("3_lootdrop")
+item = ExtResource("4_raw_meat")
+
+[sub_resource type="Resource" id="Resource_loot_fur"]
+script = ExtResource("3_lootdrop")
+item = ExtResource("5_fur")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yc178"]
 atlas = ExtResource("2_bunny_tex")
@@ -128,6 +139,7 @@ animal_name = "Bunny"
 max_health = 15.0
 speed = 48.0
 egg_item = null
+loot_table = Array[ExtResource("3_lootdrop")]([SubResource("Resource_loot_meat"), SubResource("Resource_loot_fur")])
 
 [node name="Pivot" type="Node2D" parent="." unique_id=737053766]
 

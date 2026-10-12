@@ -2,6 +2,13 @@
 
 [ext_resource type="PackedScene" uid="uid://benemybase001" path="res://Scenes/Enemies/Enemy.tscn" id="1_base"]
 [ext_resource type="Texture2D" uid="uid://bhh6tq1e3a3iv" path="res://Art/Enemies/BlueBeetle.png" id="2_beetle_tex"]
+[ext_resource type="Script" uid="uid://bmm5c4tpi3xqu" path="res://Scripts/Data/LootDrop.gd" id="3_lootdrop"]
+[ext_resource type="Resource" uid="uid://dcewokq0byhj5" path="res://Resources/Item Resources/Raw/beetle_scale.tres" id="4_scale"]
+
+[sub_resource type="Resource" id="Resource_loot_scale"]
+script = ExtResource("3_lootdrop")
+item = ExtResource("4_scale")
+max_count = 3
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yispe"]
 atlas = ExtResource("2_beetle_tex")
@@ -221,6 +228,7 @@ attack_cooldown = 1.8
 attack_windup_time = 0.35
 attack_knockback = 225.0
 knockback_resistance = 0.75
+loot_table = Array[ExtResource("3_lootdrop")]([SubResource("Resource_loot_scale")])
 
 [node name="AnimatedSprite2D" parent="Pivot" parent_id_path=PackedInt32Array(1115730094) index="0" unique_id=29146748]
 position = Vector2(2, -8)

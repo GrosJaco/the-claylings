@@ -7,6 +7,7 @@
 [ext_resource type="Resource" uid="uid://bx7ff0us50hfr" path="res://Resources/Fuel Resources/wood_fuel.tres" id="5_wood_fuel"]
 [ext_resource type="Resource" uid="uid://cookchick0001" path="res://Resources/Recipe Resources/cooked_chicken_recipe.tres" id="6_chicken_rec"]
 [ext_resource type="Resource" uid="uid://be6qipk07uqjo" path="res://Resources/Recipe Resources/omelette_recipe.tres" id="7_omelette_rec"]
+[ext_resource type="Resource" uid="uid://dhn6uh3n6dw0m" path="res://Resources/Recipe Resources/cooked_meat_recipe.tres" id="8_meat_rec"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cpot"]
 atlas = ExtResource("2_cpot_tex")
@@ -33,7 +34,7 @@ fill_to = Vector2(0.9, 0.5)
 
 [node name="CookingPot" type="Node2D" unique_id=2107772499]
 script = ExtResource("1_cpot")
-available_recipes = Array[ExtResource("4_rec_data")]([ExtResource("6_chicken_rec"), ExtResource("7_omelette_rec")])
+available_recipes = Array[ExtResource("4_rec_data")]([ExtResource("6_chicken_rec"), ExtResource("7_omelette_rec"), ExtResource("8_meat_rec")])
 requires_fuel = true
 accepted_fuels = Array[ExtResource("3_fuel_in")]([ExtResource("5_wood_fuel")])
 menu_offset = Vector2(0, -10)

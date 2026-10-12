@@ -12,5 +12,4 @@ ExtResource("3_raw"): 1
 })
 output_item = ExtResource("4_cooked")
 craft_time = 6.0
-need_clayling = false
 metadata/_custom_type_script = "uid://cu2wr1xya8kuf"

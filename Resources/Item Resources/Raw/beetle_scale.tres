@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://dcewokq0byhj5"]
+
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="1_13ra4"]
+[ext_resource type="Texture2D" uid="uid://deddaqcmm5hut" path="res://Art/Items.png" id="1_okiv6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_okiv6"]
+atlas = ExtResource("1_okiv6")
+region = Rect2(0, 160, 16, 16)
+
+[resource]
+script = ExtResource("1_13ra4")
+name = "beetle_scale"
+display_name = "Beetle Scale"
+icon = SubResource("AtlasTexture_okiv6")
+stack_size = 99
+metadata/_custom_type_script = "uid://bd2ixn7bdlbcp"

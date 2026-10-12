@@ -184,6 +184,10 @@ func save_game(slot_name: String = "quicksave") -> bool:
 			elif b is Blueprint:
 				b_dict["b_type"] = "blueprint"
 				b_dict["target_scene"] = b.target_building_scene.resource_path if b.target_building_scene else ""
+				if b.has_meta("gate_orientation"):
+					b_dict["gate_orientation"] = int(b.get_meta("gate_orientation"))
+				if b.has_meta("is_manual_orientation"):
+					b_dict["is_manual_orientation"] = bool(b.get_meta("is_manual_orientation"))
 				var req_m = {}
 				for k in b.required_materials.keys():
 					if k and k is ItemData:
@@ -246,6 +250,11 @@ func save_game(slot_name: String = "quicksave") -> bool:
 
 			else:
 				b_dict["b_type"] = "generic"
+
+			if "orientation" in b:
+				b_dict["orientation"] = int(b.orientation)
+			if "is_manual_orientation" in b:
+				b_dict["is_manual_orientation"] = bool(b.is_manual_orientation)
 
 			save_data["buildings"].append(b_dict)
 
@@ -605,7 +614,13 @@ func apply_pending_load(main: Node2D) -> void:
 		if "current_health" in b_node:
 			var h = int(b_dict.get("health", 100))
 			b_node.current_health = h if h > 0 else (b_node.max_health if "max_health" in b_node else 100)
+		if "orientation" in b_node and b_dict.has("orientation"):
+			b_node.orientation = int(b_dict["orientation"])
+		if "is_manual_orientation" in b_node and b_dict.has("is_manual_orientation"):
+			b_node.is_manual_orientation = bool(b_dict["is_manual_orientation"])
 		main.add_child(b_node)
+		if b_node.has_method("_apply_orientation"):
+			b_node._apply_orientation()
 
 		if b_dict.get("is_crystal", false):
 			b_node.add_to_group("crystal")
@@ -626,6 +641,10 @@ func apply_pending_load(main: Node2D) -> void:
 			b_node.update_sprite()
 
 		elif b_type == "blueprint" and b_node is Blueprint:
+			if b_dict.has("gate_orientation"):
+				b_node.set_meta("gate_orientation", int(b_dict["gate_orientation"]))
+			if b_dict.has("is_manual_orientation"):
+				b_node.set_meta("is_manual_orientation", bool(b_dict["is_manual_orientation"]))
 			var target_path = b_dict.get("target_scene", "")
 			var target_scene = load(target_path) if ResourceLoader.exists(target_path) else null
 			var req_m = {}
@@ -636,6 +655,7 @@ func apply_pending_load(main: Node2D) -> void:
 			for p in b_dict.get("current_materials", {}).keys():
 				if ResourceLoader.exists(p):
 					b_node.current_materials[load(p)] = int(b_dict["current_materials"][p])
+			b_node._check_completion()
 
 		elif b_type == "weapon_rack" and b_node is WeaponRack:
 			var saved_slots = b_dict.get("slots", [])

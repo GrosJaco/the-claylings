@@ -192,6 +192,7 @@ func place_tile_type(x):
 		"ground_tile":
 			if not preview_can_place:
 				return
+			_despawn_grass_on_tiles(preview_tiles)
 			for tile in preview_tiles:
 				world.ground.set_cell(tile, 0, Vector2i(6,0))
 				world.water_level[tile] = 0
@@ -208,6 +209,9 @@ func confirm_placement(keep_preview: bool = false):
 	_update_preview_under_mouse()
 	if !preview_can_place:
 		return
+
+	# Remove any grass on occupied tiles before placing building
+	_despawn_grass_on_tiles(preview_tiles)
 
 	var spawn_position = preview_instance.global_position
 	# Dev mode places finished building directly without blueprint or resource cost
@@ -302,3 +306,36 @@ func _is_mouse_over_ui() -> bool:
 func free_tiles(tiles_to_free: Array[Vector2i]) -> void:
 	for tile in tiles_to_free:
 		used_tiles.erase(tile)
+
+func _despawn_grass_on_tiles(tiles: Array[Vector2i]) -> void:
+	if tiles.is_empty():
+		return
+	var tile_set: Dictionary = {}
+	for t in tiles:
+		tile_set[t] = true
+
+	var plants: Array[Node] = get_tree().get_nodes_in_group("plants")
+	for plant in plants:
+		if not is_instance_valid(plant) or plant.is_queued_for_deletion():
+			continue
+		var p_pos: Vector2 = plant.global_position
+		var tile_a := Vector2i(int(floor(p_pos.x / float(TILE))), int(floor(p_pos.y / float(TILE))))
+		var tile_b := Vector2i(int(floor(p_pos.x / float(TILE))), int(floor((p_pos.y - 1.0) / float(TILE))))
+		if tile_set.has(tile_a) or tile_set.has(tile_b):
+			_despawn_plant(plant)
+
+func _despawn_plant(plant: Node) -> void:
+	if world and "reserved_forages" in world and world.reserved_forages.has(plant):
+		var clayling = world.reserved_forages[plant]
+		world.reserved_forages.erase(plant)
+		if is_instance_valid(clayling) and "states" in clayling and clayling.current_state == clayling.states.get("Forage"):
+			clayling.change_state("Idle")
+
+	for zone in get_tree().get_nodes_in_group("harvest_zones"):
+		if is_instance_valid(zone):
+			if "marked_nodes" in zone and plant in zone.marked_nodes:
+				zone.marked_nodes.erase(plant)
+			if "highlighted_nodes" in zone and plant in zone.highlighted_nodes:
+				zone.highlighted_nodes.erase(plant)
+
+	plant.queue_free()

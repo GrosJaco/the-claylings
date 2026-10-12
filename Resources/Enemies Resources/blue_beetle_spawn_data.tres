@@ -7,7 +7,7 @@
 script = ExtResource("2_spawn_data_script")
 enemy_name = "Blue Beetle"
 scene = ExtResource("1_beetle_scene")
-point_cost = 9
-min_wave = 2
-selection_weight = 0.6
+point_cost = 20
+min_wave = 5
+selection_weight = 0.5
 metadata/_custom_type_script = "uid://civhgkjhpq0pu"

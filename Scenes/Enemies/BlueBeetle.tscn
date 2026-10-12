@@ -157,13 +157,13 @@ height = 32.0
 
 [node name="BlueBeetle" unique_id=238947120 instance=ExtResource("1_base")]
 enemy_name = "Blue Beetle"
-max_health = 200.0
+max_health = 400.0
 speed = 28.0
 attack_damage = 25.0
 attack_range = 28.0
 attack_cooldown = 1.8
 attack_windup_time = 0.35
-attack_knockback = 75.0
+attack_knockback = 225.0
 knockback_resistance = 0.75
 
 [node name="AnimatedSprite2D" parent="Pivot" parent_id_path=PackedInt32Array(1115730094) index="0" unique_id=29146748]
@@ -172,7 +172,7 @@ scale = Vector2(-1, 1)
 sprite_frames = SubResource("SpriteFrames_blue_beetle")
 animation = &"run"
 autoplay = "idle"
-frame_progress = 0.016916884
+frame_progress = 0.5909178
 
 [node name="CollisionShape2D" parent="." index="1" unique_id=447004811]
 position = Vector2(-2, -12)

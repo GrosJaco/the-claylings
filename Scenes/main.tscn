@@ -49,7 +49,7 @@
 [ext_resource type="PackedScene" uid="uid://datliv70vvbos" path="res://Scenes/UI/CallToArmsButton.tscn" id="42_y86h7"]
 [ext_resource type="Resource" uid="uid://d2dt6bb3mjlad" path="res://Resources/Enemies Resources/blue_spider_spawn_data.tres" id="43_jut3y"]
 [ext_resource type="Resource" uid="uid://c2625pr7h5arp" path="res://Resources/Enemies Resources/purple_spider_spawn_data.tres" id="44_v2nl5"]
-[ext_resource type="Resource" uid="uid://bluebeetlespawn001" path="res://Resources/Enemies Resources/blue_beetle_spawn_data.tres" id="45_beetle"]
+[ext_resource type="Resource" uid="uid://eqfwuxokriaq" path="res://Resources/Enemies Resources/blue_beetle_spawn_data.tres" id="45_beetle"]
 [ext_resource type="PackedScene" uid="uid://dft2ui8m4k01" path="res://Scenes/UI/DefeatUI.tscn" id="48_defeat"]
 [ext_resource type="PackedScene" uid="uid://cq7pjnseuikr5" path="res://Scenes/UI/CrystalPlacementBanner.tscn" id="49_banner"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/TimeSpeedUI.tscn" id="50_timespeed"]
@@ -68,7 +68,7 @@
 
 [sub_resource type="Gradient" id="Gradient_r33sp"]
 offsets = PackedFloat32Array(0.15, 0.25, 0.35, 0.65, 0.75, 0.85)
-colors = PackedColorArray(0.12941177, 0.16078432, 0.34509805, 1, 0.9905711, 0.8030712, 0.7331201, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.9829301, 0.8266818, 0.796477, 1, 0.12941177, 0.16078432, 0.34509805, 1)
+colors = PackedColorArray(0.12941177, 0.16078432, 0.34509805, 1, 0.9905711, 0.8030712, 0.7331201, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.9829301, 0.8266818, 0.796477, 1, 0.12941177, 0.16078432, 0.34509805, 0.49803922)
 
 [sub_resource type="Theme" id="Theme_gt3je"]
 default_font = ExtResource("5_ee4r6")
@@ -1145,7 +1145,7 @@ custom_tile = Dictionary[String, ExtResource("2_21xkr")]({
 
 [node name="DayNightCycle" type="CanvasModulate" parent="." unique_id=284142236]
 script = ExtResource("6_r33sp")
-day_duration = 365.0
+day_duration = 36.0
 color_over_time = SubResource("Gradient_r33sp")
 time_of_day = 0.33
 

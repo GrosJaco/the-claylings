@@ -3,17 +3,49 @@
 [ext_resource type="PackedScene" uid="uid://benemybase001" path="res://Scenes/Enemies/Enemy.tscn" id="1_base"]
 [ext_resource type="Texture2D" uid="uid://bhh6tq1e3a3iv" path="res://Art/Enemies/BlueBeetle.png" id="2_beetle_tex"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_atk_0"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_yispe"]
 atlas = ExtResource("2_beetle_tex")
-region = Rect2(0, 32, 64, 32)
+region = Rect2(0, 64, 64, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_atk_1"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_6w2ri"]
 atlas = ExtResource("2_beetle_tex")
-region = Rect2(64, 32, 64, 32)
+region = Rect2(64, 64, 64, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_atk_2"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_tbnx5"]
 atlas = ExtResource("2_beetle_tex")
-region = Rect2(128, 32, 64, 32)
+region = Rect2(128, 64, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5ei84"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(192, 64, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nlhsp"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(256, 64, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b6t7s"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(0, 96, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4tf20"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(64, 96, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b8b0o"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(128, 96, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dkcrf"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(192, 96, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ylexn"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(0, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_grreo"]
+atlas = ExtResource("2_beetle_tex")
+region = Rect2(64, 0, 64, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_w1hmg"]
 atlas = ExtResource("2_beetle_tex")
@@ -47,15 +79,21 @@ region = Rect2(128, 32, 64, 32)
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_atk_0")
+"texture": SubResource("AtlasTexture_yispe")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_atk_1")
+"texture": SubResource("AtlasTexture_6w2ri")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_atk_2")
+"texture": SubResource("AtlasTexture_tbnx5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5ei84")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nlhsp")
 }],
-"loop": 0,
+"loop": 1,
 "name": &"attack",
 "speed": 8.0
 }, {
@@ -69,10 +107,22 @@ animations = [{
 "name": &"attack_up",
 "speed": 8.0
 }, {
-"frames": [],
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b6t7s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4tf20")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b8b0o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dkcrf")
+}],
 "loop": 0,
 "name": &"death",
-"speed": 8.0
+"speed": 6.0
 }, {
 "frames": [],
 "loop": 0,
@@ -84,8 +134,14 @@ animations = [{
 "name": &"death_up",
 "speed": 8.0
 }, {
-"frames": [],
-"loop": 0,
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ylexn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_grreo")
+}],
+"loop": 1,
 "name": &"hurt",
 "speed": 8.0
 }, {
@@ -170,9 +226,10 @@ knockback_resistance = 0.75
 position = Vector2(2, -8)
 scale = Vector2(-1, 1)
 sprite_frames = SubResource("SpriteFrames_blue_beetle")
-animation = &"run"
+animation = &"death"
 autoplay = "idle"
-frame_progress = 0.5909178
+frame = 3
+frame_progress = 1.0
 
 [node name="CollisionShape2D" parent="." index="1" unique_id=447004811]
 position = Vector2(-2, -12)

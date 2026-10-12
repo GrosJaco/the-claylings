@@ -86,3 +86,30 @@ func is_full() -> bool:
 
 func available_capacity() -> int:
 	return max(0, capacity - current_fill)
+
+func destroyed() -> void:
+	_drop_inventory()
+	super.destroyed()
+
+func _drop_inventory() -> void:
+	var parent_node = get_parent()
+	if not parent_node:
+		return
+
+	var item_scene_res = load("res://Scenes/item.tscn")
+	for item in inventory.keys():
+		var count = int(inventory[item])
+		if count > 0 and item is ItemData:
+			var max_stack = max(1, item.stack_size)
+			var remainder = count
+			while remainder > 0:
+				var take = min(remainder, max_stack)
+				var item_instance = item_scene_res.instantiate()
+				item_instance.data = item
+				item_instance.quantity = take
+				item_instance.global_position = global_position + Vector2(randf_range(-12.0, 12.0), randf_range(-12.0, 12.0))
+				parent_node.add_child(item_instance)
+				remainder -= take
+
+	inventory.clear()
+	current_fill = 0

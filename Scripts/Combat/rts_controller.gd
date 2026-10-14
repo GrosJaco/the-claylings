@@ -600,10 +600,14 @@ func _unhandled_input(event: InputEvent) -> void:
 					get_viewport().set_input_as_handled()
 				else:
 					var clicked_soldier = null
+					var best_dist = 18.0
 					for s in get_tree().get_nodes_in_group("soldiers"):
-						if is_instance_valid(s) and not s.is_dead and s.global_position.distance_to(mouse_pos) < 18.0:
-							clicked_soldier = s
-							break
+						if is_instance_valid(s) and not s.is_dead:
+							var body_center = s.global_position + Vector2(0, -7)
+							var d = body_center.distance_to(mouse_pos)
+							if d < best_dist:
+								best_dist = d
+								clicked_soldier = s
 
 					if clicked_soldier:
 						select_soldier(clicked_soldier)

@@ -886,17 +886,6 @@ func play_voice(category: String = "spawn") -> void:
 	_last_voice_time = now
 	SoundManager.play_voice(category, global_position, 0.15)
 
-func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Soldier clicks and squad responses are handled exclusively by RTSController
-		if is_combat_ready:
-			return
-		play_voice("interrogation")
-		var panel = get_tree().get_first_node_in_group("clayling_info_panel")
-		if panel:
-			panel.show_clayling(self)
-		viewport.set_input_as_handled()
-
 func _on_velocity_computed(safe_velocity: Vector2) -> void:
 	velocity = safe_velocity
 

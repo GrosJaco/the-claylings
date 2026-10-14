@@ -1258,44 +1258,113 @@ func _unhandled_input(event: InputEvent) -> void:
 		if defeat and defeat.get("_is_active"):
 			return
 
-		var mouse_pos = get_global_mouse_position()
-
-		# Check clicked regular villager (only if no soldier was clicked)
-		var clicked_villager = null
-		for c in active_claylings:
-			if is_instance_valid(c) and not c.is_dead and not c.is_combat_ready and c.global_position.distance_to(mouse_pos) < 18.0:
-				clicked_villager = c
-				break
-
-		if clicked_villager:
-			var clayling_ui = get_tree().get_first_node_in_group("clayling_info_panel")
-			if clayling_ui and clayling_ui.has_method("show_clayling"):
-				clayling_ui.show_clayling(clicked_villager)
-			clicked_villager.play_voice("interrogation")
-			get_viewport().set_input_as_handled()
-			return
-
-		# Check building interaction / radial menu
-		if radial_menu.visible and radial_menu.is_mouse_over_menu():
+		if _is_mouse_over_ui():
 			return
 
 		var is_placing_zone = false
 		for zone in get_tree().get_nodes_in_group("harvest_zones"):
-			if zone.is_placing: is_placing_zone = true
+			if is_instance_valid(zone) and zone.get("is_placing"):
+				is_placing_zone = true
+				break
+		if is_placing_zone:
+			return
 
-		if not is_placing_zone:
-			var clicked_building = null
-			for b in get_tree().get_nodes_in_group("crafting_buildings"):
-				if not b.is_preview and b.global_position.distance_to(mouse_pos) < 20.0:
-					clicked_building = b
-					break
+		var mouse_pos = get_global_mouse_position()
+		var candidates: Array[Dictionary] = []
 
-			if clicked_building and clicked_building is not Blueprint:
-				radial_menu.open(clicked_building)
-				get_viewport().set_input_as_handled()
-			else:
-				if radial_menu.visible:
+		# 1. Collect all claylings (villagers and soldiers)
+		var claylings = get_tree().get_nodes_in_group("claylings")
+		for c in claylings:
+			if not is_instance_valid(c) or not c.is_inside_tree() or not c.visible or c.get("is_dead"):
+				continue
+			var body_center = c.global_position + Vector2(0, -7)
+			var dist = mouse_pos.distance_to(body_center)
+			var is_direct = absf(mouse_pos.x - c.global_position.x) <= 7.5 and mouse_pos.y >= (c.global_position.y - 15.0) and mouse_pos.y <= c.global_position.y
+			if not is_direct and dist <= 8.5:
+				is_direct = true
+
+			if is_direct or dist <= 16.0:
+				candidates.append({
+					"node": c,
+					"type": "character",
+					"is_direct": is_direct,
+					"distance": dist,
+					"y_pos": c.global_position.y
+				})
+
+		# 2. Collect all crafting buildings
+		var crafting_buildings = get_tree().get_nodes_in_group("crafting_buildings")
+		for b in crafting_buildings:
+			if not is_instance_valid(b) or not b.is_inside_tree() or not b.visible or b.is_preview or b is Blueprint:
+				continue
+			var size_tiles: Vector2i = b.size_in_tiles if "size_in_tiles" in b else Vector2i(1, 1)
+			var offset = Vector2((size_tiles.x * 16.0) / 2.0, size_tiles.y * 16.0)
+			var b_rect = Rect2(b.global_position - offset, Vector2(size_tiles.x * 16.0, size_tiles.y * 16.0))
+
+			var is_direct = b_rect.has_point(mouse_pos)
+			var dist = 0.0
+			if not is_direct:
+				var dx = maxf(0.0, maxf(b_rect.position.x - mouse_pos.x, mouse_pos.x - b_rect.end.x))
+				var dy = maxf(0.0, maxf(b_rect.position.y - mouse_pos.y, mouse_pos.y - b_rect.end.y))
+				dist = sqrt(dx * dx + dy * dy)
+
+			if is_direct or dist <= 8.0:
+				candidates.append({
+					"node": b,
+					"type": "building",
+					"is_direct": is_direct,
+					"distance": dist,
+					"y_pos": b.global_position.y
+				})
+
+		if not candidates.is_empty():
+			candidates.sort_custom(func(a, b):
+				if a.is_direct != b.is_direct:
+					return a.is_direct
+				if a.is_direct:
+					if a.type != b.type:
+						return a.type == "character"
+					if a.type == "character":
+						if absf(a.y_pos - b.y_pos) > 2.0:
+							return a.y_pos > b.y_pos
+						return a.distance < b.distance
+					return a.distance < b.distance
+				if absf(a.distance - b.distance) > 2.0:
+					return a.distance < b.distance
+				return a.y_pos > b.y_pos
+			)
+
+			var winner = candidates[0]
+			if winner.type == "character":
+				var c = winner.node as CharacterBody2D
+				if c.is_combat_ready:
+					if rts_controller:
+						rts_controller.select_soldier(c)
+					var clayling_ui = get_tree().get_first_node_in_group("clayling_info_panel")
+					if clayling_ui and clayling_ui.has_method("show_clayling"):
+						clayling_ui.show_clayling(c)
+				else:
+					if rts_controller:
+						rts_controller.deselect_all_soldiers()
+					var clayling_ui = get_tree().get_first_node_in_group("clayling_info_panel")
+					if clayling_ui and clayling_ui.has_method("show_clayling"):
+						clayling_ui.show_clayling(c)
+					if c.has_method("play_voice"):
+						c.play_voice("interrogation")
+
+				if radial_menu and radial_menu.visible:
 					radial_menu.hide()
+				get_viewport().set_input_as_handled()
+				return
+			elif winner.type == "building":
+				if rts_controller:
+					rts_controller.deselect_all_soldiers()
+				radial_menu.open(winner.node)
+				get_viewport().set_input_as_handled()
+				return
+		else:
+			if radial_menu and radial_menu.visible:
+				radial_menu.hide()
 
 func get_grid_position(global_pos: Vector2) -> Vector2i:
 	var local_pos = buildings.to_local(global_pos)

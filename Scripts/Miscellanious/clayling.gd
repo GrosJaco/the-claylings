@@ -329,11 +329,20 @@ func drop_item(amount: int = -1, to_ground: bool = false) -> Dictionary:
 	
 	return out
 
+const DEFAULT_CARRY_SPRITE_POS: Vector2 = Vector2(2.5, -11.0)
+const EQUIPMENT_CARRY_SPRITE_POS: Vector2 = Vector2(10.5, -11.0)
+
 func _refresh_carry_sprite() -> void:
 	if inventory["item"] and inventory["count"] > 0:
-		carry_sprite.texture = inventory["item"].icon
+		var item: ItemData = inventory["item"]
+		carry_sprite.texture = item.icon
+		if item.has_method("is_equipment_item") and item.is_equipment_item():
+			carry_sprite.position = EQUIPMENT_CARRY_SPRITE_POS
+		else:
+			carry_sprite.position = DEFAULT_CARRY_SPRITE_POS
 		carry_sprite.visible = true
 	else:
+		carry_sprite.position = DEFAULT_CARRY_SPRITE_POS
 		carry_sprite.visible = false
 
 # ---------- COMBAT & EQUIPMENT ----------

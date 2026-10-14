@@ -9,6 +9,7 @@ region = Rect2(0, 192, 32, 32)
 
 [resource]
 script = ExtResource("1_ge4rr")
+is_equipment = true
 name = "sword"
 display_name = "Sword"
 icon = SubResource("AtlasTexture_6sllr")

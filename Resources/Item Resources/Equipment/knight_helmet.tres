@@ -9,6 +9,7 @@ region = Rect2(0, 256, 32, 32)
 
 [resource]
 script = ExtResource("2_1hq7e")
+is_equipment = true
 name = "knight_helmet"
 display_name = "Knight helmet"
 icon = SubResource("AtlasTexture_6sllr")

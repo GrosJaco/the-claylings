@@ -191,7 +191,10 @@ func _draw():
 				var icon_color = Color(0.5, 0.5, 0.5, 0.6)
 				if is_hovered: icon_color = Color(1.0, 1.0, 1.0, 1.0)
 				var offset = texture.get_size() / 2.0
-				draw_texture(texture, icon_center - offset, icon_color)
+				var draw_pos = icon_center - offset
+				if recipe.output_item.has_method("is_equipment_item") and recipe.output_item.is_equipment_item():
+					draw_pos.x += 8.0
+				draw_texture(texture, draw_pos, icon_color)
 		elif i == _get_cancel_slice_index():
 			if _cancel_texture:
 				var icon_color = Color(0.6, 0.6, 0.6, 0.7)

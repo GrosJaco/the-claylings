@@ -134,18 +134,27 @@ func update_inventory():
 			var hbox = HBoxContainer.new()
 			hbox.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 			
+			var icon_box = MarginContainer.new()
+			icon_box.custom_minimum_size = Vector2(16, 16)
+			
 			var icon = TextureRect.new()
 			if item.get("icon"): icon.texture = item.icon
 			icon.custom_minimum_size = Vector2(16, 16)
 			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			
+			var is_equip = (item.has_method("is_equipment_item") and item.is_equipment_item()) or cat_name == "Equipment"
+			if is_equip:
+				icon_box.add_theme_constant_override("margin_left", 8)
+			
+			icon_box.add_child(icon)
+			
 			var label = Label.new()
 			label.text = str(amount)
 			label.autowrap_mode = TextServer.AUTOWRAP_OFF
 			label.custom_minimum_size = Vector2(60, 0)
 			
-			hbox.add_child(icon)
+			hbox.add_child(icon_box)
 			hbox.add_child(label)
 			item_list.add_child(hbox)
 			

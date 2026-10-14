@@ -144,6 +144,10 @@ region = Rect2(16, 16, 16, 16)
 atlas = ExtResource("8_gt3je")
 region = Rect2(16, 32, 16, 16)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_decor"]
+atlas = ExtResource("52_uiicons")
+region = Rect2(48, 32, 16, 16)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_kqrg6"]
 atlas = ExtResource("6_pdsj5")
 region = Rect2(0, 0, 32, 32)
@@ -1287,7 +1291,7 @@ all_buildings = Array[ExtResource("15_kltya")]([ExtResource("16_e08e2"), ExtReso
 frame_normal = SubResource("AtlasTexture_8cuat")
 frame_pressed = SubResource("AtlasTexture_aa8k8")
 category_icons = {
-&"Decoration": null,
+&"Decoration": SubResource("AtlasTexture_decor"),
 "Defense": SubResource("AtlasTexture_6ml46"),
 &"Production": SubResource("AtlasTexture_o1aky"),
 &"Storage": SubResource("AtlasTexture_kwxat"),

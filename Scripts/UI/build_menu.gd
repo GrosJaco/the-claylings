@@ -70,16 +70,20 @@ func _ready():
 	var desired_order = ["Production", "Storage", "Defense", "Survival", "Decoration"]
 	var active_categories = []
 	for cat in desired_order:
+		var has_building = false
 		for b in all_buildings:
-			if b.category == cat and not active_categories.has(cat):
-				active_categories.append(cat)
+			if b.category == cat:
+				has_building = true
 				break
+		if (has_building or (category_icons.has(cat) and category_icons[cat] != null)) and not active_categories.has(cat):
+			active_categories.append(cat)
 	for b in all_buildings:
 		if not active_categories.has(b.category):
 			active_categories.append(b.category)
 			
 	for category in active_categories:
 		var tab_btn = TextureButton.new()
+		tab_btn.tooltip_text = category
 		
 		if frame_normal: tab_btn.texture_normal = frame_normal
 		if frame_pressed: tab_btn.texture_pressed = frame_pressed

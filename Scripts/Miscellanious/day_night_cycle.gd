@@ -13,7 +13,7 @@ signal new_day_announced(day_number: int)
 @export var color_over_time: Gradient
 @export var time_of_day: float = 0.3
 
-@export_range(0.0, 1.0) var night_start: float = 0.75
+@export_range(0.0, 1.0) var night_start: float = 20.0 / 24.0
 @export_range(0.0, 1.0) var night_end: float = 0.25
 @export_range(0.0, 1.0) var announce_hour: float = 8.0 / 24.0
 

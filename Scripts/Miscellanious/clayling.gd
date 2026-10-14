@@ -101,7 +101,8 @@ func change_state(name: String, msg := {}) -> void:
 
 	if current_state:
 		current_state.exit()
-	
+
+	animation_over = false
 	if states.has(name):
 		current_state = states[name]
 		current_state.enter(msg)

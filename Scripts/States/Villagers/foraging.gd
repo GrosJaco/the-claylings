@@ -8,6 +8,7 @@ var damage_per_hit: int = 10
 # ========== FUNCTIONS ==========
 
 func enter(msg: Dictionary = {}) -> void:
+	clayling.animation_over = false
 	if msg.has("target") and is_instance_valid(msg["target"]):
 		target_plant = msg["target"]
 		
@@ -31,12 +32,13 @@ func update(delta: float) -> void:
 	# If the animation just finished this frame, deal damage!
 	if clayling.animation_over:
 		clayling.animation_over = false
-		_perform_forage()
+		if clayling.global_position.distance_to(target_plant.global_position) <= 20.0:
+			_perform_forage()
 		return 
 
 	# --- MOVEMENT LOGIC ---
-	var dist = clayling.global_position.distance_to(clayling.agent.target_position)
-	if dist > 14.0:
+	var dist = clayling.global_position.distance_to(target_plant.global_position)
+	if dist > 18.0:
 		return
 		
 	# We arrived at the plant
@@ -50,6 +52,8 @@ func update(delta: float) -> void:
 func exit() -> void:
 	target_plant = null
 	clayling.animation_over = false # Reset just in case we exit mid-animation
+	clayling.play_forced_animation("")
+	clayling.offset_sprite(0, 0)
 
 # ========== HELPERS ==========
 

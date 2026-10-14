@@ -962,6 +962,7 @@ func planting(pos):
 		"name" : "carrot",
 		"duration" : 0
 	}
+	reserved_plant.erase(pos)
 
 # --------- ITEM MANAGMENT ----------
 

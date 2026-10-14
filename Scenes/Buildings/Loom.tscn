@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cu2wr1xya8kuf" path="res://Scripts/Data/RecipeData.gd" id="2_khk83"]
 [ext_resource type="Resource" uid="uid://c4mi53soo35f7" path="res://Resources/Recipe Resources/rope_recipe.tres" id="3_tuvhx"]
 [ext_resource type="Resource" uid="uid://ctgl487o4qk8n" path="res://Resources/Recipe Resources/fabric_recipe.tres" id="4_vs5yv"]
+[ext_resource type="Resource" uid="uid://txahyfw6x2ef" path="res://Resources/Recipe Resources/archer_cap_recipe.tres" id="5_cap"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_l218u"]
 atlas = ExtResource("2_k20b7")
@@ -12,7 +13,7 @@ region = Rect2(0, 0, 32, 32)
 
 [node name="Loom" type="Node2D" unique_id=1603539925]
 script = ExtResource("1_k20b7")
-available_recipes = Array[ExtResource("2_khk83")]([ExtResource("3_tuvhx"), ExtResource("4_vs5yv")])
+available_recipes = Array[ExtResource("2_khk83")]([ExtResource("3_tuvhx"), ExtResource("4_vs5yv"), ExtResource("5_cap")])
 building_type = "loom"
 size_in_tiles = Vector2i(2, 2)
 worker_hit_sound = "loom"

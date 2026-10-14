@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://c6y78m0q3r8hx"]
+
+[ext_resource type="Script" uid="uid://b6fx1vw60sbtl" path="res://Scripts/Buildings/torch.gd" id="1_torch"]
+[ext_resource type="Texture2D" uid="uid://dq5gllqurtg4h" path="res://Art/Buildings/Torch.png" id="2_tex"]
+
+[sub_resource type="Curve" id="Curve_fire"]
+_data = [Vector2(0.2, 1), 0.0, 0.0, 0, 0, Vector2(0.98, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_fire"]
+colors = PackedColorArray(1, 0.95, 0.2, 1, 1, 0.38, 0.07, 1)
+
+[sub_resource type="Gradient" id="Gradient_light"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_light"]
+gradient = SubResource("Gradient_light")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.9, 0.5)
+
+[node name="Torch" type="Node2D" unique_id=1482019921]
+y_sort_enabled = true
+script = ExtResource("1_torch")
+building_type = "torch"
+max_health = 50
+
+[node name="SpriteRoot" type="Node2D" parent="." unique_id=1482019922]
+position = Vector2(0, -8)
+
+[node name="Sprite2D" type="Sprite2D" parent="SpriteRoot" unique_id=1482019923]
+position = Vector2(0, 1)
+texture = ExtResource("2_tex")
+
+[node name="InteractionPoint" type="Node2D" parent="." unique_id=1482019924]
+position = Vector2(0, -4)
+
+[node name="FireParticles" type="CPUParticles2D" parent="." unique_id=1482019925]
+position = Vector2(0, -14)
+amount = 10
+lifetime = 0.5
+emission_shape = 1
+emission_sphere_radius = 1.0
+gravity = Vector2(0, -18)
+initial_velocity_min = 2.0
+initial_velocity_max = 5.0
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_fire")
+color_ramp = SubResource("Gradient_fire")
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1482019926]
+position = Vector2(0, -14)
+color = Color(1, 0.65, 0.25, 1)
+energy = 1.05
+texture = SubResource("GradientTexture2D_light")
+texture_scale = 2.5

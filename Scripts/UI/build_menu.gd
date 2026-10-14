@@ -48,7 +48,8 @@ func _ready():
 		for res_path in [
 			"res://Resources/Building Resources/wood_wall.tres",
 			"res://Resources/Building Resources/wood_gate.tres",
-			"res://Resources/Building Resources/cooking_pot.tres"
+			"res://Resources/Building Resources/cooking_pot.tres",
+			"res://Resources/Building Resources/torch.tres"
 		]:
 			var b_res = load(res_path)
 			if b_res is BuildingData:

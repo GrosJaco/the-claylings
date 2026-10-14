@@ -70,6 +70,31 @@ func is_night() -> bool:
 func get_hour() -> float:
 	return time_of_day * 24.0
 
+# ---------- TIME CONTROL ----------
+
+func set_time(new_time: float) -> void:
+	time_of_day = fposmod(new_time, 1.0)
+	if color_over_time:
+		color = color_over_time.sample(time_of_day)
+	
+	var night_now = is_night()
+	if night_now and not _was_night:
+		night_started.emit()
+	elif not night_now and _was_night:
+		day_started.emit()
+	_was_night = night_now
+
+func set_hour(target_hour: float) -> void:
+	set_time(target_hour / 24.0)
+
+func shift_hours(delta_hours: float) -> void:
+	var raw_new_time = time_of_day + (delta_hours / 24.0)
+	if raw_new_time >= 1.0:
+		current_day += int(floor(raw_new_time))
+	elif raw_new_time < 0.0:
+		current_day = max(1, current_day + int(floor(raw_new_time)))
+	set_time(raw_new_time)
+
 static func to_roman(n: int) -> String:
 	if n <= 0:
 		return ""

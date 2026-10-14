@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3 uid="uid://c7t8sax0m1q2w"]
+
+[ext_resource type="Script" uid="uid://bg164elkow3gd" path="res://Scripts/Data/BuildingData.gd" id="1_bdata"]
+[ext_resource type="Script" uid="uid://bd2ixn7bdlbcp" path="res://Scripts/Data/ItemData.gd" id="2_idata"]
+[ext_resource type="Resource" uid="uid://vdtuohevvfkm" path="res://Resources/Item Resources/Refined/wood_plank.tres" id="3_plank"]
+[ext_resource type="PackedScene" uid="uid://c6y78m0q3r8hx" path="res://Scenes/Buildings/Torch.tscn" id="4_scene"]
+[ext_resource type="Texture2D" uid="uid://dq5gllqurtg4h" path="res://Art/Buildings/Torch.png" id="5_tex"]
+
+[resource]
+script = ExtResource("1_bdata")
+building_name = "Torch"
+category = "Decoration"
+icon = ExtResource("5_tex")
+scene = ExtResource("4_scene")
+cost = Dictionary[ExtResource("2_idata"), int]({
+ExtResource("3_plank"): 1
+})
+metadata/_custom_type_script = "uid://bg164elkow3gd"

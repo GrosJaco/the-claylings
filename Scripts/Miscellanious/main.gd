@@ -1136,6 +1136,24 @@ func _input(event: InputEvent) -> void:
 					wm.cycle_next_weather()
 				get_viewport().set_input_as_handled()
 				return
+			if event.keycode == KEY_F7:
+				var cycle = get_tree().get_first_node_in_group("day_night_cycle")
+				if cycle and cycle.has_method("shift_hours"):
+					cycle.shift_hours(-1.0)
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_F8:
+				var cycle = get_tree().get_first_node_in_group("day_night_cycle")
+				if cycle and cycle.has_method("set_hour"):
+					cycle.set_hour(12.0)
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_F9:
+				var cycle = get_tree().get_first_node_in_group("day_night_cycle")
+				if cycle and cycle.has_method("shift_hours"):
+					cycle.shift_hours(1.0)
+				get_viewport().set_input_as_handled()
+				return
 
 			if event.keycode == KEY_C:
 				spawn_clayling(get_global_mouse_position(), "clayling")

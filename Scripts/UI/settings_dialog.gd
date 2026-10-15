@@ -16,6 +16,8 @@ signal closed
 
 @onready var volume_slider: HSlider = $PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel/VolumeRow/VolumeSlider
 @onready var fullscreen_check: CheckBox = $PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel/FullscreenRow/FullscreenCheckBox
+@onready var show_tutorial_btn: Button = get_node_or_null("PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel/ShowTutorialRow/ShowTutorialButton")
+@onready var restart_tutorial_btn: Button = get_node_or_null("PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel/RestartTutorialRow/RestartTutorialButton")
 
 @onready var shortcuts_list_container: VBoxContainer = $PanelContainer/MarginContainer/VBoxContainer/ShortcutsPanel/ScrollContainer/ShortcutsListContainer
 @onready var reset_defaults_btn: Button = $PanelContainer/MarginContainer/VBoxContainer/ShortcutsPanel/ResetDefaultsButton
@@ -133,6 +135,10 @@ func _init_audio_video_controls() -> void:
 		volume_slider.value_changed.connect(_on_volume_changed)
 	if fullscreen_check:
 		fullscreen_check.toggled.connect(_on_fullscreen_toggled)
+	if show_tutorial_btn:
+		show_tutorial_btn.pressed.connect(_on_show_tutorial_pressed)
+	if restart_tutorial_btn:
+		restart_tutorial_btn.pressed.connect(_on_restart_tutorial_pressed)
 
 func _refresh_audio_video_values() -> void:
 	var input_mgr = get_node_or_null("/root/InputManager")
@@ -177,6 +183,34 @@ func _on_fullscreen_toggled(toggled_on: bool) -> void:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		else:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+
+# ========== TUTORIAL CONTROLS ==========
+
+func _on_show_tutorial_pressed() -> void:
+	var tutorial_ui = get_tree().get_first_node_in_group("tutorial_ui")
+	if tutorial_ui and tutorial_ui.has_method("show_tutorial"):
+		tutorial_ui.show_tutorial()
+	else:
+		var config = ConfigFile.new()
+		var err = config.load("user://tutorial.cfg")
+		if err == OK:
+			config.set_value("tutorial", "completed", false)
+			config.save("user://tutorial.cfg")
+
+func _on_restart_tutorial_pressed() -> void:
+	var tutorial_manager = get_tree().get_first_node_in_group("tutorial_manager")
+	if tutorial_manager and tutorial_manager.has_method("reset_tutorial"):
+		tutorial_manager.reset_tutorial()
+
+	var tutorial_ui = get_tree().get_first_node_in_group("tutorial_ui")
+	if tutorial_ui and tutorial_ui.has_method("show_tutorial"):
+		tutorial_ui.show_tutorial()
+	else:
+		var config = ConfigFile.new()
+		config.set_value("tutorial", "completed", false)
+		config.set_value("tutorial", "current_step", 0)
+		config.set_value("tutorial", "trees_felled", 0)
+		config.save("user://tutorial.cfg")
 
 # ========== SHORTCUTS LIST & REBINDING ==========
 

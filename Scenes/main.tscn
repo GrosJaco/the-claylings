@@ -65,7 +65,8 @@
 [ext_resource type="Resource" uid="uid://cidn8u1p4c6mo" path="res://Resources/Building Resources/wood_wall.tres" id="60_woodwall"]
 [ext_resource type="PackedScene" uid="uid://krbqy122jcx8" path="res://Scenes/UI/SoldierSelectButton.tscn" id="61_soldierselect"]
 [ext_resource type="PackedScene" uid="uid://b7i5i1w7flwuh" path="res://Scenes/UI/DemolishButton.tscn" id="62_demolish"]
-[ext_resource type="Resource" uid="uid://c7t8r9x0m1q2w" path="res://Resources/Building Resources/torch.tres" id="63_torch"]
+[ext_resource type="Resource" uid="uid://c7t8sax0m1q2w" path="res://Resources/Building Resources/torch.tres" id="63_torch"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/TutorialUI.tscn" id="64_tutorial"]
 
 [sub_resource type="Gradient" id="Gradient_r33sp"]
 offsets = PackedFloat32Array(0.15, 0.25, 0.35, 0.65, 0.75, 0.85)
@@ -129,6 +130,10 @@ region = Rect2(0, 0, 32, 32)
 atlas = ExtResource("6_pdsj5")
 region = Rect2(32, 0, 32, 32)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_decor"]
+atlas = ExtResource("52_uiicons")
+region = Rect2(48, 32, 16, 16)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_6ml46"]
 atlas = ExtResource("8_gt3je")
 region = Rect2(16, 48, 16, 16)
@@ -144,10 +149,6 @@ region = Rect2(16, 16, 16, 16)
 [sub_resource type="AtlasTexture" id="AtlasTexture_ptfg5"]
 atlas = ExtResource("8_gt3je")
 region = Rect2(16, 32, 16, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_decor"]
-atlas = ExtResource("52_uiicons")
-region = Rect2(48, 32, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kqrg6"]
 atlas = ExtResource("6_pdsj5")
@@ -1674,6 +1675,10 @@ offset_right = -9.0
 offset_bottom = -9.0
 grow_horizontal = 0
 grow_vertical = 0
+
+[node name="TutorialUI" parent="CanvasLayer" unique_id=749201845 instance=ExtResource("64_tutorial")]
+offset_top = 273.0
+offset_bottom = 376.0
 
 [node name="RTSController" type="Node2D" parent="." unique_id=892348123]
 z_index = 100

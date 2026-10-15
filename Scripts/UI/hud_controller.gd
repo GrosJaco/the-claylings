@@ -16,6 +16,7 @@ class_name HUDController
 @onready var select_melee_button: Control = get_node_or_null("SelectMeleeButton")
 @onready var select_ranged_button: Control = get_node_or_null("SelectRangedButton")
 @onready var demolish_button: Control = get_node_or_null("DemolishButton")
+@onready var tutorial_ui: Control = get_node_or_null("TutorialUI")
 
 var _gameplay_hud_elements: Array[Control] = []
 var _is_hud_visible: bool = true
@@ -93,6 +94,8 @@ func _on_defeat() -> void:
 	set_gameplay_hud_visible(false, false)
 	if clayling_info_ui and is_instance_valid(clayling_info_ui):
 		clayling_info_ui.visible = false
+	if tutorial_ui and is_instance_valid(tutorial_ui):
+		tutorial_ui.visible = false
 
 	var radial_menu = get_tree().get_first_node_in_group("radial_menu")
 	if radial_menu and radial_menu.has_method("hide"):

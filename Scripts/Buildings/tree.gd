@@ -30,6 +30,9 @@ func take_damage(amount: int):
 func destroyed():
 	SoundManager.play_at("tree fall", global_position, 0.1)
 	_drop_resources()
+	var tm = get_tree().get_first_node_in_group("tutorial_manager")
+	if tm and tm.has_method("notify_tree_felled"):
+		tm.notify_tree_felled()
 	super.destroyed()
 
 # ---------- HARVEST SYSTEM ----------

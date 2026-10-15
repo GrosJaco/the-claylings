@@ -2344,7 +2344,7 @@ position = Vector2(0, -7)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Pivot" unique_id=674941013]
 position = Vector2(0.5, 0)
 sprite_frames = SubResource("SpriteFrames_u28ki")
-animation = &"archer_dying_down"
+animation = &"hauling_side"
 autoplay = "idle_down"
 
 [node name="CarrySprite" type="Sprite2D" parent="Pivot" unique_id=1921487504]

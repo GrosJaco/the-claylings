@@ -9,7 +9,7 @@ region = Rect2(0, 128, 32, 32)
 
 [resource]
 script = ExtResource("2_y6w2x")
-is_equipment = true
 name = "spear"
 display_name = "Spear"
 icon = SubResource("AtlasTexture_yaojd")
+is_equipment = true

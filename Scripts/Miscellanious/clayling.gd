@@ -335,7 +335,7 @@ func drop_item(amount: int = -1, to_ground: bool = false) -> Dictionary:
 	
 	return out
 
-const DEFAULT_CARRY_SPRITE_POS: Vector2 = Vector2(2.5, -11.0)
+const DEFAULT_CARRY_SPRITE_POS: Vector2 = Vector2(0, -11.0)
 const EQUIPMENT_CARRY_SPRITE_POS: Vector2 = Vector2(10.5, -11.0)
 
 func _refresh_carry_sprite() -> void:

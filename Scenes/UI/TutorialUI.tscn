@@ -1,0 +1,92 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/tutorial_ui.gd" id="1_script"]
+[ext_resource type="Script" path="res://Scripts/Managers/tutorial_manager.gd" id="2_mgr"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tutorial"]
+bg_color = Color(0.08, 0.08, 0.1, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.35, 0.42, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="TutorialUI" type="PanelContainer"]
+custom_minimum_size = Vector2(310, 0)
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -325.0
+offset_top = 236.0
+offset_right = -10.0
+offset_bottom = 276.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_tutorial")
+script = ExtResource("1_script")
+
+[node name="TutorialManager" type="Node" parent="."]
+script = ExtResource("2_mgr")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "1. THE AWAKENING"
+
+[node name="MinimizeButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+text = "-"
+
+[node name="SkipButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+tooltip_text = "Skip Tutorial"
+text = "✕"
+
+[node name="ContentContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/separation = 6
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="DescriptionLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ContentContainer"]
+layout_mode = 2
+mouse_filter = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
+text = "Welcome to the colony! Pan the camera with [b]WASD[/b] and place the [b]Central Crystal[/b]."
+
+[node name="ObjectivesContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4

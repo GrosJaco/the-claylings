@@ -131,9 +131,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -220.0
-offset_top = -210.0
+offset_top = -245.0
 offset_right = 220.0
-offset_bottom = 210.0
+offset_bottom = 245.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
@@ -220,6 +220,57 @@ text = "Fullscreen"
 [node name="FullscreenCheckBox" type="CheckBox" parent="PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel/FullscreenRow"]
 layout_mode = 2
 focus_mode = 0
+
+[node name="TutorialSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel"]
+layout_mode = 2
+
+[node name="TutorialSectionLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.72, 0.85, 1)
+theme_override_font_sizes/font_size = 14
+text = "TUTORIAL"
+
+[node name="ShowTutorialRow" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ShowTutorialLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel/ShowTutorialRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+text = "Tutorial Panel"
+
+[node name="ShowTutorialButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel/ShowTutorialRow"]
+custom_minimum_size = Vector2(90, 26)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Show"
+
+[node name="RestartTutorialRow" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RestartTutorialLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel/RestartTutorialRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+text = "Tutorial Progress"
+
+[node name="RestartTutorialButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/AudioVideoPanel/RestartTutorialRow"]
+custom_minimum_size = Vector2(90, 26)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Restart"
 
 [node name="ShortcutsPanel" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
 visible = false

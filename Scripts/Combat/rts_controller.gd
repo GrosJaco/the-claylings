@@ -486,8 +486,8 @@ func _execute_villager_order(target_pos: Vector2) -> void:
 	var target_data = world.find_context_target_at(target_pos)
 	var target_type = target_data.get("type", "ground")
 
-	# Drop carried items on player order unless the order is hauling to storage
-	if target_type != "storage":
+	# Drop carried items on player order unless depositing into storage or equipping at rack
+	if target_type != "storage" and target_type != "weapon_rack":
 		for v in villagers:
 			if is_instance_valid(v) and not v.is_inventory_empty():
 				v.drop_item(-1, true)

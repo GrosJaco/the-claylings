@@ -146,7 +146,13 @@ func handle_animation() -> void:
 	if velocity.length() > 5.0:
 		var dir = get_direction()
 		last_direction = dir
-		var anim = prefix + "running_" + dir if prefix != "" else "running_" + dir
+		var anim = ""
+		if prefix != "":
+			anim = prefix + "running_" + dir
+		elif not is_inventory_empty():
+			anim = "hauling_" + dir
+		else:
+			anim = "running_" + dir
 
 		_update_sprite_offset_for_animation(anim)
 		if sprite.animation != anim or not sprite.is_playing():

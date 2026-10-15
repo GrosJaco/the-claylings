@@ -438,8 +438,11 @@ func unequip_at_rack(rack_node: Node2D = null) -> bool:
 	set_selected(false)
 
 	var rts = get_tree().get_first_node_in_group("rts_controller")
-	if rts and "selected_soldiers" in rts:
-		rts.selected_soldiers.erase(self)
+	if rts:
+		if "selected_soldiers" in rts:
+			rts.selected_soldiers.erase(self)
+		if "selected_villagers" in rts:
+			rts.selected_villagers.erase(self)
 
 	force_animation = ""
 	offset_sprite(0, 0)
@@ -670,8 +673,11 @@ func die() -> void:
 	remove_from_group("soldiers")
 
 	var rts = get_tree().get_first_node_in_group("rts_controller")
-	if rts and "selected_soldiers" in rts:
-		rts.selected_soldiers.erase(self)
+	if rts:
+		if "selected_soldiers" in rts:
+			rts.selected_soldiers.erase(self)
+		if "selected_villagers" in rts:
+			rts.selected_villagers.erase(self)
 
 	if world and "active_claylings" in world:
 		world.active_claylings.erase(self)
@@ -738,6 +744,7 @@ func _ready():
 	# Load all states
 	states["Idle"] = load("res://Scripts/States/Villagers/idle.gd").new()
 	states["Wander"] = load("res://Scripts/States/Villagers/wandering.gd").new()
+	states["Move"] = load("res://Scripts/States/Villagers/move.gd").new()
 	states["Flee"] = load("res://Scripts/States/Villagers/fleeing.gd").new()
 	states["Water"] = load("res://Scripts/States/Villagers/watering.gd").new()
 	states["Harvest"] = load("res://Scripts/States/Villagers/harvesting.gd").new()

@@ -8,6 +8,7 @@ class_name RTSController
 # ========== VARIABLES ==========
 
 var selected_soldiers: Array = []
+var selected_villagers: Array = []
 
 # Box selection (Left-click drag)
 var is_box_selecting: bool = false
@@ -43,7 +44,7 @@ func set_demolish_mode(active: bool) -> void:
 		return
 	is_demolish_mode = active
 	if is_demolish_mode:
-		deselect_all_soldiers()
+		deselect_all()
 	if is_box_selecting:
 		is_box_selecting = false
 	queue_redraw()
@@ -64,7 +65,8 @@ func _draw() -> void:
 				draw_rect(rect, Color(1.0, 1.0, 1.0, 0.95), false, 2.5)
 
 	# 2. Draw Line Formation (Right-click)
-	if is_line_drawing and selected_soldiers.size() > 0:
+	var total_selected = selected_soldiers.size() + selected_villagers.size()
+	if is_line_drawing and total_selected > 0:
 		var line_color = Color(1.0, 1.0, 1.0, 1.0) if is_line_valid else Color(1.0, 0.2, 0.2, 1.0)
 		var start_local = to_local(line_start)
 		var end_local = to_local(line_end)
@@ -89,11 +91,19 @@ func _draw() -> void:
 
 func select_soldier(soldier: Node2D, add_to_selection: bool = false) -> void:
 	if not add_to_selection:
-		deselect_all_soldiers()
+		deselect_all()
 	if is_instance_valid(soldier) and not selected_soldiers.has(soldier):
 		selected_soldiers.append(soldier)
 		soldier.set_selected(true)
 		_play_squad_voice([soldier], "interrogation")
+
+func select_villager(villager: Node2D, add_to_selection: bool = false) -> void:
+	if not add_to_selection:
+		deselect_all()
+	if is_instance_valid(villager) and not selected_villagers.has(villager):
+		selected_villagers.append(villager)
+		villager.set_selected(true)
+		_play_squad_voice([villager], "interrogation")
 
 func deselect_all_soldiers() -> void:
 	for s in selected_soldiers:
@@ -101,20 +111,44 @@ func deselect_all_soldiers() -> void:
 			s.set_selected(false)
 	selected_soldiers.clear()
 
+func deselect_all_villagers() -> void:
+	for v in selected_villagers:
+		if is_instance_valid(v):
+			v.set_selected(false)
+	selected_villagers.clear()
+
+func deselect_all() -> void:
+	deselect_all_soldiers()
+	deselect_all_villagers()
+
 func select_soldiers_in_rect(rect: Rect2, add_to_selection: bool = false) -> void:
+	select_claylings_in_rect(rect, add_to_selection)
+
+func select_claylings_in_rect(rect: Rect2, add_to_selection: bool = false) -> void:
 	if not add_to_selection:
-		deselect_all_soldiers()
-	var all_soldiers = get_tree().get_nodes_in_group("soldiers")
-	var newly_selected: Array = []
-	for s in all_soldiers:
-		if is_instance_valid(s) and not s.is_dead:
-			if rect.has_point(s.global_position):
-				if not selected_soldiers.has(s):
-					selected_soldiers.append(s)
-					s.set_selected(true)
-					newly_selected.append(s)
-	if newly_selected.size() > 0:
+		deselect_all()
+	var all_claylings = get_tree().get_nodes_in_group("claylings")
+	var soldiers_in_rect: Array = []
+	var villagers_in_rect: Array = []
+	for c in all_claylings:
+		if is_instance_valid(c) and not c.get("is_dead") and rect.has_point(c.global_position):
+			if c.get("is_combat_ready"):
+				soldiers_in_rect.append(c)
+			else:
+				villagers_in_rect.append(c)
+
+	if soldiers_in_rect.size() > 0:
+		for s in soldiers_in_rect:
+			if not selected_soldiers.has(s):
+				selected_soldiers.append(s)
+				s.set_selected(true)
 		_play_squad_voice(selected_soldiers, "interrogation")
+	elif villagers_in_rect.size() > 0:
+		for v in villagers_in_rect:
+			if not selected_villagers.has(v):
+				selected_villagers.append(v)
+				v.set_selected(true)
+		_play_squad_voice(selected_villagers, "interrogation")
 
 func select_all_melee_soldiers(add_to_selection: bool = false) -> void:
 	if not add_to_selection:
@@ -176,6 +210,20 @@ func _get_valid_selected_soldiers() -> Array:
 			valid.append(s)
 	selected_soldiers = valid
 	return selected_soldiers
+
+func get_selected_villagers() -> Array:
+	return selected_villagers
+
+func _get_valid_selected_villagers() -> Array:
+	var valid: Array = []
+	for v in selected_villagers:
+		if is_instance_valid(v) and not v.is_dead:
+			valid.append(v)
+	selected_villagers = valid
+	return selected_villagers
+
+func get_all_selected() -> Array:
+	return _get_valid_selected_soldiers() + _get_valid_selected_villagers()
 
 # ---------- LINE FORMATION LOGIC ----------
 
@@ -259,7 +307,9 @@ func _is_point_blocked(space_state: PhysicsDirectSpaceState2D, pos: Vector2) -> 
 
 func _execute_line_formation(start_pos: Vector2, end_pos: Vector2, points: Array[Vector2]) -> void:
 	var soldiers = _get_valid_selected_soldiers()
-	var count = soldiers.size()
+	var villagers = _get_valid_selected_villagers()
+	var all_units = soldiers + villagers
+	var count = all_units.size()
 	if count == 0 or points.is_empty():
 		return
 
@@ -268,25 +318,29 @@ func _execute_line_formation(start_pos: Vector2, end_pos: Vector2, points: Array
 	var line_vec = end_pos - start_pos
 	var forward_facing = Vector2(line_vec.y, -line_vec.x).normalized() if line_vec.length() > 1.0 else Vector2.DOWN
 
-	# Sort soldiers along the line projection to prevent cross-walking
-	var sorted_soldiers = soldiers.duplicate()
+	# Sort units along the line projection to prevent cross-walking
+	var sorted_units = all_units.duplicate()
 	if count > 1 and line_vec.length() > 1.0:
 		var line_dir = line_vec.normalized()
-		sorted_soldiers.sort_custom(func(a, b):
+		sorted_units.sort_custom(func(a, b):
 			var proj_a = (a.global_position - start_pos).dot(line_dir)
 			var proj_b = (b.global_position - start_pos).dot(line_dir)
 			return proj_a < proj_b
 		)
 
-	# Assign each soldier to their formation slot with target facing direction
+	# Assign each unit to their formation slot
 	for i in range(count):
 		var target_pt = points[i]
-		sorted_soldiers[i].command_move(target_pt, forward_facing)
+		var u = sorted_units[i]
+		if u.get("is_combat_ready"):
+			u.command_move(target_pt, forward_facing)
+		else:
+			u.assign_task("Move", {"target_position": target_pt})
 
-	_play_squad_voice(sorted_soldiers, "affirmation")
+	_play_squad_voice(sorted_units, "affirmation")
 
 	# Spawn visual feedback marker
-	_spawn_move_marker((start_pos + end_pos) * 0.5)
+	_spawn_action_marker((start_pos + end_pos) * 0.5, Color(0.2, 1.0, 0.4), 8.0)
 
 # ---------- COMMANDS & DEFAULT FORMATIONS ----------
 
@@ -358,19 +412,19 @@ func command_attack_selected(target_enemy: Node2D) -> void:
 
 # ---------- VISUAL FEEDBACK ----------
 
-func _spawn_move_marker(pos: Vector2) -> void:
+func _spawn_action_marker(pos: Vector2, color: Color = Color(0.2, 1.0, 0.4, 0.9), radius: float = 6.0) -> void:
 	var marker = Node2D.new()
 	marker.global_position = pos
 	marker.z_index = 100
 	add_child(marker)
 
 	var ring = Line2D.new()
-	ring.width = 1.5
-	ring.default_color = Color(0.2, 1.0, 0.4, 0.9)
+	ring.width = 1.8
+	ring.default_color = color
 	var pts = PackedVector2Array()
 	for i in range(17):
 		var a = (TAU / 16) * i
-		pts.append(Vector2(cos(a) * 6.0, sin(a) * 6.0))
+		pts.append(Vector2(cos(a) * radius, sin(a) * radius))
 	ring.points = pts
 	marker.add_child(ring)
 
@@ -378,27 +432,319 @@ func _spawn_move_marker(pos: Vector2) -> void:
 	tween.tween_property(marker, "scale", Vector2(1.8, 1.8), 0.35)
 	tween.parallel().tween_property(ring, "default_color:a", 0.0, 0.35)
 	tween.tween_callback(marker.queue_free)
+
+func _spawn_move_marker(pos: Vector2) -> void:
+	_spawn_action_marker(pos, Color(0.2, 1.0, 0.4, 0.9), 6.0)
 
 func _spawn_attack_marker(pos: Vector2) -> void:
-	var marker = Node2D.new()
-	marker.global_position = pos
-	marker.z_index = 100
-	add_child(marker)
+	_spawn_action_marker(pos, Color(1.0, 0.2, 0.2, 0.95), 8.0)
 
-	var ring = Line2D.new()
-	ring.width = 2.0
-	ring.default_color = Color(1.0, 0.2, 0.2, 0.95)
-	var pts = PackedVector2Array()
-	for i in range(17):
-		var a = (TAU / 16) * i
-		pts.append(Vector2(cos(a) * 8.0, sin(a) * 8.0))
-	ring.points = pts
-	marker.add_child(ring)
+# ---------- VILLAGER ORDERS (MICROMANAGEMENT) ----------
 
-	var tween = create_tween()
-	tween.tween_property(marker, "scale", Vector2(1.8, 1.8), 0.35)
-	tween.parallel().tween_property(ring, "default_color:a", 0.0, 0.35)
-	tween.tween_callback(marker.queue_free)
+func command_move_villagers(target_pos: Vector2) -> void:
+	var villagers = _get_valid_selected_villagers()
+	var count = villagers.size()
+	if count == 0:
+		return
+
+	var nav_map = get_world_2d().navigation_map
+
+	for i in range(count):
+		var offset = Vector2.ZERO
+		if count > 1:
+			var angle = (TAU / count) * i
+			offset = Vector2(cos(angle), sin(angle)) * 14.0
+		var dest = target_pos + offset
+		if nav_map.is_valid():
+			var valid_dest = NavigationServer2D.map_get_closest_point(nav_map, dest)
+			if valid_dest != Vector2.ZERO and valid_dest.distance_to(dest) < 32.0:
+				dest = valid_dest
+		villagers[i].assign_task("Move", {"target_position": dest})
+
+	_play_squad_voice(villagers, "affirmation")
+	_spawn_action_marker(target_pos, Color(0.2, 1.0, 0.4))
+
+func _execute_villager_order(target_pos: Vector2) -> void:
+	var villagers = _get_valid_selected_villagers()
+	if villagers.is_empty():
+		return
+
+	if not world or not world.has_method("find_context_target_at"):
+		command_move_villagers(target_pos)
+		return
+
+	var target_data = world.find_context_target_at(target_pos)
+	var target_type = target_data.get("type", "ground")
+
+	match target_type:
+		"tree":
+			var primary_tree = target_data.get("node")
+			if primary_tree and is_instance_valid(primary_tree):
+				_dispatch_chop_order(villagers, primary_tree)
+		"rock":
+			var primary_rock = target_data.get("node")
+			if primary_rock and is_instance_valid(primary_rock):
+				_dispatch_mine_order(villagers, primary_rock)
+		"plant":
+			var primary_plant = target_data.get("node")
+			if primary_plant and is_instance_valid(primary_plant):
+				_dispatch_forage_order(villagers, primary_plant)
+		"farm_harvest":
+			_dispatch_farm_order(villagers, target_data.get("pos"), "Harvest")
+		"farm_water":
+			_dispatch_farm_order(villagers, target_data.get("pos"), "Water")
+		"farm_plant":
+			_dispatch_farm_order(villagers, target_data.get("pos"), "Plant")
+		"blueprint":
+			var bp = target_data.get("node")
+			if bp and is_instance_valid(bp):
+				_dispatch_construct_order(villagers, bp)
+		"crafting_building":
+			var b = target_data.get("node")
+			if b and is_instance_valid(b):
+				_dispatch_crafting_order(villagers, b)
+		"storage":
+			var s = target_data.get("node")
+			if s and is_instance_valid(s):
+				_dispatch_storage_order(villagers, s)
+		"ground_item":
+			var item = target_data.get("node")
+			if item and is_instance_valid(item):
+				_dispatch_pickup_order(villagers, item)
+		"weapon_rack":
+			var rack = target_data.get("node")
+			if rack and is_instance_valid(rack):
+				_dispatch_rack_order(villagers, rack)
+		_:
+			command_move_villagers(target_pos)
+
+func _dispatch_chop_order(villagers: Array, primary_tree: Node2D) -> void:
+	primary_tree.set("is_marked_for_harvest", true)
+	if primary_tree.has_method("set_highlight"):
+		primary_tree.set_highlight(true)
+	world.reserved_trees[primary_tree] = villagers[0]
+	villagers[0].assign_task("Chop", {"target": primary_tree})
+
+	if villagers.size() > 1:
+		var nearby_trees: Array = []
+		for t in get_tree().get_nodes_in_group("trees"):
+			if is_instance_valid(t) and t != primary_tree and not t.is_in_group("saplings") and not t.is_queued_for_deletion():
+				if not world.reserved_trees.has(t):
+					var dist = t.global_position.distance_to(primary_tree.global_position)
+					if dist <= 160.0:
+						nearby_trees.append({"tree": t, "dist": dist})
+		nearby_trees.sort_custom(func(a, b): return a.dist < b.dist)
+
+		for i in range(1, villagers.size()):
+			var v = villagers[i]
+			if i - 1 < nearby_trees.size():
+				var t = nearby_trees[i - 1].tree
+				t.set("is_marked_for_harvest", true)
+				if t.has_method("set_highlight"):
+					t.set_highlight(true)
+				world.reserved_trees[t] = v
+				v.assign_task("Chop", {"target": t})
+			else:
+				var offset = Vector2(cos(i * 1.5), sin(i * 1.5)) * 16.0
+				v.assign_task("Move", {"target_position": primary_tree.global_position + offset})
+
+	_spawn_action_marker(primary_tree.global_position, Color(0.9, 0.6, 0.2))
+	_play_squad_voice(villagers, "affirmation")
+
+func _dispatch_mine_order(villagers: Array, primary_rock: Node2D) -> void:
+	primary_rock.set("is_marked_for_harvest", true)
+	if primary_rock.has_method("set_highlight"):
+		primary_rock.set_highlight(true)
+	world.reserved_rocks[primary_rock] = villagers[0]
+	villagers[0].assign_task("Mine", {"target": primary_rock})
+
+	if villagers.size() > 1:
+		var nearby_rocks: Array = []
+		var rocks = get_tree().get_nodes_in_group("rocks") + get_tree().get_nodes_in_group("ores")
+		for r in rocks:
+			if is_instance_valid(r) and r != primary_rock and not r.is_queued_for_deletion():
+				if not world.reserved_rocks.has(r):
+					var dist = r.global_position.distance_to(primary_rock.global_position)
+					if dist <= 160.0:
+						nearby_rocks.append({"rock": r, "dist": dist})
+		nearby_rocks.sort_custom(func(a, b): return a.dist < b.dist)
+
+		for i in range(1, villagers.size()):
+			var v = villagers[i]
+			if i - 1 < nearby_rocks.size():
+				var r = nearby_rocks[i - 1].rock
+				r.set("is_marked_for_harvest", true)
+				if r.has_method("set_highlight"):
+					r.set_highlight(true)
+				world.reserved_rocks[r] = v
+				v.assign_task("Mine", {"target": r})
+			else:
+				var offset = Vector2(cos(i * 1.5), sin(i * 1.5)) * 16.0
+				v.assign_task("Move", {"target_position": primary_rock.global_position + offset})
+
+	_spawn_action_marker(primary_rock.global_position, Color(0.75, 0.75, 0.85))
+	_play_squad_voice(villagers, "affirmation")
+
+func _dispatch_forage_order(villagers: Array, primary_plant: Node2D) -> void:
+	primary_plant.set("is_marked_for_harvest", true)
+	if primary_plant.has_method("set_highlight"):
+		primary_plant.set_highlight(true)
+	world.reserved_forages[primary_plant] = villagers[0]
+	villagers[0].assign_task("Forage", {"target": primary_plant})
+
+	if villagers.size() > 1:
+		var nearby_plants: Array = []
+		for p in get_tree().get_nodes_in_group("plants"):
+			if is_instance_valid(p) and p != primary_plant and not p.is_queued_for_deletion():
+				if not world.reserved_forages.has(p):
+					var dist = p.global_position.distance_to(primary_plant.global_position)
+					if dist <= 160.0:
+						nearby_plants.append({"plant": p, "dist": dist})
+		nearby_plants.sort_custom(func(a, b): return a.dist < b.dist)
+
+		for i in range(1, villagers.size()):
+			var v = villagers[i]
+			if i - 1 < nearby_plants.size():
+				var p = nearby_plants[i - 1].plant
+				p.set("is_marked_for_harvest", true)
+				if p.has_method("set_highlight"):
+					p.set_highlight(true)
+				world.reserved_forages[p] = v
+				v.assign_task("Forage", {"target": p})
+			else:
+				var offset = Vector2(cos(i * 1.5), sin(i * 1.5)) * 16.0
+				v.assign_task("Move", {"target_position": primary_plant.global_position + offset})
+
+	_spawn_action_marker(primary_plant.global_position, Color(0.3, 0.9, 0.4))
+	_play_squad_voice(villagers, "affirmation")
+
+func _dispatch_farm_order(villagers: Array, start_tile: Vector2i, task_name: String) -> void:
+	var color = Color(1.0, 0.85, 0.2)
+	if task_name == "Water":
+		color = Color(0.2, 0.7, 1.0)
+	elif task_name == "Plant":
+		color = Color(0.4, 0.9, 0.2)
+
+	_assign_single_farm_task(villagers[0], start_tile, task_name)
+
+	if villagers.size() > 1:
+		var candidates: Array[Vector2i] = []
+		if task_name == "Harvest":
+			for pos in world.crops_dic.keys():
+				if pos != start_tile and not world.reserved_harvest.has(pos):
+					if world.crops.get_cell_source_id(pos) != -1 and world.crops_dic[pos].get("duration", 0.0) < 0:
+						candidates.append(pos)
+		elif task_name == "Water":
+			for pos in world.water_level.keys():
+				if pos != start_tile and not world.reserved_water.has(pos):
+					if world.water_level[pos] < 5.0:
+						candidates.append(pos)
+		elif task_name == "Plant":
+			for pos in world.water_level.keys():
+				if pos != start_tile and not world.reserved_plant.has(pos):
+					if world.water_level[pos] > 1.0 and not world.crops_dic.has(pos):
+						candidates.append(pos)
+
+		candidates.sort_custom(func(a, b): return (a - start_tile).length_squared() < (b - start_tile).length_squared())
+
+		for i in range(1, villagers.size()):
+			var v = villagers[i]
+			if i - 1 < candidates.size():
+				_assign_single_farm_task(v, candidates[i - 1], task_name)
+			else:
+				var world_p = world.get_world_position(start_tile) + Vector2(8, 8)
+				var offset = Vector2(cos(i * 1.5), sin(i * 1.5)) * 16.0
+				v.assign_task("Move", {"target_position": world_p + offset})
+
+	var marker_pos = world.get_world_position(start_tile) + Vector2(8, 8)
+	_spawn_action_marker(marker_pos, color)
+	_play_squad_voice(villagers, "affirmation")
+
+func _assign_single_farm_task(v: CharacterBody2D, tile: Vector2i, task_name: String) -> void:
+	if task_name == "Harvest":
+		world.reserved_harvest[tile] = v
+		v.assign_task("Harvest", {"pos": tile})
+	elif task_name == "Water":
+		world.reserved_water[tile] = v
+		v.assign_task("Water", {"pos": tile})
+	elif task_name == "Plant":
+		world.reserved_plant[tile] = v
+		v.assign_task("Plant", {"pos": tile})
+
+func _dispatch_construct_order(villagers: Array, bp: Blueprint) -> void:
+	for v in villagers:
+		var assigned = world._try_assign_delivery(bp, "Construct", [v])
+		if not assigned:
+			v.assign_task("Move", {"target_position": bp.global_position})
+	_spawn_action_marker(bp.global_position, Color(0.2, 0.85, 0.95))
+	_play_squad_voice(villagers, "affirmation")
+
+func _dispatch_crafting_order(villagers: Array, b: Node2D) -> void:
+	var primary = villagers[0]
+	if b.get("output_inventory") and not b.output_inventory.is_empty():
+		world.reserved_outputs[b] = primary
+		primary.assign_task("CollectOutput", {"building": b})
+	elif b.get("is_crafting") and b.get("active_recipe") and b.active_recipe.get("need_clayling") and not b.get("worker_present"):
+		world.reserved_work[b] = primary
+		primary.assign_task("Work", {"building": b})
+	else:
+		world._try_assign_delivery(b, "Deliver", [primary])
+
+	for i in range(1, villagers.size()):
+		var v = villagers[i]
+		var offset = Vector2(cos(i * 1.5), sin(i * 1.5)) * 18.0
+		v.assign_task("Move", {"target_position": b.global_position + offset})
+
+	_spawn_action_marker(b.global_position, Color(1.0, 0.6, 0.1))
+	_play_squad_voice(villagers, "affirmation")
+
+func _dispatch_storage_order(villagers: Array, s: Node2D) -> void:
+	for v in villagers:
+		if not v.is_inventory_empty():
+			v.assign_task("Haul", {"storage": s})
+		else:
+			v.assign_task("Move", {"target_position": s.global_position})
+	_spawn_action_marker(s.global_position, Color(0.8, 0.6, 0.4))
+	_play_squad_voice(villagers, "affirmation")
+
+func _dispatch_pickup_order(villagers: Array, primary_item: Node2D) -> void:
+	world.reserved_pickups[primary_item] = villagers[0]
+	villagers[0].assign_task("Pick up", {"node": primary_item})
+
+	if villagers.size() > 1:
+		var items = get_tree().get_nodes_in_group("ground_items")
+		var nearby_items: Array = []
+		for it in items:
+			if is_instance_valid(it) and it != primary_item and it.visible and it.quantity > 0:
+				if not world.reserved_pickups.has(it):
+					var dist = it.global_position.distance_to(primary_item.global_position)
+					if dist <= 160.0:
+						nearby_items.append({"item": it, "dist": dist})
+		nearby_items.sort_custom(func(a, b): return a.dist < b.dist)
+
+		for i in range(1, villagers.size()):
+			var v = villagers[i]
+			if i - 1 < nearby_items.size():
+				var it = nearby_items[i - 1].item
+				world.reserved_pickups[it] = v
+				v.assign_task("Pick up", {"node": it})
+			else:
+				var offset = Vector2(cos(i * 1.5), sin(i * 1.5)) * 14.0
+				v.assign_task("Move", {"target_position": primary_item.global_position + offset})
+
+	_spawn_action_marker(primary_item.global_position, Color(1.0, 0.9, 0.2))
+	_play_squad_voice(villagers, "affirmation")
+
+func _dispatch_rack_order(villagers: Array, rack: Node2D) -> void:
+	for v in villagers:
+		if rack.has_method("find_available_kit_index") and rack.find_available_kit_index() != -1:
+			if rack.has_method("reserve_equip"):
+				rack.reserve_equip(v)
+			v.assign_task("Equip", {"target": rack})
+		else:
+			v.assign_task("Move", {"target_position": rack.global_position})
+	_spawn_action_marker(rack.global_position, Color(0.7, 0.3, 0.9))
+	_play_squad_voice(villagers, "affirmation")
 
 # ---------- CALL TO ARMS & CALL TO WORK ----------
 
@@ -533,15 +879,15 @@ func _input(event: InputEvent) -> void:
 				if is_demolish_mode:
 					_demolish_buildings_in_rect(rect)
 				else:
-					select_soldiers_in_rect(rect)
+					select_claylings_in_rect(rect)
 				get_viewport().set_input_as_handled()
 
 	# Global drag tracking for RTS line formation (Right-click)
 	if is_line_drawing:
 		if event is InputEventMouseMotion:
 			line_end = get_global_mouse_position()
-			var soldiers = _get_valid_selected_soldiers()
-			line_points = _calculate_line_points(line_start, line_end, soldiers.size())
+			var total_units = _get_valid_selected_soldiers().size() + _get_valid_selected_villagers().size()
+			line_points = _calculate_line_points(line_start, line_end, total_units)
 			is_line_valid = _check_line_validity(line_start, line_end, line_points)
 			queue_redraw()
 		elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and not event.pressed:
@@ -551,36 +897,38 @@ func _input(event: InputEvent) -> void:
 
 			var drag_dist = line_start.distance_to(line_end)
 			var soldiers = _get_valid_selected_soldiers()
+			var villagers = _get_valid_selected_villagers()
 
 			if drag_dist >= 12.0:
-				# Line formation requested
-				line_points = _calculate_line_points(line_start, line_end, soldiers.size())
+				var total_units = soldiers.size() + villagers.size()
+				line_points = _calculate_line_points(line_start, line_end, total_units)
 				is_line_valid = _check_line_validity(line_start, line_end, line_points)
 
 				if is_line_valid:
 					_execute_line_formation(line_start, line_end, line_points)
-				# If not valid (blocked by wall), the order is cancelled automatically!
 			else:
-				# Check if clicked directly on an enemy or animal (e.g. chickens)
-				var clicked_target: Node2D = null
-				var candidates: Array = []
-				candidates.append_array(get_tree().get_nodes_in_group("enemies"))
-				candidates.append_array(get_tree().get_nodes_in_group("animals"))
+				if soldiers.size() > 0:
+					var clicked_target: Node2D = null
+					var candidates: Array = []
+					candidates.append_array(get_tree().get_nodes_in_group("enemies"))
+					candidates.append_array(get_tree().get_nodes_in_group("animals"))
 
-				var min_dist: float = 24.0
-				for target in candidates:
-					if is_instance_valid(target) and not target.get("is_dead"):
-						var d = target.global_position.distance_to(line_start)
-						if d < min_dist:
-							min_dist = d
-							clicked_target = target
+					var min_dist: float = 24.0
+					for target in candidates:
+						if is_instance_valid(target) and not target.get("is_dead"):
+							var d = target.global_position.distance_to(line_start)
+							if d < min_dist:
+								min_dist = d
+								clicked_target = target
 
-				if clicked_target:
-					command_attack_selected(clicked_target)
-					_spawn_attack_marker(clicked_target.global_position)
-				else:
-					# Simple right-click point move
-					command_move_selected(line_start)
+					if clicked_target:
+						command_attack_selected(clicked_target)
+						_spawn_attack_marker(clicked_target.global_position)
+					else:
+						command_move_selected(line_start)
+
+				if villagers.size() > 0:
+					_execute_villager_order(line_start)
 
 			get_viewport().set_input_as_handled()
 
@@ -599,25 +947,28 @@ func _unhandled_input(event: InputEvent) -> void:
 					_demolish_buildings_at_point(mouse_pos)
 					get_viewport().set_input_as_handled()
 				else:
-					var clicked_soldier = null
+					var clicked_clayling = null
 					var best_dist = 18.0
-					for s in get_tree().get_nodes_in_group("soldiers"):
-						if is_instance_valid(s) and not s.is_dead:
-							var body_center = s.global_position + Vector2(0, -7)
+					for c in get_tree().get_nodes_in_group("claylings"):
+						if is_instance_valid(c) and not c.get("is_dead"):
+							var body_center = c.global_position + Vector2(0, -7)
 							var d = body_center.distance_to(mouse_pos)
 							if d < best_dist:
 								best_dist = d
-								clicked_soldier = s
+								clicked_clayling = c
 
-					if clicked_soldier:
-						select_soldier(clicked_soldier)
+					if clicked_clayling:
+						if clicked_clayling.get("is_combat_ready"):
+							select_soldier(clicked_clayling)
+						else:
+							select_villager(clicked_clayling)
 						var clayling_ui = get_tree().get_first_node_in_group("clayling_info_panel")
 						if clayling_ui and clayling_ui.has_method("show_clayling"):
-							clayling_ui.show_clayling(clicked_soldier)
+							clayling_ui.show_clayling(clicked_clayling)
 						get_viewport().set_input_as_handled()
 					else:
-						if not is_box_selecting and selected_soldiers.size() > 0:
-							deselect_all_soldiers()
+						if not is_box_selecting and (selected_soldiers.size() > 0 or selected_villagers.size() > 0):
+							deselect_all()
 
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			if is_demolish_mode:
@@ -625,12 +976,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 
-			var soldiers = _get_valid_selected_soldiers()
-			if soldiers.size() > 0:
+			var total_units = _get_valid_selected_soldiers().size() + _get_valid_selected_villagers().size()
+			if total_units > 0:
 				is_line_drawing = true
 				line_start = mouse_pos
 				line_end = mouse_pos
-				line_points = _calculate_line_points(line_start, line_end, soldiers.size())
+				line_points = _calculate_line_points(line_start, line_end, total_units)
 				is_line_valid = _check_line_validity(line_start, line_end, line_points)
 				queue_redraw()
 				get_viewport().set_input_as_handled()

@@ -1242,8 +1242,14 @@ func cycle_next_clayling(reverse: bool = false) -> void:
 	if clayling_ui and clayling_ui.has_method("show_clayling"):
 		clayling_ui.show_clayling(chosen)
 
-	for c in valid_claylings:
-		c.set_selected(c == chosen)
+	if rts_controller:
+		if chosen.is_combat_ready:
+			rts_controller.select_soldier(chosen)
+		else:
+			rts_controller.select_villager(chosen)
+	else:
+		for c in valid_claylings:
+			c.set_selected(c == chosen)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -1346,12 +1352,12 @@ func _unhandled_input(event: InputEvent) -> void:
 						clayling_ui.show_clayling(c)
 				else:
 					if rts_controller:
-						rts_controller.deselect_all_soldiers()
+						rts_controller.select_villager(c)
+					else:
+						c.set_selected(true)
 					var clayling_ui = get_tree().get_first_node_in_group("clayling_info_panel")
 					if clayling_ui and clayling_ui.has_method("show_clayling"):
 						clayling_ui.show_clayling(c)
-					if c.has_method("play_voice"):
-						c.play_voice("interrogation")
 
 				if radial_menu and radial_menu.visible:
 					radial_menu.hide()
@@ -1359,7 +1365,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 			elif winner.type == "building":
 				if rts_controller:
-					rts_controller.deselect_all_soldiers()
+					rts_controller.deselect_all()
 				radial_menu.open(winner.node)
 				get_viewport().set_input_as_handled()
 				return
@@ -1375,6 +1381,104 @@ func get_grid_position(global_pos: Vector2) -> Vector2i:
 func get_world_position(pos: Vector2i) -> Vector2:
 	var global_pos = Vector2(pos.x * 16, pos.y * 16)
 	return global_pos
+
+# Resolves contextual interactable entity or tile under world_pos for micromanagement orders
+func find_context_target_at(world_pos: Vector2) -> Dictionary:
+	# 1. Weapon Racks
+	for r in get_tree().get_nodes_in_group("weapon_racks"):
+		if is_instance_valid(r) and not r.get("is_preview"):
+			if r.global_position.distance_to(world_pos) <= 20.0:
+				return {"type": "weapon_rack", "node": r}
+
+	# 2. Ground Items
+	var best_item: Node2D = null
+	var best_item_dist: float = 18.0
+	for item in get_tree().get_nodes_in_group("ground_items"):
+		if is_instance_valid(item) and item.visible and item.quantity > 0:
+			var d = item.global_position.distance_to(world_pos)
+			if d < best_item_dist:
+				best_item_dist = d
+				best_item = item
+	if best_item:
+		return {"type": "ground_item", "node": best_item}
+
+	# 3. Blueprints
+	for b in get_tree().get_nodes_in_group("crafting_buildings"):
+		if is_instance_valid(b) and not b.get("is_preview") and b is Blueprint:
+			var size_tiles: Vector2i = b.size_in_tiles if "size_in_tiles" in b else Vector2i(1, 1)
+			var offset = Vector2((size_tiles.x * 16.0) / 2.0, size_tiles.y * 16.0)
+			var b_rect = Rect2(b.global_position - offset, Vector2(size_tiles.x * 16.0, size_tiles.y * 16.0))
+			if b_rect.has_point(world_pos) or b.global_position.distance_to(world_pos) <= 18.0:
+				return {"type": "blueprint", "node": b}
+
+	# 4. Crafting Buildings
+	for b in get_tree().get_nodes_in_group("crafting_buildings"):
+		if is_instance_valid(b) and not b.get("is_preview") and not (b is Blueprint):
+			var size_tiles: Vector2i = b.size_in_tiles if "size_in_tiles" in b else Vector2i(1, 1)
+			var offset = Vector2((size_tiles.x * 16.0) / 2.0, size_tiles.y * 16.0)
+			var b_rect = Rect2(b.global_position - offset, Vector2(size_tiles.x * 16.0, size_tiles.y * 16.0))
+			if b_rect.has_point(world_pos) or b.global_position.distance_to(world_pos) <= 18.0:
+				return {"type": "crafting_building", "node": b}
+
+	# 5. Storage Buildings
+	for s in get_tree().get_nodes_in_group("storage"):
+		if is_instance_valid(s) and not s.get("is_preview"):
+			var size_tiles: Vector2i = s.size_in_tiles if "size_in_tiles" in s else Vector2i(1, 1)
+			var offset = Vector2((size_tiles.x * 16.0) / 2.0, size_tiles.y * 16.0)
+			var s_rect = Rect2(s.global_position - offset, Vector2(size_tiles.x * 16.0, size_tiles.y * 16.0))
+			if s_rect.has_point(world_pos) or s.global_position.distance_to(world_pos) <= 18.0:
+				return {"type": "storage", "node": s}
+
+	# 6. Trees
+	var best_tree: Node2D = null
+	var best_tree_dist: float = 24.0
+	for t in get_tree().get_nodes_in_group("trees"):
+		if is_instance_valid(t) and not t.is_in_group("saplings") and not t.is_queued_for_deletion():
+			var d = t.global_position.distance_to(world_pos)
+			if d < best_tree_dist:
+				best_tree_dist = d
+				best_tree = t
+	if best_tree:
+		return {"type": "tree", "node": best_tree}
+
+	# 7. Rocks & Ores
+	var best_rock: Node2D = null
+	var best_rock_dist: float = 22.0
+	var rock_candidates = get_tree().get_nodes_in_group("rocks") + get_tree().get_nodes_in_group("ores")
+	for r in rock_candidates:
+		if is_instance_valid(r) and not r.is_queued_for_deletion():
+			var d = r.global_position.distance_to(world_pos)
+			if d < best_rock_dist:
+				best_rock_dist = d
+				best_rock = r
+	if best_rock:
+		return {"type": "rock", "node": best_rock}
+
+	# 8. Wild Plants
+	var best_plant: Node2D = null
+	var best_plant_dist: float = 20.0
+	for p in get_tree().get_nodes_in_group("plants"):
+		if is_instance_valid(p) and not p.is_queued_for_deletion():
+			var d = p.global_position.distance_to(world_pos)
+			if d < best_plant_dist:
+				best_plant_dist = d
+				best_plant = p
+	if best_plant:
+		return {"type": "plant", "node": best_plant}
+
+	# 9. Farm Tiles (Crops & Soil)
+	var tile_pos = get_grid_position(world_pos)
+	if crops_dic.has(tile_pos):
+		if crops_dic[tile_pos].get("duration", 0.0) < 0:
+			return {"type": "farm_harvest", "pos": tile_pos}
+	if water_level.has(tile_pos):
+		if water_level[tile_pos] < 5.0:
+			return {"type": "farm_water", "pos": tile_pos}
+		elif not crops_dic.has(tile_pos):
+			return {"type": "farm_plant", "pos": tile_pos}
+
+	# 10. Default ground
+	return {"type": "ground", "target_position": world_pos}
 
 func _physics_process(delta: float) -> void:
 	assign_cooldown -= delta

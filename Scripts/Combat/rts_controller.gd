@@ -332,6 +332,8 @@ func _execute_line_formation(start_pos: Vector2, end_pos: Vector2, points: Array
 	for i in range(count):
 		var target_pt = points[i]
 		var u = sorted_units[i]
+		if is_instance_valid(u) and not u.is_inventory_empty():
+			u.drop_item(-1, true)
 		if u.get("is_combat_ready"):
 			u.command_move(target_pt, forward_facing)
 		else:
@@ -386,6 +388,9 @@ func command_move_selected(target_pos: Vector2) -> void:
 	var nav_map = get_world_2d().navigation_map
 
 	for i in range(count):
+		var s = soldiers[i]
+		if is_instance_valid(s) and not s.is_inventory_empty():
+			s.drop_item(-1, true)
 		var offset = Vector2.ZERO
 		if count > 1:
 			var angle = (TAU / count) * i
@@ -395,7 +400,7 @@ func command_move_selected(target_pos: Vector2) -> void:
 			var valid_dest = NavigationServer2D.map_get_closest_point(nav_map, dest)
 			if valid_dest != Vector2.ZERO and valid_dest.distance_to(dest) < 32.0:
 				dest = valid_dest
-		soldiers[i].command_move(dest)
+		s.command_move(dest)
 
 	_play_squad_voice(soldiers, "affirmation")
 	_spawn_move_marker(target_pos)
@@ -406,6 +411,8 @@ func command_attack_selected(target_enemy: Node2D) -> void:
 		return
 
 	for s in soldiers:
+		if is_instance_valid(s) and not s.is_inventory_empty():
+			s.drop_item(-1, true)
 		s.command_attack(target_enemy)
 
 	_play_squad_voice(soldiers, "affirmation")
@@ -450,6 +457,9 @@ func command_move_villagers(target_pos: Vector2) -> void:
 	var nav_map = get_world_2d().navigation_map
 
 	for i in range(count):
+		var v = villagers[i]
+		if is_instance_valid(v) and not v.is_inventory_empty():
+			v.drop_item(-1, true)
 		var offset = Vector2.ZERO
 		if count > 1:
 			var angle = (TAU / count) * i
@@ -459,7 +469,7 @@ func command_move_villagers(target_pos: Vector2) -> void:
 			var valid_dest = NavigationServer2D.map_get_closest_point(nav_map, dest)
 			if valid_dest != Vector2.ZERO and valid_dest.distance_to(dest) < 32.0:
 				dest = valid_dest
-		villagers[i].assign_task("Move", {"target_position": dest})
+		v.assign_task("Move", {"target_position": dest})
 
 	_play_squad_voice(villagers, "affirmation")
 	_spawn_action_marker(target_pos, Color(0.2, 1.0, 0.4))
@@ -475,6 +485,12 @@ func _execute_villager_order(target_pos: Vector2) -> void:
 
 	var target_data = world.find_context_target_at(target_pos)
 	var target_type = target_data.get("type", "ground")
+
+	# Drop carried items on player order unless the order is hauling to storage
+	if target_type != "storage":
+		for v in villagers:
+			if is_instance_valid(v) and not v.is_inventory_empty():
+				v.drop_item(-1, true)
 
 	match target_type:
 		"tree":

@@ -364,6 +364,9 @@ func try_equip_from_rack(rack_node) -> bool:
 	return false
 
 func _apply_kit(kit_data: Dictionary) -> void:
+	if not is_inventory_empty():
+		drop_item(-1, true)
+
 	equipped_kit = kit_data.get("kit_resource", null)
 	if equipped_kit:
 		role = equipped_kit.kit_id
@@ -454,6 +457,8 @@ func unequip_at_rack(rack_node: Node2D = null) -> bool:
 func command_move(target_pos: Vector2, target_facing: Vector2 = Vector2.ZERO) -> void:
 	if not is_combat_ready:
 		return
+	if not is_inventory_empty():
+		drop_item(-1, true)
 	guard_position = target_pos
 	if target_facing != Vector2.ZERO:
 		formation_facing = target_facing
@@ -466,6 +471,8 @@ func command_move(target_pos: Vector2, target_facing: Vector2 = Vector2.ZERO) ->
 func command_attack(enemy_node: Node2D) -> void:
 	if not is_combat_ready:
 		return
+	if not is_inventory_empty():
+		drop_item(-1, true)
 	guard_position = Vector2.ZERO # Clear previous guard post so the soldier chases without leash
 	change_state("SoldierMove", { 
 		"target_enemy": enemy_node,
